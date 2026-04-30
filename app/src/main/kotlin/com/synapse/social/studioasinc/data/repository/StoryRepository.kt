@@ -136,73 +136,19 @@ class StoryRepositoryImpl @Inject constructor(
                     }
                     order("created_at", Order.DESCENDING)
                 }
-                .decodeList<JsonObject>()
+                .decodeList<StoryWithUserDto>()
 
 
             val storiesByUser = mutableMapOf<String, MutableList<Story>>()
             val usersMap = mutableMapOf<String, User>()
 
-            for (storyJson in stories) {
-                val userId = storyJson["user_id"]?.let { if (it is kotlinx.serialization.json.JsonPrimitive) it else null }?.content ?: continue
+            for (dto in stories) {
+                val story = dto.toDomain()
+                storiesByUser.getOrPut(dto.userId) { mutableListOf() }.add(story)
 
-                val story = Story(
-                    id = storyJson["id"]?.let { if (it is kotlinx.serialization.json.JsonPrimitive) it else null }?.content,
-                    userId = userId,
-                    mediaUrl = storyJson["media_url"]?.let { if (it is kotlinx.serialization.json.JsonPrimitive) it else null }?.content,
-                    mediaType = try {
-                        storyJson["media_type"]?.let { if (it is kotlinx.serialization.json.JsonPrimitive) it else null }?.content?.let {
-                            StoryMediaType.valueOf(it.uppercase())
-                        }
-                    } catch (e: CancellationException) {
-            throw e
-        } catch (e: Exception) { null },
-                    content = storyJson["content"]?.let { if (it is kotlinx.serialization.json.JsonPrimitive) it else null }?.content,
-                    duration = storyJson["duration"]?.let { if (it is kotlinx.serialization.json.JsonPrimitive) it else null }?.content?.toIntOrNull(),
-                    durationHours = storyJson["duration_hours"]?.let { if (it is kotlinx.serialization.json.JsonPrimitive) it else null }?.content?.toIntOrNull(),
-                    privacy = try {
-                        storyJson["privacy_setting"]?.let { if (it is kotlinx.serialization.json.JsonPrimitive) it else null }?.content?.let {
-                            when(it) {
-                                "followers" -> StoryPrivacy.FOLLOWERS
-                                "public" -> StoryPrivacy.PUBLIC
-                                else -> null
-                            }
-                        }
-                    } catch (e: CancellationException) {
-            throw e
-        } catch (e: Exception) { null },
-                    viewCount = storyJson["views_count"]?.let { if (it is kotlinx.serialization.json.JsonPrimitive) it else null }?.content?.toIntOrNull(),
-                    isActive = storyJson["is_active"]?.let { if (it is kotlinx.serialization.json.JsonPrimitive) it else null }?.content?.toBooleanStrictOrNull(),
-                    thumbnailUrl = storyJson["thumbnail_url"]?.let { if (it is kotlinx.serialization.json.JsonPrimitive) it else null }?.content,
-                    mediaWidth = storyJson["media_width"]?.let { if (it is kotlinx.serialization.json.JsonPrimitive) it else null }?.content?.toIntOrNull(),
-                    mediaHeight = storyJson["media_height"]?.let { if (it is kotlinx.serialization.json.JsonPrimitive) it else null }?.content?.toIntOrNull(),
-                    mediaDurationSeconds = storyJson["media_duration_seconds"]?.let { if (it is kotlinx.serialization.json.JsonPrimitive) it else null }?.content?.toIntOrNull(),
-                    fileSizeBytes = storyJson["file_size_bytes"]?.let { if (it is kotlinx.serialization.json.JsonPrimitive) it else null }?.content?.toLongOrNull(),
-                    reactionsCount = storyJson["reactions_count"]?.let { if (it is kotlinx.serialization.json.JsonPrimitive) it else null }?.content?.toIntOrNull(),
-                    repliesCount = storyJson["replies_count"]?.let { if (it is kotlinx.serialization.json.JsonPrimitive) it else null }?.content?.toIntOrNull(),
-                    isReported = storyJson["is_reported"]?.let { if (it is kotlinx.serialization.json.JsonPrimitive) it else null }?.content?.toBooleanStrictOrNull(),
-                    moderationStatus = storyJson["moderation_status"]?.let { if (it is kotlinx.serialization.json.JsonPrimitive) it else null }?.content,
-                    createdAt = storyJson["created_at"]?.let { if (it is kotlinx.serialization.json.JsonPrimitive) it else null }?.content,
-                    expiresAt = storyJson["expires_at"]?.let { if (it is kotlinx.serialization.json.JsonPrimitive) it else null }?.content
-                )
-
-                storiesByUser.getOrPut(userId) { mutableListOf() }.add(story)
-
-
-                if (!usersMap.containsKey(userId)) {
-                    val userJson = storyJson["users"] as? JsonObject
-                    if (userJson != null) {
-                        val avatarPath = userJson["avatar"]?.let { if (it is kotlinx.serialization.json.JsonPrimitive) it else null }?.content
-                        val avatarUrl = avatarPath?.let { path ->
-                            if (path.startsWith("http")) path else SupabaseClient.constructAvatarUrl(path)
-                        }
-                        usersMap[userId] = User(
-                            id = userJson["id"]?.let { if (it is kotlinx.serialization.json.JsonPrimitive) it else null }?.content,
-                            uid = userJson["uid"]?.let { if (it is kotlinx.serialization.json.JsonPrimitive) it else null }?.content ?: userId,
-                            username = userJson["username"]?.let { if (it is kotlinx.serialization.json.JsonPrimitive) it else null }?.content,
-                            displayName = userJson["display_name"]?.let { if (it is kotlinx.serialization.json.JsonPrimitive) it else null }?.content,
-                            avatar = avatarUrl,
-                            verify = userJson["verify"]?.let { if (it is kotlinx.serialization.json.JsonPrimitive) it else null }?.content?.toBooleanStrictOrNull() ?: false
-                        )
+                if (!usersMap.containsKey(dto.userId)) {
+                    dto.user?.let {
+                        usersMap[dto.userId] = it.toDomain(dto.userId)
                     }
                 }
             }
@@ -379,33 +325,9 @@ class StoryRepositoryImpl @Inject constructor(
                 }
                 order("viewed_at", Order.DESCENDING)
             }
-            .decodeList<JsonObject>()
+            .decodeList<StoryViewWithUserDto>()
 
-        val result = views.mapNotNull { viewJson ->
-            val storyView = StoryView(
-                id = viewJson["id"]?.let { if (it is kotlinx.serialization.json.JsonPrimitive) it else null }?.content,
-                storyId = viewJson["story_id"]?.let { if (it is kotlinx.serialization.json.JsonPrimitive) it else null }?.content ?: return@mapNotNull null,
-                viewerId = viewJson["viewer_id"]?.let { if (it is kotlinx.serialization.json.JsonPrimitive) it else null }?.content ?: return@mapNotNull null,
-                viewedAt = viewJson["viewed_at"]?.let { if (it is kotlinx.serialization.json.JsonPrimitive) it else null }?.content
-            )
-
-            val userJson = viewJson["users"] as? JsonObject
-            val viewer = userJson?.let {
-                val avatarPath = it["avatar"]?.let { if (it is kotlinx.serialization.json.JsonPrimitive) it else null }?.content
-                val avatarUrl = avatarPath?.let { path ->
-                    if (path.startsWith("http")) path else SupabaseClient.constructAvatarUrl(path)
-                }
-                User(
-                    id = it["id"]?.let { if (it is kotlinx.serialization.json.JsonPrimitive) it else null }?.content,
-                    uid = it["uid"]?.let { if (it is kotlinx.serialization.json.JsonPrimitive) it else null }?.content ?: storyView.viewerId,
-                    username = it["username"]?.let { if (it is kotlinx.serialization.json.JsonPrimitive) it else null }?.content,
-                    displayName = it["display_name"]?.let { if (it is kotlinx.serialization.json.JsonPrimitive) it else null }?.content,
-                    avatar = avatarUrl
-                )
-            }
-
-            StoryViewWithUser(storyView = storyView, viewer = viewer)
-        }
+        val result = views.map { it.toDomain() }
 
         Result.success(result)
     } catch (e: CancellationException) {
