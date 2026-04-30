@@ -1,6 +1,7 @@
 import Combine
 import Foundation
 import shared
+import OSLog
 
 @MainActor
 class ChatViewModel: ObservableObject {
@@ -29,6 +30,7 @@ class ChatViewModel: ObservableObject {
     private var typingCancellable: AnyCancellable? = nil
     
     private let currentUserId = "my_user_id" 
+    private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "com.synapse.social", category: "ChatViewModel")
 
     init(
         getMessagesUseCase: shared.GetMessagesUseCase? = KMPHelper.sharedHelper.getMessagesUseCase,
@@ -136,7 +138,7 @@ class ChatViewModel: ObservableObject {
                     }
                 }
             } catch {
-                print("Flow collection failed: \(error)")
+                logger.error("Flow collection failed: \(error.localizedDescription)")
             }
         }
     }
@@ -154,7 +156,7 @@ class ChatViewModel: ObservableObject {
                     }
                 }
             } catch {
-                print("Typing status flow collection failed: \(error)")
+                logger.error("Typing status flow collection failed: \(error.localizedDescription)")
             }
         }
     }
@@ -172,7 +174,7 @@ class ChatViewModel: ObservableObject {
                     }
                 }
             } catch {
-                print("Reaction flow collection failed: \(error)")
+                logger.error("Reaction flow collection failed: \(error.localizedDescription)")
             }
         }
     }
