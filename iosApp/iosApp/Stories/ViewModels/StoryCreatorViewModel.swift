@@ -11,6 +11,10 @@ class StoryCreatorViewModel: ObservableObject {
     @Published var error: String? = nil
     @Published var isStoryPosted: Bool = false
 
+    @Published var uploadProgress: Double = 0.0
+    @Published var selectedDuration: Int = 15 // seconds
+    @Published var selectedPrivacy: shared.StoryPrivacy = .public
+
     // Caching media resources so the view doesn't recreate them every render cycle
     @Published var cachedImage: UIImage? = nil
     var cachedPlayer: AVPlayer? = nil
@@ -66,7 +70,13 @@ class StoryCreatorViewModel: ObservableObject {
                     filePath: url.path,
                     mediaType: mediaType,
                     bucketName: "stories",
-                    onProgress: { _ in }
+                    onProgress: { progressResult in
+                        if let progressValue = progressResult as? Double {
+                            DispatchQueue.main.async {
+                                self.uploadProgress = progressValue
+                            }
+                        }
+                    }
                 )
 
                 // Kotlin's Result automatically unboxes in Swift
