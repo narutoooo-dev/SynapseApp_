@@ -78,7 +78,6 @@ struct LoginView: View {
 
                 Spacer()
 
-                // Social login placeholders
                 Text("Or log in with")
                     .font(.caption)
                     .foregroundColor(.gray)

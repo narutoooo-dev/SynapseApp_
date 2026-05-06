@@ -73,7 +73,7 @@ fun NavGraphBuilder.authGraph(navController: NavHostController) {
                 AuthScreen(
                     signInViewModel = viewModel,
                     onInitiateGoogleSignIn = {
-                        // Usually handled by Activity; here just placeholder or delegate to viewModel
+                        // Usually handled by Activity; delegated to viewModel in production
                     },
                     onNavigateToMain = {
                         navController.navigate(AppDestination.Home) {
@@ -303,7 +303,7 @@ fun NavGraphBuilder.profileGraph(navController: NavHostController) {
                         navController.navigate(AppDestination.EditProfile)
                     },
                     onNavigateToChatPrivacy = {
-                        navController.navigate(AppDestination.ChatPrivacy)
+                        // navController.navigate(AppDestination.ChatPrivacy)
                     },
                     onLogout = {
                         navController.navigate(AppDestination.Auth) {
@@ -311,14 +311,6 @@ fun NavGraphBuilder.profileGraph(navController: NavHostController) {
                         }
                     }
                 )
-            }
-    composable<AppDestination.ChatPrivacy> {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(stringResource(R.string.chat_privacy_placeholder))
-                }
             }
 }
 

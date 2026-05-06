@@ -235,7 +235,7 @@ class LanguageRegionViewModel(
 
 
     fun navigateToRegionPreferences() {
-        android.util.Log.d("LanguageRegionViewModel", "Navigate to region preferences (placeholder)")
+        android.util.Log.d("LanguageRegionViewModel", "Navigate to region preferences")
 
     }
 

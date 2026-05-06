@@ -270,9 +270,6 @@
     <string name="status_text_month">month ago</string>
     <string name="status_text_years">year ago</string>
     <!-- Placeholder texts -->
-    <string name="placeholder_button_text">Button Text</string>
-    <string name="placeholder_title">Title</string>
-    <string name="placeholder_subtitle">Subtitle</string>
     <string name="text_copied_toast">Text copied</string>
     <string name="no_text_to_copy">No text to copy</string>
     <string name="share_post_subject">Share post</string>
@@ -999,7 +996,6 @@ Please explain the following message from %3$s in detail, considering the contex
     <string name="report_user_title">Report User</string>
     
     <!-- Chat Privacy -->
-    <string name="chat_privacy_placeholder">Chat Privacy Settings (To be implemented)</string>
     
     <!-- Synapse Plus -->
     <string name="synapse_plus_title">Synapse Plus</string>

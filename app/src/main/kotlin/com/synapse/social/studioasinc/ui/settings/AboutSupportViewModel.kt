@@ -107,7 +107,7 @@ class AboutSupportViewModel(
 
 
     fun navigateToLicenses() {
-        android.util.Log.d("AboutSupportViewModel", "Navigate to Open Source Licenses (placeholder)")
+        android.util.Log.d("AboutSupportViewModel", "Navigate to Open Source Licenses")
 
     }
 
