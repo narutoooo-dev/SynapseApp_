@@ -152,13 +152,10 @@ private fun UserSelectionItem(
             .padding(Spacing.Medium),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        AsyncImage(
-            model = user.avatar ?: "",
-            contentDescription = null,
-            modifier = Modifier
-                .size(Sizes.IconMassive)
-                .clip(CircleShape),
-            contentScale = ContentScale.Crop
+        com.synapse.social.studioasinc.feature.shared.components.UserAvatar(
+            avatarUrl = user.avatar,
+            displayName = user.displayName ?: user.username,
+            size = Sizes.IconMassive
         )
         Spacer(modifier = Modifier.width(Spacing.Medium))
         Text(
@@ -187,13 +184,10 @@ private fun SelectedUserItem(
         modifier = Modifier.width(Sizes.AvatarLarge)
     ) {
         Box {
-            AsyncImage(
-                model = user.avatar ?: "",
-                contentDescription = null,
-                modifier = Modifier
-                    .size(Sizes.AvatarDefault)
-                    .clip(CircleShape),
-                contentScale = ContentScale.Crop
+            com.synapse.social.studioasinc.feature.shared.components.UserAvatar(
+                avatarUrl = user.avatar,
+                displayName = user.displayName ?: user.username,
+                size = Sizes.AvatarDefault
             )
             Surface(
                 shape = CircleShape,

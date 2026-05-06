@@ -10,6 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.Dp
 import coil.compose.AsyncImage
@@ -18,18 +19,20 @@ import coil.compose.AsyncImage
 fun UserAvatar(
     avatarUrl: String?,
     size: Dp,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    displayName: String? = null,
+    shape: Shape = CircleShape
 ) {
     if (avatarUrl.isNullOrBlank()) {
         Box(
             modifier = modifier
                 .size(size)
-                .clip(CircleShape)
+                .clip(shape)
                 .background(MaterialTheme.colorScheme.primaryContainer),
             contentAlignment = Alignment.Center
         ) {
             Text(
-                text = "?",
+                text = displayName?.firstOrNull { it.isLetterOrDigit() }?.uppercaseChar()?.toString() ?: displayName?.firstOrNull()?.uppercaseChar()?.toString() ?: "?",
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onPrimaryContainer
             )
@@ -40,7 +43,7 @@ fun UserAvatar(
             contentDescription = "User avatar",
             modifier = modifier
                 .size(size)
-                .clip(CircleShape),
+                .clip(shape),
             contentScale = ContentScale.Crop
         )
     }

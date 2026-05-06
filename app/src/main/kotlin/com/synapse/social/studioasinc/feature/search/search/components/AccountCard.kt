@@ -58,19 +58,10 @@ fun AccountCard(
             .padding(horizontal = Spacing.Medium, vertical = Spacing.SmallMedium),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        AsyncImage(
-            model = ImageRequest.Builder(LocalContext.current)
-                .data(account.avatarUrl)
-                .crossfade(true)
-                .build(),
-            contentDescription = null,
-            contentScale = ContentScale.Crop,
-            placeholder = rememberVectorPainter(Icons.Filled.Person),
-            error = rememberVectorPainter(Icons.Filled.Person),
-            modifier = Modifier
-                .size(Sizes.IconGiant)
-                .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.surfaceVariant)
+        com.synapse.social.studioasinc.feature.shared.components.UserAvatar(
+            avatarUrl = account.avatarUrl,
+            displayName = account.displayName ?: account.handle,
+            size = Sizes.IconGiant
         )
 
         Spacer(modifier = Modifier.width(Spacing.Medium))

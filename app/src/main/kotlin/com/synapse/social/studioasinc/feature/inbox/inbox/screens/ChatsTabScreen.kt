@@ -272,14 +272,11 @@ private fun ConversationItem(
     ) {
         // Avatar with online indicator
         Box {
-            AsyncImage(
-                model = conversation.participantAvatar,
-                contentDescription = null,
+            com.synapse.social.studioasinc.feature.shared.components.UserAvatar(
+                avatarUrl = conversation.participantAvatar,
+                displayName = conversation.participantName,
+                size = InboxTheme.dimens.AvatarSize,
                 modifier = Modifier
-                    .size(InboxTheme.dimens.AvatarSize)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.surfaceVariant, CircleShape),
-                contentScale = ContentScale.Crop
             )
             if (conversation.isOnline) {
                 Box(

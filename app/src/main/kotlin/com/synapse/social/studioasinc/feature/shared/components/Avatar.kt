@@ -1,19 +1,20 @@
 package com.synapse.social.studioasinc.ui.components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Person
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
-import com.synapse.social.studioasinc.R
 
 @Composable
 fun CircularAvatar(
@@ -21,6 +22,7 @@ fun CircularAvatar(
     contentDescription: String?,
     modifier: Modifier = Modifier,
     size: Dp = 48.dp,
+    displayName: String? = null,
     onClick: (() -> Unit)? = null
 ) {
     val imageModifier = modifier
@@ -28,21 +30,24 @@ fun CircularAvatar(
         .clip(CircleShape)
         .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
 
-    if (imageUrl != null) {
+    if (!imageUrl.isNullOrBlank()) {
         AsyncImage(
             model = imageUrl,
             contentDescription = contentDescription,
             modifier = imageModifier,
-            contentScale = ContentScale.Crop,
-            placeholder = rememberVectorPainter(Icons.Filled.Person),
-            error = rememberVectorPainter(Icons.Filled.Person)
-        )
-    } else {
-        androidx.compose.foundation.Image(
-            painter = rememberVectorPainter(Icons.Filled.Person),
-            contentDescription = contentDescription,
-            modifier = imageModifier,
             contentScale = ContentScale.Crop
         )
+    } else {
+        Box(
+            modifier = imageModifier
+                .background(MaterialTheme.colorScheme.primaryContainer),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = displayName?.firstOrNull { it.isLetterOrDigit() }?.uppercaseChar()?.toString() ?: displayName?.firstOrNull()?.uppercaseChar()?.toString() ?: "?",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onPrimaryContainer
+            )
+        }
     }
 }

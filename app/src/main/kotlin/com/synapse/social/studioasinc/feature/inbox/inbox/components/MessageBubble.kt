@@ -641,17 +641,11 @@ fun MessageBubble(
 
         if (isFromMe && (position == GroupPosition.LAST || position == GroupPosition.SINGLE)
             && message.deliveryStatus == DeliveryStatus.READ) {
-            AsyncImage(
-                model = senderAvatarUrl,
-                contentDescription = stringResource(R.string.chat_cd_reader_avatar),
-                contentScale = ContentScale.Crop,
-                placeholder = rememberVectorPainter(Icons.Filled.Person),
-                error = rememberVectorPainter(Icons.Filled.Person),
-                modifier = Modifier
-                    .padding(top = Spacing.Tiny)
-                    .size(Sizes.AvatarTiny)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.surfaceVariant)
+            com.synapse.social.studioasinc.feature.shared.components.UserAvatar(
+                avatarUrl = senderAvatarUrl,
+                displayName = null,
+                size = Sizes.AvatarTiny,
+                modifier = Modifier.padding(top = Spacing.Tiny)
             )
         }
 

@@ -32,20 +32,19 @@ fun ChatIntroHeader(
             .padding(vertical = Spacing.ExtraLarge, horizontal = Spacing.Medium),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        AsyncImage(
-            model = avatarUrl,
-            contentDescription = stringResource(id = R.string.cd_profile_picture),
-            contentScale = ContentScale.Crop,
-            modifier = Modifier
-                .size(96.dp)
-                .clip(RoundedCornerShape(20.dp))
+        val rawName = participantProfile?.displayName ?: participantProfile?.name
+            ?: participantProfile?.username?.replace("_", " ")?.split(" ")?.joinToString(" ") { it.replaceFirstChar { c -> c.uppercase() } }
+            ?: initialParticipantName ?: ""
+
+        com.synapse.social.studioasinc.feature.shared.components.UserAvatar(
+            avatarUrl = avatarUrl,
+            displayName = rawName,
+            size = 96.dp,
+            shape = RoundedCornerShape(20.dp)
         )
 
         Spacer(modifier = Modifier.height(Spacing.Medium))
 
-        val rawName = participantProfile?.displayName ?: participantProfile?.name
-            ?: participantProfile?.username?.replace("_", " ")?.split(" ")?.joinToString(" ") { it.replaceFirstChar { c -> c.uppercase() } }
-            ?: initialParticipantName ?: ""
         Text(
             text = rawName,
             style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
