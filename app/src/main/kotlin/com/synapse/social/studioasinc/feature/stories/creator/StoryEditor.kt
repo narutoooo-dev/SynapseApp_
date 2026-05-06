@@ -130,6 +130,7 @@ internal fun StoryEditor(
             onToggleDrawingMode = { isDrawingMode = !isDrawingMode },
             onAddText = { viewModel.addTextOverlay() },
             onAddSticker = { showStickerPicker = true },
+            onCycleScaleMode = { viewModel.cycleContentScale() },
             modifier = Modifier.align(Alignment.TopCenter)
         )
 
