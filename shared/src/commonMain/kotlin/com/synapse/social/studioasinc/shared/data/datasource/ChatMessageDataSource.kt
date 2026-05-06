@@ -22,22 +22,26 @@ internal class ChatMessageDataSource(private val client: SupabaseClientLib) {
 
     private fun getCurrentUserId(): String? = client.auth.currentUserOrNull()?.id
 
-    suspend fun getMessages(chatId: String, limit: Int = 50, before: String? = null): List<MessageDto> =
+    suspend fun getMessages(chatId: String, limit: Int = 50, before: String? = null, beforeId: String? = null): List<MessageDto> =
         withContext(AppDispatchers.IO) {
             try {
                 client.postgrest.from("messages").select {
                     filter {
                         eq("chat_id", chatId)
                         eq("is_deleted", false)
-                    or {
-                        filter("expires_at", FilterOperator.IS, "null")
-                        gt("expires_at", kotlinx.datetime.Clock.System.now().toString())
+                        or {
+                            filter("expires_at", FilterOperator.IS, "null")
+                            gt("expires_at", kotlinx.datetime.Clock.System.now().toString())
+                        }
+                        if (before != null && beforeId != null) {
+                            lte("created_at", before)
+                            neq("id", beforeId)
+                        } else if (before != null) {
+                            lt("created_at", before)
+                        }
                     }
-                    if (before != null) {
-                        lt("created_at", before)
-                    }
-                }
                     order("created_at", Order.DESCENDING)
+                    order("id", Order.DESCENDING)
                     limit(limit.toLong())
                 }.decodeList<MessageDto>().reversed()
             } catch (e: Exception) {

@@ -339,10 +339,12 @@ class ChatViewModel @Inject constructor(
     fun loadMoreMessages() {
         val chatId = currentChatId ?: return
         if (_isLoadingMore.value || !_hasMoreMessages.value) return
-        val oldest = messagingDelegate.messages.value.firstOrNull()?.createdAt ?: return
+        val oldestMessage = messagingDelegate.messages.value.firstOrNull() ?: return
+        val oldest = oldestMessage.createdAt
+        val oldestId = oldestMessage.id
         _isLoadingMore.value = true
         viewModelScope.launch {
-            getMessagesUseCase(chatId, before = oldest).onSuccess { older ->
+            getMessagesUseCase(chatId, before = oldest, beforeId = oldestId).onSuccess { older ->
                 if (older.isEmpty()) {
                     _hasMoreMessages.value = false
                 } else {
@@ -537,6 +539,7 @@ class ChatViewModel @Inject constructor(
         subscriptionDelegate.cleanup()
         inputDelegate.cleanup()
         messagingDelegate.pendingTempIds.value = emptySet()
+        _hasMoreMessages.value = true
     }
 
     override fun onCleared() {

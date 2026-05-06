@@ -64,8 +64,8 @@ internal fun ChatMessageList(
             val info = listState.layoutInfo
             val total = info.totalItemsCount
             if (total < 5) return@derivedStateOf false
-            val lastVisible = info.visibleItemsInfo.lastOrNull()?.index ?: 0
-            lastVisible >= total - 3
+            val highestVisibleIndex = info.visibleItemsInfo.maxOfOrNull { it.index } ?: 0
+            highestVisibleIndex >= total - 3
         }
     }
     LaunchedEffect(shouldLoadMore.value) {
