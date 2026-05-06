@@ -22,10 +22,12 @@ import com.synapse.social.studioasinc.feature.inbox.inbox.components.GroupPositi
 import com.synapse.social.studioasinc.feature.inbox.inbox.components.MessageBubble
 import com.synapse.social.studioasinc.feature.inbox.inbox.components.UnreadDividerRow
 import com.synapse.social.studioasinc.feature.inbox.inbox.components.isWithinTimeThreshold
+import com.synapse.social.studioasinc.feature.inbox.inbox.components.TypingIndicator
 import com.synapse.social.studioasinc.feature.inbox.inbox.models.ChatListItem
 import com.synapse.social.studioasinc.feature.shared.theme.Sizes
 import com.synapse.social.studioasinc.feature.shared.theme.Spacing
 import com.synapse.social.studioasinc.shared.domain.model.chat.Message
+import com.synapse.social.studioasinc.shared.domain.model.chat.TypingStatus
 import com.synapse.social.studioasinc.shared.domain.model.settings.ChatThemePreset
 import com.synapse.social.studioasinc.shared.domain.model.ReactionType as SharedReactionType
 
@@ -46,6 +48,7 @@ internal fun ChatMessageList(
     isGroupChat: Boolean,
     listState: LazyListState,
     isLoadingMore: Boolean,
+    typingStatus: TypingStatus?,
     onLoadMore: () -> Unit,
     onToggleSelection: (String) -> Unit,
     onSwipeToReply: (Message) -> Unit,
@@ -85,6 +88,12 @@ internal fun ChatMessageList(
         ),
         reverseLayout = true
     ) {
+        if (typingStatus != null && typingStatus.isTyping) {
+            item(key = "typing_indicator") {
+                TypingIndicator(modifier = Modifier.padding(bottom = Spacing.Small))
+            }
+        }
+
         val reversedItems = chatItems.reversed()
         itemsIndexed(reversedItems, key = { index, item ->
             when (item) {

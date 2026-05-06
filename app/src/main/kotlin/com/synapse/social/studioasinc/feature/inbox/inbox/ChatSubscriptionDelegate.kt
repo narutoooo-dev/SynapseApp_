@@ -30,6 +30,7 @@ class ChatSubscriptionDelegate(
     private var messageSubscriptionJob: Job? = null
     private var typingSubscriptionJob: Job? = null
     private var reactionSubscriptionJob: Job? = null
+    private var typingTimeoutJob: Job? = null
 
     val _typingStatus = MutableStateFlow<TypingStatus?>(null)
     val typingStatus: StateFlow<TypingStatus?> = _typingStatus.asStateFlow()
@@ -47,6 +48,16 @@ class ChatSubscriptionDelegate(
             subscribeToTypingStatusUseCase(chatId).collect { status ->
                 if (status.userId != currentUserIdProvider()) {
                     _typingStatus.value = if (status.isTyping) status else null
+
+                    if (status.isTyping) {
+                        typingTimeoutJob?.cancel()
+                        typingTimeoutJob = viewModelScope.launch {
+                            kotlinx.coroutines.delay(3000)
+                            _typingStatus.value = null
+                        }
+                    } else {
+                        typingTimeoutJob?.cancel()
+                    }
                 }
             }
         }
@@ -62,8 +73,11 @@ class ChatSubscriptionDelegate(
         messageSubscriptionJob?.cancel()
         typingSubscriptionJob?.cancel()
         reactionSubscriptionJob?.cancel()
+        typingTimeoutJob?.cancel()
         messageSubscriptionJob = null
         typingSubscriptionJob = null
         reactionSubscriptionJob = null
+        typingTimeoutJob = null
+        _typingStatus.value = null
     }
 }
