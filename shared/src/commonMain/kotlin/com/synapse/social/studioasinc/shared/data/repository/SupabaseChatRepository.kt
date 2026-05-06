@@ -131,14 +131,14 @@ class SupabaseChatRepository(
         }
     }
 
-    override suspend fun getMessages(chatId: String, limit: Int, before: String?): Result<List<Message>> = try {
+    override suspend fun getMessages(chatId: String, limit: Int, before: String?, beforeId: String?): Result<List<Message>> = try {
         val currentUserId = getCurrentUserId() ?: throw Exception("Not logged in")
         
         val cached = if (before == null) cachedMessageDao?.getMessages(chatId, limit) ?: emptyList() else emptyList()
         if (before == null && cached.isNotEmpty()) {
             externalScope.launch {
                 try {
-                    val fresh = dataSource.getMessages(chatId, limit, null)
+                    val fresh = dataSource.getMessages(chatId, limit, null, null)
                     val decrypted = fresh.map { with(encryptionHelper) { it.decryptIfNecessary(currentUserId).toDomain() } }
                     val latestCached = cachedMessageDao?.getMessages(chatId, limit * 2) ?: emptyList()
                     val mergedMessages = decrypted.map { freshMsg ->
@@ -157,7 +157,7 @@ class SupabaseChatRepository(
             }
             Result.success(cached)
         } else {
-            val messageDtos = dataSource.getMessages(chatId, limit, before)
+            val messageDtos = dataSource.getMessages(chatId, limit, before, beforeId)
             val decrypted = messageDtos.map { with(encryptionHelper) { it.decryptIfNecessary(currentUserId).toDomain() } }
 
             if (before == null) {

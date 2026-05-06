@@ -30,8 +30,8 @@ class SupabaseChatDataSource(private val client: SupabaseClientLib = SupabaseCli
     suspend fun getUnreadCount(chatId: String, lastReadAt: String?): Int =
         conversations.getUnreadCount(chatId, lastReadAt)
 
-    suspend fun getMessages(chatId: String, limit: Int = 50, before: String? = null): List<MessageDto> =
-        messages.getMessages(chatId, limit, before)
+    suspend fun getMessages(chatId: String, limit: Int = 50, before: String? = null, beforeId: String? = null): List<MessageDto> =
+        messages.getMessages(chatId, limit, before, beforeId)
 
     suspend fun sendMessage(
         chatId: String, 
