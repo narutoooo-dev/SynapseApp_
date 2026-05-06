@@ -19,10 +19,6 @@ class UploadProgressManager @Inject constructor(
 
         val title = "Uploading $fileName"
         NotificationHelper.showProgressNotification(context, notificationId, progress, title)
-
-        if (progress >= 100) {
-            uploadIds.remove(key)
-        }
     }
 
     fun showProgress(id: Int, percentage: Int, title: String) {
@@ -45,7 +41,7 @@ class UploadProgressManager @Inject constructor(
         val id = uploadIds.getOrPut(key) { notificationIdGenerator.incrementAndGet() }
         val progress = if (success) 100 else 0
         NotificationHelper.showProgressNotification(context, id, progress, title)
-        if (!success) uploadIds.remove(key)
+        uploadIds.remove(key)
     }
 
     fun dismissProgress(id: Int) {
