@@ -49,6 +49,29 @@ struct StoriesTrayView: View {
             }
             .padding(.vertical, 8)
         }
+        .overlay(
+            Group {
+                if let error = viewModel.error {
+                    HStack {
+                        Text(error)
+                            .font(.caption)
+                            .foregroundColor(.red)
+                            .lineLimit(1)
+                        Button(action: {
+                            viewModel.retryLoadStories()
+                        }) {
+                            Image(systemName: "arrow.clockwise")
+                                .font(.caption)
+                                .foregroundColor(.blue)
+                        }
+                    }
+                    .padding(8)
+                    .background(Color.black.opacity(0.7).cornerRadius(8))
+                } else if viewModel.isLoading && viewModel.stories.isEmpty && viewModel.myStory == nil {
+                    ProgressView()
+                }
+            }
+        )
         .fullScreenCover(isPresented: $showingCreator) {
             StoryCreatorScreen()
         }

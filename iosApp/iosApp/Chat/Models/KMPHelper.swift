@@ -26,6 +26,10 @@ class KMPHelper {
 
     let createStoryUseCase: shared.CreateStoryUseCase
     let getStoriesUseCase: shared.GetStoriesUseCase
+    let markStoryAsSeenUseCase: shared.MarkStoryAsSeenUseCase
+    let deleteStoryUseCase: shared.DeleteStoryUseCase
+
+    let getUserProfileUseCase: shared.GetUserProfileUseCase
 
     let sharedImageLoader: shared.SharedImageLoader
 
@@ -81,6 +85,11 @@ class KMPHelper {
         let storyRepository = shared.SupabaseStoryRepository()
         self.createStoryUseCase = shared.CreateStoryUseCase(repository: storyRepository)
         self.getStoriesUseCase = shared.GetStoriesUseCase(repository: storyRepository)
+        self.markStoryAsSeenUseCase = shared.MarkStoryAsSeenUseCase(repository: storyRepository)
+        self.deleteStoryUseCase = shared.DeleteStoryUseCase(repository: storyRepository)
+
+        let userRepository = shared.IOSDependencies.shared.getUserRepository()
+        self.getUserProfileUseCase = shared.GetUserProfileUseCase(userRepository: userRepository)
 
         self.sharedImageLoader = shared.SharedImageLoader(httpClient: shared.Ktor_client_coreHttpClient())
 

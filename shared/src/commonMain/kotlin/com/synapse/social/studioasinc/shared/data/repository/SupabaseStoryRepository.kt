@@ -51,4 +51,33 @@ class SupabaseStoryRepository : StoryRepository {
             throw Exception("Story creation failed: ${e.message ?: e::class.simpleName}", e)
         }
     }
+
+    override suspend fun markAsSeen(storyId: String, viewerId: String) {
+        try {
+            val view = mapOf(
+                "story_id" to storyId,
+                "viewer_id" to viewerId
+            )
+            client.from("story_views").upsert(view) {
+                onConflict = "story_id,viewer_id"
+                ignoreDuplicates = true
+            }
+        } catch (e: Exception) {
+            Napier.e("Failed to mark story as seen", e, tag = TAG)
+            throw e
+        }
+    }
+
+    override suspend fun deleteStory(storyId: String) {
+        try {
+            client.from("stories").delete {
+                filter {
+                    eq("id", storyId)
+                }
+            }
+        } catch (e: Exception) {
+            Napier.e("Failed to delete story", e, tag = TAG)
+            throw e
+        }
+    }
 }
