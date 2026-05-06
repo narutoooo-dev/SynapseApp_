@@ -4,6 +4,7 @@ import android.net.Uri
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
+import androidx.compose.ui.layout.ContentScale
 import androidx.lifecycle.viewModelScope
 import com.synapse.social.studioasinc.core.auth.AuthHelper
 import com.synapse.social.studioasinc.data.repository.StoryRepository
@@ -57,7 +58,8 @@ data class StoryCreatorState(
     val isPosting: Boolean = false,
     val isPosted: Boolean = false,
     val error: String? = null,
-    val sharedPost: Post? = null
+    val sharedPost: Post? = null,
+    val contentScale: ContentScale = ContentScale.Crop
 )
 
 @HiltViewModel
@@ -320,6 +322,18 @@ class StoryCreatorViewModel @Inject constructor(
 
     fun clearError() {
         _state.update { it.copy(error = null) }
+    }
+
+    fun cycleContentScale() {
+        _state.update { state ->
+            val nextScale = when (state.contentScale) {
+                ContentScale.Crop -> ContentScale.Fit
+                ContentScale.Fit -> ContentScale.FillBounds
+                ContentScale.FillBounds -> ContentScale.Inside
+                else -> ContentScale.Crop
+            }
+            state.copy(contentScale = nextScale)
+        }
     }
 
     override fun onCleared() {
