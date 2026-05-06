@@ -416,6 +416,7 @@ fun ChatScreen(
                         isGroupChat = isGroupChat,
                         listState = listState,
                         isLoadingMore = isLoadingMore,
+                        typingStatus = typingStatus,
                         onLoadMore = { if (hasMoreMessages) viewModel.loadMoreMessages() },
                         onToggleSelection = { viewModel.toggleMessageSelection(it) },
                         onSwipeToReply = { viewModel.setReplyingToMessage(it) },
