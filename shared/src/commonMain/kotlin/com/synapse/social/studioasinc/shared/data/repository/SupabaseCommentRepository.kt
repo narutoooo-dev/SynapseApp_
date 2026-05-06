@@ -8,6 +8,7 @@ import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.query.Order
+import io.github.jan.supabase.postgrest.query.filter.FilterOperator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.withContext
@@ -22,7 +23,7 @@ class SupabaseCommentRepository(
                 filter {
                     eq("post_id", postId)
                     if (parentId == null) {
-                        filter("parent_id", "is", "null")
+                        filter("parent_id", FilterOperator.IS, "null")
                     } else {
                         eq("parent_id", parentId)
                     }
@@ -56,6 +57,7 @@ class SupabaseCommentRepository(
             supabaseClient.from("comments").delete {
                 filter { eq("id", commentId) }
             }
+            Unit
         }
     }
 }

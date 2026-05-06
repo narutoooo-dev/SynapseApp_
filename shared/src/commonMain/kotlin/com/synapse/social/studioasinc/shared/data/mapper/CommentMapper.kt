@@ -2,6 +2,7 @@ package com.synapse.social.studioasinc.shared.data.mapper
 
 import com.synapse.social.studioasinc.shared.data.dto.CommentDto
 import com.synapse.social.studioasinc.shared.domain.model.Comment
+import kotlinx.datetime.Instant
 
 object CommentMapper {
     fun toDomain(dto: CommentDto): Comment {
@@ -10,7 +11,11 @@ object CommentMapper {
             postId = dto.postId,
             authorId = dto.authorId,
             text = dto.content,
-            timestamp = 0L, // In a real app, parse from dto.createdAt
+            timestamp = try {
+                Instant.parse(dto.createdAt).toEpochMilliseconds()
+            } catch (e: Exception) {
+                0L
+            },
             likesCount = dto.likesCount,
             repliesCount = dto.repliesCount,
             parentCommentId = dto.parentId,
