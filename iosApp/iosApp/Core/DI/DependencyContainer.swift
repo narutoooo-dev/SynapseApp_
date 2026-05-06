@@ -41,4 +41,8 @@ class DependencyContainer: ObservableObject {
     func makeHomeViewModel() -> HomeViewModel {
         return HomeViewModel(analyticsService: analyticsService)
     }
+
+    func makeNotificationsViewModel() -> NotificationsViewModel {
+        return NotificationsViewModel()
+    }
 }
