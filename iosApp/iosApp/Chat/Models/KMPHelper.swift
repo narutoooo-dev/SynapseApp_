@@ -17,6 +17,8 @@ class KMPHelper {
     let getMessageReactionsUseCase: shared.GetMessageReactionsUseCase
     let populateMessageReactionsUseCase: shared.PopulateMessageReactionsUseCase
     let subscribeToMessageReactionsUseCase: shared.SubscribeToMessageReactionsUseCase
+    let setDisappearingModeUseCase: shared.SetDisappearingModeUseCase
+    let getDisappearingModeUseCase: shared.GetDisappearingModeUseCase
 
     let uploadMediaUseCase: shared.UploadMediaUseCase
 
@@ -24,6 +26,10 @@ class KMPHelper {
 
     let createStoryUseCase: shared.CreateStoryUseCase
     let getStoriesUseCase: shared.GetStoriesUseCase
+    let markStoryAsSeenUseCase: shared.MarkStoryAsSeenUseCase
+    let deleteStoryUseCase: shared.DeleteStoryUseCase
+
+    let getUserProfileUseCase: shared.GetUserProfileUseCase
 
     let sharedImageLoader: shared.SharedImageLoader
 
@@ -68,6 +74,8 @@ class KMPHelper {
         self.getMessageReactionsUseCase = shared.GetMessageReactionsUseCase(repository: chatRepository)
         self.populateMessageReactionsUseCase = shared.PopulateMessageReactionsUseCase(repository: chatRepository)
         self.subscribeToMessageReactionsUseCase = shared.SubscribeToMessageReactionsUseCase(repository: chatRepository)
+        self.setDisappearingModeUseCase = shared.SetDisappearingModeUseCase(repository: chatRepository)
+        self.getDisappearingModeUseCase = shared.GetDisappearingModeUseCase(repository: chatRepository)
 
         let storageRepository = shared.IOSDependencies.shared.getStorageRepository()
         self.uploadMediaUseCase = shared.UploadMediaUseCase(repository: chatRepository, storageRepository: storageRepository, mediaUploadRepository: mediaUploadRepository, fileUploader: fileUploader)
@@ -77,6 +85,11 @@ class KMPHelper {
         let storyRepository = shared.SupabaseStoryRepository()
         self.createStoryUseCase = shared.CreateStoryUseCase(repository: storyRepository)
         self.getStoriesUseCase = shared.GetStoriesUseCase(repository: storyRepository)
+        self.markStoryAsSeenUseCase = shared.MarkStoryAsSeenUseCase(repository: storyRepository)
+        self.deleteStoryUseCase = shared.DeleteStoryUseCase(repository: storyRepository)
+
+        let userRepository = shared.IOSDependencies.shared.getUserRepository()
+        self.getUserProfileUseCase = shared.GetUserProfileUseCase(userRepository: userRepository)
 
         self.sharedImageLoader = shared.SharedImageLoader(httpClient: shared.Ktor_client_coreHttpClient())
 

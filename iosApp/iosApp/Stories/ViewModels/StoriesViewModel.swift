@@ -23,11 +23,15 @@ class StoriesViewModel: ObservableObject {
         loadStories()
     }
 
+    func retryLoadStories() {
+        loadStories()
+    }
+
     func loadStories() {
         self.isLoading = true
         self.error = nil
 
-        let currentUserId = "mock_current_user_id" // Ideally KMPHelper.sharedHelper.authRepository.getCurrentUserId()
+        let currentUserId = DependencyContainer.shared.authRepository.getCurrentUserId()
 
         Task {
             do {
@@ -39,20 +43,28 @@ class StoriesViewModel: ObservableObject {
                     groupedDict[story.userId, default: []].append(story)
                 }
 
-                // Temporary sorting and mapping
-                // In a real app we would get the User object for each user id
-                // and determine if they are seen or unseen based on local/remote state
-
                 var newGroups: [StoryGroup] = []
                 for (userId, userStories) in groupedDict {
-                    // Create dummy user for now until we have full integration
-                    let dummyUser = shared.User(
+                    // Fetch real user object via KMP use case
+                    var resolvedUser: shared.User? = nil
+                    do {
+                        let userResult = try await KMPHelper.sharedHelper.getUserProfileUseCase.invoke(uid: userId)
+                        // In Swift, Result<T> maps to the success type if successful, or throws
+                        if let userObj = userResult as? shared.User {
+                            resolvedUser = userObj
+                        }
+                    } catch {
+                        print("Failed to fetch user \(userId): \(error)")
+                    }
+
+                    // Fallback dummy user if fetch fails
+                    let user = resolvedUser ?? shared.User(
                         id: userId,
                         uid: userId,
                         email: nil,
                         username: "User",
                         nickname: nil,
-                        displayName: "User \(String(userId.prefix(4)))",
+                        displayName: "User",
                         name: nil,
                         bio: nil,
                         avatar: nil,
@@ -95,9 +107,9 @@ class StoriesViewModel: ObservableObject {
 
                     let group = StoryGroup(
                         id: userId,
-                        user: dummyUser,
+                        user: user,
                         stories: userStories.sorted { ($0.createdAt ?? "") < ($1.createdAt ?? "") },
-                        hasUnseen: true // Default to true for now
+                        hasUnseen: true // Default to true for now, can implement specific viewed tracking logic later
                     )
 
                     if userId == currentUserId {
@@ -124,13 +136,26 @@ class StoriesViewModel: ObservableObject {
     }
 
     func markStoryAsSeen(_ storyId: String) {
-        // TODO: Implement actual mark as seen logic using a shared use case
-        // KMPHelper.sharedHelper.markStoryAsSeenUseCase.invoke(...)
-        print("Marking story as seen: \(storyId)")
+        let viewerId = DependencyContainer.shared.authRepository.getCurrentUserId()
+        guard let viewerId = viewerId else { return }
+
+        Task {
+            do {
+                try await KMPHelper.sharedHelper.markStoryAsSeenUseCase.invoke(storyId: storyId, viewerId: viewerId)
+            } catch {
+                print("Failed to mark story as seen: \(error.localizedDescription)")
+            }
+        }
     }
 
     func deleteStory(_ storyId: String) {
-        // TODO: Implement actual delete logic using a shared use case
-        print("Deleting story: \(storyId)")
+        Task {
+            do {
+                try await KMPHelper.sharedHelper.deleteStoryUseCase.invoke(storyId: storyId)
+                loadStories()
+            } catch {
+                print("Failed to delete story: \(error.localizedDescription)")
+            }
+        }
     }
 }

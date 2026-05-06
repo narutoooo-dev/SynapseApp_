@@ -249,6 +249,20 @@ object ChatModule {
     }
     @Provides
     @Singleton
+    fun provideSetDisappearingModeUseCase(
+        chatRepository: com.synapse.social.studioasinc.shared.domain.repository.ChatRepository
+    ): com.synapse.social.studioasinc.shared.domain.usecase.chat.SetDisappearingModeUseCase {
+        return com.synapse.social.studioasinc.shared.domain.usecase.chat.SetDisappearingModeUseCase(chatRepository)
+    }
+    @Provides
+    @Singleton
+    fun provideGetDisappearingModeUseCase(
+        chatRepository: com.synapse.social.studioasinc.shared.domain.repository.ChatRepository
+    ): com.synapse.social.studioasinc.shared.domain.usecase.chat.GetDisappearingModeUseCase {
+        return com.synapse.social.studioasinc.shared.domain.usecase.chat.GetDisappearingModeUseCase(chatRepository)
+    }
+    @Provides
+    @Singleton
     fun provideInitializeE2EUseCase(
         chatRepository: com.synapse.social.studioasinc.shared.domain.repository.ChatRepository
     ): com.synapse.social.studioasinc.shared.domain.usecase.chat.InitializeE2EUseCase {

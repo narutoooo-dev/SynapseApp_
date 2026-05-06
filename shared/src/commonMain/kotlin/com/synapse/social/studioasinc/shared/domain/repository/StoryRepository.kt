@@ -9,4 +9,6 @@ interface StoryRepository {
         mediaType: String,
         textOverlay: String?
     )
+    suspend fun markAsSeen(storyId: String, viewerId: String)
+    suspend fun deleteStory(storyId: String)
 }

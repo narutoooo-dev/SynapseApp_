@@ -230,7 +230,7 @@ interface SettingsRepository {
 
     suspend fun setVoiceTranscriptsEnabled(enabled: Boolean)
 
-
+    val autoBackupEnabled: Flow<Boolean>
 
     suspend fun setAutoBackupEnabled(enabled: Boolean)
 

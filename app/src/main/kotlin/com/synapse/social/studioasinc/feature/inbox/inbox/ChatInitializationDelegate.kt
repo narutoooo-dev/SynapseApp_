@@ -39,6 +39,8 @@ class ChatInitializationDelegate(
     private val _onlyAdminsCanMessage: MutableStateFlow<Boolean>,
     private val _isCurrentUserAdmin: MutableStateFlow<Boolean>,
     private val _isParticipantActive: MutableStateFlow<Boolean>,
+    private val _disappearingMode: MutableStateFlow<com.synapse.social.studioasinc.shared.domain.model.chat.DisappearingMode>,
+    private val getDisappearingModeUseCase: com.synapse.social.studioasinc.shared.domain.usecase.chat.GetDisappearingModeUseCase,
     private val onChatIdResolved: (String) -> Unit
 ) {
 
@@ -95,6 +97,10 @@ class ChatInitializationDelegate(
                         _isCurrentUserAdmin.value = members.find { it.first.uid == currentUserIdProvider() }?.second == true
                     }
                 }
+            }
+
+            getDisappearingModeUseCase(actualChatId).onSuccess { mode ->
+                _disappearingMode.value = mode
             }
 
             subscriptionDelegate.startSubscriptions(actualChatId)

@@ -73,6 +73,8 @@ class SettingsRepositoryImpl private constructor(
 
     override val appearanceSettings: Flow<AppearanceSettings> = settingsDataStore.appearanceSettings
 
+    override val autoBackupEnabled: Flow<Boolean> = settingsDataStore.autoBackupEnabled
+
     override val selectedFontId: Flow<String> = settingsDataStore.selectedFontId
 
     override suspend fun setThemeMode(mode: ThemeMode) {

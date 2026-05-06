@@ -314,6 +314,7 @@ fun ChatScreen(
 
     // Hide list until initial scroll is done to prevent header flicker on first render
     var listReady by remember { mutableStateOf(false) }
+    var showDisappearingModeDialog by remember { mutableStateOf(false) }
 
     // Auto-scroll to bottom when new messages arrive
     var previousMessagesSize by remember { mutableStateOf(0) }
@@ -352,7 +353,7 @@ fun ChatScreen(
                 onSummarizeChat = viewModel::summarizeChat,
                 onNavigateToGroupInfo = onNavigateToGroupInfo,
                 onNavigateToUserMoreOptions = onNavigateToUserMoreOptions,
-                onSetDisappearingMode = viewModel::setDisappearingMode,
+                onSetDisappearingMode = { showDisappearingModeDialog = true },
                 onLockChat = viewModel::lockCurrentChat,
                 onUnlockChat = viewModel::unlockCurrentChat
             )
@@ -415,6 +416,7 @@ fun ChatScreen(
                         isGroupChat = isGroupChat,
                         listState = listState,
                         isLoadingMore = isLoadingMore,
+                        typingStatus = typingStatus,
                         onLoadMore = { if (hasMoreMessages) viewModel.loadMoreMessages() },
                         onToggleSelection = { viewModel.toggleMessageSelection(it) },
                         onSwipeToReply = { viewModel.setReplyingToMessage(it) },
@@ -531,6 +533,15 @@ fun ChatScreen(
             ChatSummaryDialog(
                 chatSummary = chatSummary,
                 onDismissRequest = viewModel::clearSummary
+            )
+        }
+
+        val disappearingMode by viewModel.disappearingMode.collectAsState()
+        if (showDisappearingModeDialog) {
+            com.synapse.social.studioasinc.feature.inbox.inbox.components.DisappearingModeDialog(
+                currentMode = disappearingMode,
+                onModeSelected = { viewModel.setDisappearingMode(it) },
+                onDismissRequest = { showDisappearingModeDialog = false }
             )
         }
     }

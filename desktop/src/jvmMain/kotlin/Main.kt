@@ -14,6 +14,7 @@ import com.synapse.social.studioasinc.shared.di.storageModule
 import com.synapse.social.studioasinc.shared.di.presenceModule
 import com.synapse.social.studioasinc.desktop.di.desktopModule
 import com.synapse.social.studioasinc.shared.core.network.SupabaseClient
+import com.synapse.social.studioasinc.shared.di.commentModule
 import com.synapse.social.studioasinc.shared.domain.model.auth.AuthSessionStatus
 import com.synapse.social.studioasinc.shared.domain.repository.AuthRepository
 import org.koin.core.context.startKoin

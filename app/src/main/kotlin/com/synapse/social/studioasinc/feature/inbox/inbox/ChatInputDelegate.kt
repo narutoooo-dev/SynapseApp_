@@ -95,7 +95,9 @@ class ChatInputDelegate(
     private fun sendChunks(chatId: String, chunks: List<String>) {
         val currentMode = disappearingModeProvider()
         val expiresAt = currentMode.seconds?.let { seconds ->
-            java.time.Instant.now().plusSeconds(seconds).toString()
+            java.time.ZonedDateTime.now(java.time.ZoneOffset.UTC)
+                .plusSeconds(seconds)
+                .format(java.time.format.DateTimeFormatter.ISO_INSTANT)
         }
 
         val replyToMessage = _replyingToMessage.value

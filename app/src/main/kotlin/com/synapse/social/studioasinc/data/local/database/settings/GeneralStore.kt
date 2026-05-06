@@ -13,6 +13,7 @@ interface GeneralStore {
     val accountReportsAutoCreate: Flow<Boolean>
     val channelsReportsAutoCreate: Flow<Boolean>
     val hideProfilePicSuggestion: Flow<Boolean>
+    val autoBackupEnabled: Flow<Boolean>
     val searchHistory: Flow<List<String>>
 
     suspend fun setLanguage(languageCode: String)
@@ -126,6 +127,10 @@ class GeneralStoreImpl(private val dataStore: DataStore<Preferences>) : GeneralS
 
     override val hideProfilePicSuggestion: Flow<Boolean> = dataStore.safePreferencesFlow().map { preferences ->
         preferences[SettingsConstants.KEY_HIDE_PROFILE_PIC_SUGGESTION] ?: false
+    }
+
+    override val autoBackupEnabled: Flow<Boolean> = dataStore.safePreferencesFlow().map { preferences ->
+        preferences[SettingsConstants.KEY_AUTO_BACKUP_ENABLED] ?: false
     }
 
     override suspend fun setHideProfilePicSuggestion(hide: Boolean) {
