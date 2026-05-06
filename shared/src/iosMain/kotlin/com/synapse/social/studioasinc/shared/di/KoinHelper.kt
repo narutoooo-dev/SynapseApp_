@@ -11,6 +11,7 @@ import com.synapse.social.studioasinc.shared.domain.usecase.blocking.GetBlockedU
 import com.synapse.social.studioasinc.shared.domain.model.User
 import com.synapse.social.studioasinc.shared.domain.model.BlockedUser
 import com.synapse.social.studioasinc.shared.domain.repository.AuthRepository
+import com.synapse.social.studioasinc.shared.domain.usecase.ai.GenerateSmartRepliesUseCase
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
@@ -24,6 +25,7 @@ object IOSDependencies : KoinComponent {
     // Inject StorageRepository from Koin
     fun getAuthRepository(): AuthRepository = getKoin().get()
     fun getStorageRepository(): com.synapse.social.studioasinc.shared.domain.repository.StorageRepository = getKoin().get()
+    fun getGenerateSmartRepliesUseCase(): GenerateSmartRepliesUseCase = getKoin().get()
 
     // Create use cases on demand
     private fun getProfileUseCase() = GetUserProfileUseCase(getUserRepository())

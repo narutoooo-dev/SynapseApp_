@@ -11,4 +11,5 @@ actual object SynapseConfig {
     actual val CLOUDINARY_CLOUD_NAME: String = System.getenv("CLOUDINARY_CLOUD_NAME") ?: ""
     actual val CLOUDINARY_API_KEY: String = System.getenv("CLOUDINARY_API_KEY") ?: ""
     actual val CLOUDINARY_API_SECRET: String = System.getenv("CLOUDINARY_API_SECRET") ?: ""
+    actual val GEMINI_API_KEY: String = System.getenv("GEMINI_API_KEY") ?: ""
 }

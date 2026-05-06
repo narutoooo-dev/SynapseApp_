@@ -11,4 +11,5 @@ expect object SynapseConfig {
     val CLOUDINARY_CLOUD_NAME: String
     val CLOUDINARY_API_KEY: String
     val CLOUDINARY_API_SECRET: String
+    val GEMINI_API_KEY: String
 }

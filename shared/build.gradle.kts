@@ -184,7 +184,8 @@ android {
         buildConfigField("String", "CLOUDINARY_API_KEY", "\"${System.getenv("CLOUDINARY_API_KEY") ?: project.findProperty("CLOUDINARY_API_KEY") ?: ""}\"")
         buildConfigField("String", "CLOUDINARY_API_SECRET", "\"${System.getenv("CLOUDINARY_API_SECRET") ?: project.findProperty("CLOUDINARY_API_SECRET") ?: ""}\"")
         buildConfigField("String", "SUPABASE_SYNAPSE_S3_ACCESS_KEY", "\"${System.getenv("SUPABASE_SYNAPSE_S3_ACCESS_KEY") ?: project.findProperty("SUPABASE_SYNAPSE_S3_ACCESS_KEY") ?: ""}\"")
-        
+        buildConfigField("String", "GEMINI_API_KEY", "\"${System.getenv("GEMINI_API_KEY") ?: project.findProperty("GEMINI_API_KEY") ?: ""}\"")
+
         consumerProguardFiles("proguard-rules.pro")
     }
     buildFeatures {

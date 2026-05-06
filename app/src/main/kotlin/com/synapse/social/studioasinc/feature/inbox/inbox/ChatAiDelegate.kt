@@ -1,6 +1,6 @@
 package com.synapse.social.studioasinc.feature.inbox.inbox
 
-import com.synapse.social.studioasinc.domain.usecase.ai.GenerateSmartRepliesUseCase
+import com.synapse.social.studioasinc.shared.domain.usecase.ai.GenerateSmartRepliesUseCase
 import com.synapse.social.studioasinc.domain.usecase.ai.SummarizeChatUseCase
 import com.synapse.social.studioasinc.domain.usecase.ai.SummarizeMessageUseCase
 import com.synapse.social.studioasinc.shared.domain.model.User
