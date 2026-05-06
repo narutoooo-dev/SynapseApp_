@@ -6,6 +6,7 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.CanvasBasedWindow
+import com.synapse.social.studioasinc.shared.di.commentModule
 import com.synapse.social.studioasinc.shared.di.storageModule
 import com.synapse.social.studioasinc.web.di.webModule
 import com.synapse.social.studioasinc.web.ui.WebAuthScreen
@@ -19,7 +20,7 @@ enum class WebScreen {
 @OptIn(ExperimentalComposeUiApi::class)
 fun main() {
     startKoin {
-        modules(storageModule, webModule)
+        modules(storageModule, commentModule, webModule)
     }
 
     CanvasBasedWindow(canvasElementId = "ComposeTarget") {
