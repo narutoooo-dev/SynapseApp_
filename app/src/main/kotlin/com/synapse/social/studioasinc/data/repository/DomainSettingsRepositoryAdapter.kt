@@ -135,6 +135,7 @@ class DomainSettingsRepositoryAdapter @Inject constructor(
     override suspend fun setEnterIsSendEnabled(enabled: Boolean) = delegate.setEnterIsSendEnabled(enabled)
     override suspend fun setMediaVisibilityEnabled(enabled: Boolean) = delegate.setMediaVisibilityEnabled(enabled)
     override suspend fun setVoiceTranscriptsEnabled(enabled: Boolean) = delegate.setVoiceTranscriptsEnabled(enabled)
+    override val autoBackupEnabled: Flow<Boolean> = delegate.autoBackupEnabled
     override suspend fun setAutoBackupEnabled(enabled: Boolean) = delegate.setAutoBackupEnabled(enabled)
     override suspend fun setRemindersEnabled(enabled: Boolean) = delegate.setRemindersEnabled(enabled)
     override suspend fun setHighPriorityEnabled(enabled: Boolean) = delegate.setHighPriorityEnabled(enabled)
