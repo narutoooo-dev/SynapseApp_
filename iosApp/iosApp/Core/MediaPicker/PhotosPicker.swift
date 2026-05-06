@@ -1,5 +1,6 @@
 import SwiftUI
 import PhotosUI
+import OSLog
 
 struct PhotosPicker: UIViewControllerRepresentable {
     @Binding var selectedMedia: [URL]
@@ -24,6 +25,7 @@ struct PhotosPicker: UIViewControllerRepresentable {
 
     class Coordinator: NSObject, PHPickerViewControllerDelegate {
         let parent: PhotosPicker
+        private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "com.synapse.social", category: "PhotosPicker")
 
         init(_ parent: PhotosPicker) {
             self.parent = parent
@@ -53,7 +55,7 @@ struct PhotosPicker: UIViewControllerRepresentable {
                                     newMediaURLs.append(tempURL)
                                 }
                             } catch {
-                                print("Error copying movie: \(error)")
+                                logger.error("Error copying movie: \(error.localizedDescription)")
                             }
                         }
                         group.leave()
@@ -69,7 +71,7 @@ struct PhotosPicker: UIViewControllerRepresentable {
                                     newMediaURLs.append(tempURL)
                                 }
                             } catch {
-                                print("Error copying image: \(error)")
+                                logger.error("Error copying image: \(error.localizedDescription)")
                             }
                         }
                         group.leave()

@@ -1,5 +1,6 @@
 import SwiftUI
 import AVFoundation
+import OSLog
 
 struct CameraView: UIViewControllerRepresentable {
     @Binding var isRecording: Bool
@@ -64,6 +65,7 @@ class CameraViewController: UIViewController, AVCaptureFileOutputRecordingDelega
 
     private var isFrontCamera: Bool = false
     private var isFlashOn: Bool = false
+    private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "com.synapse.social", category: "CameraViewController")
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -99,7 +101,7 @@ class CameraViewController: UIViewController, AVCaptureFileOutputRecordingDelega
                 self?.captureSession.startRunning()
             }
         } catch {
-            print("Error setting up camera: \(error)")
+            logger.error("Error setting up camera: \(error.localizedDescription)")
         }
     }
 
@@ -154,7 +156,7 @@ class CameraViewController: UIViewController, AVCaptureFileOutputRecordingDelega
                 captureSession.addInput(newInput)
             }
         } catch {
-            print("Error switching camera: \(error)")
+            logger.error("Error switching camera: \(error.localizedDescription)")
         }
 
         captureSession.commitConfiguration()
@@ -169,7 +171,7 @@ class CameraViewController: UIViewController, AVCaptureFileOutputRecordingDelega
 
     func fileOutput(_ output: AVCaptureFileOutput, didFinishRecordingTo outputFileURL: URL, from connections: [AVCaptureConnection], error: Error?) {
         if let error = error {
-            print("Recording failed: \(error)")
+            logger.error("Recording failed: \(error.localizedDescription)")
         } else {
             delegate?.didCaptureMedia(at: outputFileURL)
         }
@@ -179,7 +181,7 @@ class CameraViewController: UIViewController, AVCaptureFileOutputRecordingDelega
 
     func photoOutput(_ output: AVCapturePhotoOutput, didFinishProcessingPhoto photo: AVCapturePhoto, error: Error?) {
         if let error = error {
-            print("Photo capture failed: \(error)")
+            logger.error("Photo capture failed: \(error.localizedDescription)")
             return
         }
 
@@ -190,7 +192,7 @@ class CameraViewController: UIViewController, AVCaptureFileOutputRecordingDelega
             try data.write(to: tempURL)
             delegate?.didCaptureMedia(at: tempURL)
         } catch {
-            print("Failed to save captured photo: \(error)")
+            logger.error("Failed to save captured photo: \(error.localizedDescription)")
         }
     }
 
