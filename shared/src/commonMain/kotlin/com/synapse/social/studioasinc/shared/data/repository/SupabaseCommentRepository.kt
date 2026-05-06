@@ -7,11 +7,13 @@ import com.synapse.social.studioasinc.shared.domain.repository.CommentRepository
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.from
+import io.github.jan.supabase.postgrest.query.Columns
 import io.github.jan.supabase.postgrest.query.Order
 import io.github.jan.supabase.postgrest.query.filter.FilterOperator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.withContext
+import kotlinx.datetime.Clock
 
 class SupabaseCommentRepository(
     private val supabaseClient: SupabaseClient
@@ -19,7 +21,9 @@ class SupabaseCommentRepository(
 
     override suspend fun getComments(postId: String, parentId: String?): Result<List<Comment>> = withContext(Dispatchers.IO) {
         runCatching {
-            val response = supabaseClient.from("comments").select {
+            val response = supabaseClient.from("comments").select(
+                columns = Columns.raw("*, author:users(username, avatar)")
+            ) {
                 filter {
                     eq("post_id", postId)
                     if (parentId == null) {
@@ -46,7 +50,7 @@ class SupabaseCommentRepository(
                     "media_url" to mediaUrl
                 )
             ) {
-                select()
+                select(columns = Columns.raw("*, author:users(username, avatar)"))
             }.decodeSingle<CommentDto>()
             CommentMapper.toDomain(commentDto)
         }
@@ -54,7 +58,13 @@ class SupabaseCommentRepository(
 
     override suspend fun deleteComment(commentId: String): Result<Unit> = withContext(Dispatchers.IO) {
         runCatching {
-            supabaseClient.from("comments").delete {
+            // Soft delete
+            supabaseClient.from("comments").update(
+                mapOf(
+                    "is_deleted" to true,
+                    "deleted_at" to Clock.System.now().toString()
+                )
+            ) {
                 filter { eq("id", commentId) }
             }
             Unit

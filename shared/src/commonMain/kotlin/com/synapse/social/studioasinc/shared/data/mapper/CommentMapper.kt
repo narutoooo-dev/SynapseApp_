@@ -10,7 +10,7 @@ object CommentMapper {
             id = dto.id,
             postId = dto.postId,
             authorId = dto.authorId,
-            text = dto.content,
+            text = if (dto.isDeleted) "This comment was deleted" else dto.content,
             timestamp = try {
                 Instant.parse(dto.createdAt).toEpochMilliseconds()
             } catch (e: Exception) {
@@ -19,7 +19,9 @@ object CommentMapper {
             likesCount = dto.likesCount,
             repliesCount = dto.repliesCount,
             parentCommentId = dto.parentId,
-            isDeleted = false
+            isDeleted = dto.isDeleted,
+            username = dto.author?.username,
+            avatarUrl = dto.author?.avatarUrl
         )
     }
 

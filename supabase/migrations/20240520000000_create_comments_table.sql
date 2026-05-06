@@ -10,9 +10,15 @@ CREATE TABLE comments (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     likes_count INTEGER NOT NULL DEFAULT 0,
     replies_count INTEGER NOT NULL DEFAULT 0,
+    is_deleted BOOLEAN NOT NULL DEFAULT false,
+    deleted_at TIMESTAMPTZ,
 
-    FOREIGN KEY (parent_id) REFERENCES comments(id) ON DELETE CASCADE
+    FOREIGN KEY (parent_id) REFERENCES comments(id)
 );
+
+-- Add indexes for performance
+CREATE INDEX idx_comments_post_id ON comments(post_id);
+CREATE INDEX idx_comments_parent_id ON comments(parent_id);
 
 -- Enable RLS
 ALTER TABLE comments ENABLE ROW LEVEL SECURITY;
