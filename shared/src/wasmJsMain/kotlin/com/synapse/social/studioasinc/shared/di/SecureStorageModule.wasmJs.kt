@@ -8,6 +8,6 @@ import org.koin.dsl.module
 import org.koin.core.module.Module
 
 actual val secureStorageModule = module {
-    single<SecureStorage> { WasmJsSecureStorage() }
     single<SecurityCipher> { WasmJsSecurityCipher() }
+    single<SecureStorage> { WasmJsSecureStorage(get()) }
 }
