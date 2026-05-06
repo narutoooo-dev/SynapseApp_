@@ -161,4 +161,12 @@ object AuthModule {
     ): com.synapse.social.studioasinc.domain.usecase.auth.RemovePasskeyUseCase {
         return com.synapse.social.studioasinc.domain.usecase.auth.RemovePasskeyUseCase(passkeyRepository)
     }
+
+    @Provides
+    @Singleton
+    fun provideSupabaseAuthenticationService(
+        @dagger.hilt.android.qualifiers.ApplicationContext context: android.content.Context
+    ): com.synapse.social.studioasinc.data.remote.services.SupabaseAuthenticationService {
+        return com.synapse.social.studioasinc.data.remote.services.SupabaseAuthenticationService.getInstance(context)
+    }
 }
