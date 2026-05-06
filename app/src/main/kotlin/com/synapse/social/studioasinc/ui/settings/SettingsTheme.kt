@@ -48,8 +48,8 @@ object SettingsColors {
     val cardBackground: Color
         @Composable
         @ReadOnlyComposable
-        get() = if (isSystemInDarkTheme()) MaterialTheme.colorScheme.surfaceContainerHigh
-                else MaterialTheme.colorScheme.surfaceContainerLow
+        get() = if (isSystemInDarkTheme()) MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.85f)
+                else MaterialTheme.colorScheme.surfaceContainerLow.copy(alpha = 0.85f)
 
 
 
@@ -121,15 +121,15 @@ object SettingsColors {
 object SettingsShapes {
 
 
-    val cardShape: Shape = RoundedCornerShape(Sizes.CornerMassive)
+    val cardShape: Shape = RoundedCornerShape(32.dp)
 
 
 
-    val sectionShape: Shape = RoundedCornerShape(Sizes.CornerExtraLarge)
+    val sectionShape: Shape = RoundedCornerShape(24.dp)
 
 
 
-    val itemShape: Shape = RoundedCornerShape(Sizes.CornerLarge)
+    val itemShape: Shape = RoundedCornerShape(20.dp)
 
 
 

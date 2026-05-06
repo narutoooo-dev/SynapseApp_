@@ -95,6 +95,7 @@ interface SettingsRepository {
     suspend fun setEnterIsSendEnabled(enabled: Boolean)
     suspend fun setMediaVisibilityEnabled(enabled: Boolean)
     suspend fun setVoiceTranscriptsEnabled(enabled: Boolean)
+    val autoBackupEnabled: Flow<Boolean>
     suspend fun setAutoBackupEnabled(enabled: Boolean)
     suspend fun setRemindersEnabled(enabled: Boolean)
     suspend fun setHighPriorityEnabled(enabled: Boolean)

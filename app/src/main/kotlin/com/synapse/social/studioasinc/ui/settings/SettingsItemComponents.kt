@@ -550,13 +550,14 @@ fun SettingsButtonItem(
 
 @Composable
 fun SettingsHeaderItem(
-    title: String
+    title: String,
+    modifier: Modifier = Modifier
 ) {
     Text(
         text = title,
         style = SettingsTypography.sectionHeader,
         color = SettingsColors.sectionTitle,
-        modifier = Modifier.padding(
+        modifier = modifier.padding(
             horizontal = SettingsSpacing.itemHorizontalPadding,
             vertical = SettingsSpacing.itemVerticalPadding
         )
