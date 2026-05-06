@@ -9,24 +9,20 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.automirrored.filled.*
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import com.synapse.social.studioasinc.ui.components.ExpressiveLoadingIndicator
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.synapse.social.studioasinc.R
 import com.synapse.social.studioasinc.shared.domain.model.settings.HeroCard
 import com.synapse.social.studioasinc.shared.domain.model.settings.SettingsNode
-
-
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -67,82 +63,81 @@ fun SettingsHubScreen(
         }
     ) { padding ->
         Box(modifier = Modifier.fillMaxSize().padding(padding)) {
-        if (isLoading && userProfile == null) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                ExpressiveLoadingIndicator()
-            }
-        } else {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = SettingsSpacing.screenPadding),
-                verticalArrangement = Arrangement.spacedBy(SettingsSpacing.sectionSpacing),
-                contentPadding = PaddingValues(vertical = 8.dp)
-            ) {
-                item {
-                    SearchBar(
-                        query = searchQuery,
-                        onQueryChange = viewModel::onSearchQueryChange
-                    )
+            if (isLoading && userProfile == null) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    com.synapse.social.studioasinc.ui.components.ExpressiveLoadingIndicator()
                 }
-
-                if (heroCards.isNotEmpty() && searchQuery.isEmpty()) {
+            } else {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = SettingsSpacing.screenPadding),
+                    verticalArrangement = Arrangement.spacedBy(SettingsSpacing.sectionSpacing),
+                    contentPadding = PaddingValues(vertical = 8.dp)
+                ) {
                     item {
-                        HeroCardsSection(heroCards = heroCards, onCardClick = { viewModel.onActionClick(it.action) })
-                    }
-                }
-
-                item {
-                    userProfile?.let { profile ->
-                        ProfileHeaderCard(
-                            displayName = profile.displayName,
-                            email = profile.email,
-                            avatarUrl = profile.avatarUrl
+                        SettingsSearchBar(
+                            query = searchQuery,
+                            onQueryChange = viewModel::onSearchQueryChange
                         )
                     }
+
+                    if (heroCards.isNotEmpty() && searchQuery.isEmpty()) {
+                        item {
+                            SettingsHeroCardsSection(heroCards = heroCards, onCardClick = { viewModel.onActionClick(it.action) })
+                        }
+                    }
+
+                    item {
+                        userProfile?.let { profile ->
+                            ProfileHeaderCard(
+                                displayName = profile.displayName,
+                                email = profile.email,
+                                avatarUrl = profile.avatarUrl
+                            )
+                        }
+                    }
+
+                    item {
+                        SettingsFlattenedContent(
+                            settingsGroups = settingsGroups,
+                            onNavigate = {
+                                viewModel.onNavigateToCategory(it)
+                                onNavigateToCategory(it)
+                            }
+                        )
+                    }
+
+                    item {
+                        Spacer(modifier = Modifier.height(32.dp))
+                    }
                 }
 
-
-
-                item {
-                    FlattenedSettingsContent(
-                        settingsGroups = settingsGroups,
-                        onNavigate = {
-                            viewModel.onNavigateToCategory(it)
-                            onNavigateToCategory(it)
+                // Command Palette Result Overlay
+                AnimatedVisibility(
+                    visible = searchQuery.isNotEmpty(),
+                    enter = fadeIn() + expandVertically(),
+                    exit = fadeOut() + shrinkVertically()
+                ) {
+                    SettingsCommandPaletteResults(
+                        results = searchResults,
+                        onActionClick = viewModel::onActionClick,
+                        onNavigate = { route ->
+                            val dest = SettingsDestination.fromRoute(route)
+                            if (dest != null) onNavigateToCategory(dest)
                         }
                     )
                 }
-
-                item {
-                    Spacer(modifier = Modifier.height(32.dp))
-                }
-            }
-
-            // Command Palette Result Overlay
-            AnimatedVisibility(
-                visible = searchQuery.isNotEmpty(),
-                enter = fadeIn() + expandVertically(),
-                exit = fadeOut() + shrinkVertically()
-            ) {
-                CommandPaletteResults(
-                    results = searchResults,
-                    onActionClick = viewModel::onActionClick,
-                    onNavigate = { route ->
-                        val dest = SettingsDestination.fromRoute(route)
-                        if (dest != null) onNavigateToCategory(dest)
-                    }
-                )
             }
         }
     }
 }
 
 @Composable
-fun SearchBar(
+fun SettingsSearchBar(
     query: String,
     onQueryChange: (String) -> Unit
 ) {
@@ -183,7 +178,7 @@ fun SearchBar(
 }
 
 @Composable
-fun HeroCardsSection(
+fun SettingsHeroCardsSection(
     heroCards: List<HeroCard>,
     onCardClick: (HeroCard) -> Unit
 ) {
@@ -203,7 +198,7 @@ fun HeroCardsSection(
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Icon(
-                        imageVector = if (card.id == "storage_cleanup") Icons.Default.Storage else Icons.Default.Security,
+                        imageVector = if (card.id == "storage_cleanup") Icons.Filled.Storage else Icons.Filled.Shield,
                         contentDescription = null,
                         modifier = Modifier.size(32.dp)
                     )
@@ -218,7 +213,7 @@ fun HeroCardsSection(
 }
 
 @Composable
-fun CommandPaletteResults(
+fun SettingsCommandPaletteResults(
     results: List<SettingsNode>,
     onActionClick: (com.synapse.social.studioasinc.shared.domain.model.settings.SettingsAction) -> Unit,
     onNavigate: (String) -> Unit
@@ -234,14 +229,13 @@ fun CommandPaletteResults(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             items(results) { node ->
+                val action = node.action
                 Card(
                     onClick = {
-                        node.action?.let { action ->
-                            if (action is com.synapse.social.studioasinc.shared.domain.model.settings.SettingsAction.Navigate) {
-                                onNavigate(action.destination)
-                            } else {
-                                onActionClick(action)
-                            }
+                        if (action is com.synapse.social.studioasinc.shared.domain.model.settings.SettingsAction.Navigate) {
+                            onNavigate(action.destination)
+                        } else if (action != null) {
+                            onActionClick(action)
                         }
                     },
                     modifier = Modifier.fillMaxWidth(),
@@ -256,8 +250,8 @@ fun CommandPaletteResults(
                             Text(node.title, style = MaterialTheme.typography.titleSmall)
                             node.subtitle?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
                         }
-                        if (node.action is com.synapse.social.studioasinc.shared.domain.model.settings.SettingsAction.Toggle) {
-                            Switch(checked = node.action.currentValue, onCheckedChange = { onActionClick(node.action) })
+                        if (action is com.synapse.social.studioasinc.shared.domain.model.settings.SettingsAction.Toggle) {
+                            Switch(checked = action.currentValue, onCheckedChange = { onActionClick(action) })
                         }
                     }
                 }
@@ -267,7 +261,7 @@ fun CommandPaletteResults(
 }
 
 @Composable
-fun FlattenedSettingsContent(
+fun SettingsFlattenedContent(
     settingsGroups: List<SettingsGroup>,
     onNavigate: (SettingsDestination) -> Unit
 ) {
