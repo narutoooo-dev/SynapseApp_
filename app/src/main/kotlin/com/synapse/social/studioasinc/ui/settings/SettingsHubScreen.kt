@@ -1,19 +1,29 @@
 package com.synapse.social.studioasinc.ui.settings
 
+import androidx.compose.animation.*
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import com.synapse.social.studioasinc.ui.components.ExpressiveLoadingIndicator
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.synapse.social.studioasinc.R
+import com.synapse.social.studioasinc.shared.domain.model.settings.HeroCard
+import com.synapse.social.studioasinc.shared.domain.model.settings.SettingsNode
 
 
 
@@ -28,6 +38,9 @@ fun SettingsHubScreen(
     val userProfile by viewModel.userProfileSummary.collectAsState()
     val settingsGroups by viewModel.settingsGroups.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
+    val searchQuery by viewModel.searchQuery.collectAsState()
+    val searchResults by viewModel.searchResults.collectAsState()
+    val heroCards by viewModel.heroCards.collectAsState()
 
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
@@ -45,14 +58,6 @@ fun SettingsHubScreen(
                         )
                     }
                 },
-                actions = {
-                    IconButton(onClick = { onNavigateToCategory(SettingsDestination.Search) }) {
-                        Icon(
-                            imageVector = Icons.Filled.Search,
-                            contentDescription = "Search Settings"
-                        )
-                    }
-                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = SettingsColors.screenBackground,
                     scrolledContainerColor = SettingsColors.cardBackground
@@ -61,13 +66,11 @@ fun SettingsHubScreen(
             )
         }
     ) { padding ->
+        Box(modifier = Modifier.fillMaxSize().padding(padding)) {
         if (isLoading && userProfile == null) {
-
             Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding),
-                contentAlignment = androidx.compose.ui.Alignment.Center
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
             ) {
                 ExpressiveLoadingIndicator()
             }
@@ -75,11 +78,22 @@ fun SettingsHubScreen(
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(padding)
                     .padding(horizontal = SettingsSpacing.screenPadding),
                 verticalArrangement = Arrangement.spacedBy(SettingsSpacing.sectionSpacing),
                 contentPadding = PaddingValues(vertical = 8.dp)
             ) {
+                item {
+                    SearchBar(
+                        query = searchQuery,
+                        onQueryChange = viewModel::onSearchQueryChange
+                    )
+                }
+
+                if (heroCards.isNotEmpty() && searchQuery.isEmpty()) {
+                    item {
+                        HeroCardsSection(heroCards = heroCards, onCardClick = { viewModel.onActionClick(it.action) })
+                    }
+                }
 
                 item {
                     userProfile?.let { profile ->
@@ -92,51 +106,209 @@ fun SettingsHubScreen(
                 }
 
 
-                items(settingsGroups) { group ->
-                    Column(
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        if (group.title != null) {
-                             SettingsHeaderItem(title = group.title)
-                        } else {
 
-
+                item {
+                    FlattenedSettingsContent(
+                        settingsGroups = settingsGroups,
+                        onNavigate = {
+                            viewModel.onNavigateToCategory(it)
+                            onNavigateToCategory(it)
                         }
+                    )
+                }
 
+                item {
+                    Spacer(modifier = Modifier.height(32.dp))
+                }
+            }
 
-                        SettingsCard {
-                             group.categories.forEachIndexed { index, category ->
-                                val position = when {
-                                    group.categories.size == 1 -> SettingsItemPosition.Single
-                                    index == 0 -> SettingsItemPosition.Top
-                                    index == group.categories.lastIndex -> SettingsItemPosition.Bottom
-                                    else -> SettingsItemPosition.Middle
-                                }
+            // Command Palette Result Overlay
+            AnimatedVisibility(
+                visible = searchQuery.isNotEmpty(),
+                enter = fadeIn() + expandVertically(),
+                exit = fadeOut() + shrinkVertically()
+            ) {
+                CommandPaletteResults(
+                    results = searchResults,
+                    onActionClick = viewModel::onActionClick,
+                    onNavigate = { route ->
+                        val dest = SettingsDestination.fromRoute(route)
+                        if (dest != null) onNavigateToCategory(dest)
+                    }
+                )
+            }
+        }
+    }
+}
 
-                                SettingsNavigationItem(
-                                    title = category.title,
-                                    subtitle = category.subtitle,
-                                    imageVector = category.icon,
-                                    onClick = {
-                                        viewModel.onNavigateToCategory(category.destination)
-                                        onNavigateToCategory(category.destination)
-                                    },
-                                    position = position
-                                )
+@Composable
+fun SearchBar(
+    query: String,
+    onQueryChange: (String) -> Unit
+) {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        shape = CircleShape,
+        color = SettingsColors.cardBackground,
+        tonalElevation = 2.dp
+    ) {
+        Row(
+            modifier = Modifier
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(Icons.Default.Search, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+            Spacer(modifier = Modifier.width(12.dp))
+            Box(modifier = Modifier.weight(1f)) {
+                if (query.isEmpty()) {
+                    Text("Search Settings...", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                androidx.compose.foundation.text.BasicTextField(
+                    value = query,
+                    onValueChange = onQueryChange,
+                    modifier = Modifier.fillMaxWidth(),
+                    textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface),
+                    singleLine = true
+                )
+            }
+            if (query.isNotEmpty()) {
+                IconButton(onClick = { onQueryChange("") }, modifier = Modifier.size(24.dp)) {
+                    Icon(Icons.Default.Close, contentDescription = "Clear")
+                }
+            }
+        }
+    }
+}
 
-                                if (index < group.categories.size - 1) {
-                                    SettingsDivider()
-                                }
+@Composable
+fun HeroCardsSection(
+    heroCards: List<HeroCard>,
+    onCardClick: (HeroCard) -> Unit
+) {
+    LazyRow(
+        contentPadding = PaddingValues(vertical = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        items(heroCards) { card ->
+            Card(
+                onClick = { onCardClick(card) },
+                modifier = Modifier.width(280.dp),
+                shape = SettingsShapes.cardShape,
+                colors = CardDefaults.cardColors(
+                    containerColor = if (card.backgroundColor != null) Color(android.graphics.Color.parseColor(card.backgroundColor))
+                                   else MaterialTheme.colorScheme.primaryContainer
+                )
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Icon(
+                        imageVector = if (card.id == "storage_cleanup") Icons.Default.Storage else Icons.Default.Security,
+                        contentDescription = null,
+                        modifier = Modifier.size(32.dp)
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Text(card.title, style = MaterialTheme.typography.titleMedium)
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(card.description, style = MaterialTheme.typography.bodySmall)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun CommandPaletteResults(
+    results: List<SettingsNode>,
+    onActionClick: (com.synapse.social.studioasinc.shared.domain.model.settings.SettingsAction) -> Unit,
+    onNavigate: (String) -> Unit
+) {
+    Surface(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background),
+        color = MaterialTheme.colorScheme.background
+    ) {
+        LazyColumn(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            items(results) { node ->
+                Card(
+                    onClick = {
+                        node.action?.let { action ->
+                            if (action is com.synapse.social.studioasinc.shared.domain.model.settings.SettingsAction.Navigate) {
+                                onNavigate(action.destination)
+                            } else {
+                                onActionClick(action)
+                            }
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = SettingsShapes.itemShape,
+                    colors = CardDefaults.cardColors(containerColor = SettingsColors.cardBackground)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(node.title, style = MaterialTheme.typography.titleSmall)
+                            node.subtitle?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
+                        }
+                        if (node.action is com.synapse.social.studioasinc.shared.domain.model.settings.SettingsAction.Toggle) {
+                            Switch(checked = node.action.currentValue, onCheckedChange = { onActionClick(node.action) })
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun FlattenedSettingsContent(
+    settingsGroups: List<SettingsGroup>,
+    onNavigate: (SettingsDestination) -> Unit
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(SettingsSpacing.sectionSpacing)) {
+        settingsGroups.forEach { group ->
+            var expanded by remember { mutableStateOf(false) }
+            val isExpandable = group.id in listOf("group_a", "group_b", "group_c")
+
+            Column {
+                if (group.title != null) {
+                    SettingsHeaderItem(
+                        title = group.title,
+                        modifier = Modifier.clickable { if (isExpandable) expanded = !expanded }
+                    )
+                }
+
+                AnimatedVisibility(visible = !isExpandable || expanded) {
+                    SettingsCard {
+                        group.categories.forEachIndexed { index, category ->
+                            val position = when {
+                                group.categories.size == 1 -> SettingsItemPosition.Single
+                                index == 0 -> SettingsItemPosition.Top
+                                index == group.categories.lastIndex -> SettingsItemPosition.Bottom
+                                else -> SettingsItemPosition.Middle
+                            }
+
+                            SettingsNavigationItem(
+                                title = category.title,
+                                subtitle = category.subtitle,
+                                imageVector = category.icon,
+                                onClick = { onNavigate(category.destination) },
+                                position = position
+                            )
+
+                            if (index < group.categories.size - 1) {
+                                SettingsDivider()
                             }
                         }
                     }
                 }
-
-
-                    item {
-                        Spacer(modifier = Modifier.height(32.dp))
-                    }
-                }
             }
+        }
     }
 }

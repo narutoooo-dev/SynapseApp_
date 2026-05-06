@@ -8,17 +8,37 @@ import com.synapse.social.studioasinc.UserProfileManager
 import com.synapse.social.studioasinc.data.remote.services.SupabaseAuthenticationService
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import com.synapse.social.studioasinc.shared.domain.usecase.settings.SearchSettingsUseCase
+import com.synapse.social.studioasinc.shared.domain.usecase.settings.GetContextualHeroCardsUseCase
+import com.synapse.social.studioasinc.shared.domain.model.settings.SettingsNode
+import com.synapse.social.studioasinc.shared.domain.model.settings.HeroCard
+import com.synapse.social.studioasinc.shared.domain.model.settings.SettingsAction
+import com.synapse.social.studioasinc.shared.domain.repository.SettingsRepository as DomainSettingsRepository
 
 
 
 @HiltViewModel
 class SettingsHubViewModel @Inject constructor(
-    application: Application
+    application: Application,
+    private val searchSettingsUseCase: SearchSettingsUseCase,
+    private val getContextualHeroCardsUseCase: GetContextualHeroCardsUseCase,
+    private val settingsRepository: DomainSettingsRepository
 ) : AndroidViewModel(application) {
+
+    private val _searchQuery = MutableStateFlow("")
+    val searchQuery = _searchQuery.asStateFlow()
+
+    val searchResults: StateFlow<List<SettingsNode>> = _searchQuery
+        .debounce(300)
+        .flatMapLatest { query ->
+            searchSettingsUseCase(query)
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val heroCards: StateFlow<List<HeroCard>> = getContextualHeroCardsUseCase()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     private val _userProfileSummary = MutableStateFlow<UserProfileSummary?>(null)
     val userProfileSummary: StateFlow<UserProfileSummary?> = _userProfileSummary.asStateFlow()
@@ -109,9 +129,43 @@ class SettingsHubViewModel @Inject constructor(
 
 
     fun onNavigateToCategory(destination: SettingsDestination) {
-
-
         android.util.Log.d("SettingsHubViewModel", "Navigating to: ${destination.route}")
+    }
+
+    fun onSearchQueryChange(query: String) {
+        _searchQuery.value = query
+    }
+
+    fun onActionClick(action: SettingsAction) {
+        viewModelScope.launch {
+            when (action) {
+                is SettingsAction.Toggle -> {
+                    if (action.key == "notifications_global") {
+                        // Assuming updateNotificationPreference handles global or we need a specific call
+                        // For simplicity in this redesign, we use the specific repo call
+                        settingsRepository.updateNotificationPreference(
+                            com.synapse.social.studioasinc.shared.domain.model.settings.NotificationCategory.MESSAGES, // Dummy to trigger
+                            !action.currentValue
+                        )
+                    }
+                }
+                is SettingsAction.Execute -> {
+                    when (action.actionId) {
+                        "clear_cache" -> settingsRepository.clearCache()
+                        "toggle_dark_mode" -> {
+                            val current = settingsRepository.themeMode.first()
+                            val next = if (current == com.synapse.social.studioasinc.shared.domain.model.settings.ThemeMode.DARK)
+                                com.synapse.social.studioasinc.shared.domain.model.settings.ThemeMode.LIGHT
+                                else com.synapse.social.studioasinc.shared.domain.model.settings.ThemeMode.DARK
+                            settingsRepository.setThemeMode(next)
+                        }
+                    }
+                }
+                is SettingsAction.Navigate -> {
+                    // Handled by UI navigation
+                }
+            }
+        }
     }
 
 
