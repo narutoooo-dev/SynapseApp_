@@ -1731,4 +1731,25 @@ Please explain the following message from %3$s in detail, considering the contex
     <string name="settings_font_preview">The quick brown fox jumps over the lazy dog</string>
     <string name="settings_font_selected">Selected</string>
     <string name="action_back">Back</string>
+    <string name="storage_upload_preferences">Upload Preferences</string>
+    <string name="storage_high_quality_uploads">High Quality Uploads</string>
+    <string name="storage_high_quality_uploads_desc">Upload original quality (uses more data)</string>
+    <string name="storage_provider_selection">Provider Selection</string>
+    <string name="storage_provider_photos">Photos</string>
+    <string name="storage_provider_videos">Videos</string>
+    <string name="storage_provider_other_files">Other Files</string>
+    <string name="storage_provider_default">Default</string>
+    <string name="storage_provider_imgbb">ImgBB</string>
+    <string name="storage_provider_cloudinary">Cloudinary</string>
+    <string name="storage_provider_supabase">Supabase</string>
+    <string name="storage_provider_cloudflare_r2">Cloudflare R2</string>
+    <string name="storage_ready_to_use">Ready to use</string>
+    <string name="storage_configuration_required">Configuration required</string>
+    <string name="storage_supabase_storage">Supabase Storage</string>
+    <string name="storage_files_audio">Files &amp; Audio</string>
+    <string name="collapse_options">Collapse options</string>
+    <string name="expand_options">Expand options</string>
+    <string name="remove_credentials">Remove %1$s credentials</string>
+    <string name="collapse_configuration">Collapse %1$s configuration</string>
+    <string name="expand_configuration">Expand %1$s configuration</string>
 </resources>
