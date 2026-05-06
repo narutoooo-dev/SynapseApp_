@@ -30,6 +30,7 @@ class KMPHelper {
     let getNotificationsUseCase: shared.GetNotificationsUseCase
     let markNotificationAsReadUseCase: shared.MarkNotificationAsReadUseCase
     let subscribeToNotificationsUseCase: shared.SubscribeToNotificationsUseCase
+    let generateSmartRepliesUseCase: shared.GenerateSmartRepliesUseCase
 
     init() {
         let fileUploader = shared.FileUploader()
@@ -84,5 +85,6 @@ class KMPHelper {
         self.getNotificationsUseCase = shared.GetNotificationsUseCase(notificationRepository: notificationRepository, authRepository: shared.IOSDependencies.shared.getAuthRepository())
         self.markNotificationAsReadUseCase = shared.MarkNotificationAsReadUseCase(notificationRepository: notificationRepository, authRepository: shared.IOSDependencies.shared.getAuthRepository())
         self.subscribeToNotificationsUseCase = shared.SubscribeToNotificationsUseCase(notificationRepository: notificationRepository, authRepository: shared.IOSDependencies.shared.getAuthRepository())
+        self.generateSmartRepliesUseCase = shared.IOSDependencies.shared.getGenerateSmartRepliesUseCase()
     }
 }

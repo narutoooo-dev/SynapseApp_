@@ -11,4 +11,5 @@ actual object SynapseConfig {
     actual val CLOUDINARY_CLOUD_NAME: String = ""
     actual val CLOUDINARY_API_KEY: String = ""
     actual val CLOUDINARY_API_SECRET: String = ""
+    actual val GEMINI_API_KEY: String = ""
 }

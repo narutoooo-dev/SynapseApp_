@@ -3,7 +3,7 @@ package com.synapse.social.studioasinc.core.di.ai
 import com.synapse.social.studioasinc.data.repository.ai.AiRepositoryImpl
 import com.synapse.social.studioasinc.data.repository.ai.MultiProviderAiRepository
 import com.synapse.social.studioasinc.domain.repository.ai.AiRepository
-import com.synapse.social.studioasinc.domain.usecase.ai.GenerateSmartRepliesUseCase
+import com.synapse.social.studioasinc.shared.domain.usecase.ai.GenerateSmartRepliesUseCase
 import com.synapse.social.studioasinc.domain.usecase.ai.SummarizeChatUseCase
 import com.synapse.social.studioasinc.domain.usecase.ai.SummarizeMessageUseCase
 import com.synapse.social.studioasinc.domain.usecase.ai.SummarizePostUseCase
@@ -21,17 +21,25 @@ object AiModule {
 
     @Provides
     @Singleton
-    fun provideAiRepository(
+    fun provideSharedAiRepository(
         apiKeySettingsService: ApiKeySettingsService
-    ): AiRepository {
+    ): com.synapse.social.studioasinc.shared.domain.repository.ai.AiRepository {
         val platformRepository = AiRepositoryImpl(apiKeySettingsService)
         return MultiProviderAiRepository(platformRepository, apiKeySettingsService)
     }
 
     @Provides
     @Singleton
+    fun provideAiRepository(
+        sharedAiRepository: com.synapse.social.studioasinc.shared.domain.repository.ai.AiRepository
+    ): AiRepository {
+        return (sharedAiRepository as? AiRepository) ?: throw IllegalStateException("The provided sharedAiRepository does not implement the platform AiRepository interface.")
+    }
+
+    @Provides
+    @Singleton
     fun provideGenerateSmartRepliesUseCase(
-        aiRepository: AiRepository
+        aiRepository: com.synapse.social.studioasinc.shared.domain.repository.ai.AiRepository
     ): GenerateSmartRepliesUseCase {
         return GenerateSmartRepliesUseCase(aiRepository)
     }

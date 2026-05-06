@@ -21,11 +21,13 @@ class ChatViewModel: ObservableObject {
     private let toggleMessageReactionUseCase: shared.ToggleMessageReactionUseCase?
     private let subscribeToMessageReactionsUseCase: shared.SubscribeToMessageReactionsUseCase?
     private let populateMessageReactionsUseCase: shared.PopulateMessageReactionsUseCase?
+    private let generateSmartRepliesUseCase: shared.GenerateSmartRepliesUseCase?
 
     private var chatId: String? = nil
     private var subscriptionTask: Task<Void, Never>? = nil
     private var typingSubscriptionTask: Task<Void, Never>? = nil
     private var reactionsSubscriptionTask: Task<Void, Never>? = nil
+    private var smartRepliesTask: Task<Void, Never>? = nil
     private let typingSubject = PassthroughSubject<Bool, Never>()
     private var typingCancellable: AnyCancellable? = nil
     
@@ -41,7 +43,8 @@ class ChatViewModel: ObservableObject {
         subscribeToTypingStatusUseCase: shared.SubscribeToTypingStatusUseCase? = KMPHelper.sharedHelper.subscribeToTypingStatusUseCase,
         toggleMessageReactionUseCase: shared.ToggleMessageReactionUseCase? = KMPHelper.sharedHelper.toggleMessageReactionUseCase,
         subscribeToMessageReactionsUseCase: shared.SubscribeToMessageReactionsUseCase? = KMPHelper.sharedHelper.subscribeToMessageReactionsUseCase,
-        populateMessageReactionsUseCase: shared.PopulateMessageReactionsUseCase? = KMPHelper.sharedHelper.populateMessageReactionsUseCase
+        populateMessageReactionsUseCase: shared.PopulateMessageReactionsUseCase? = KMPHelper.sharedHelper.populateMessageReactionsUseCase,
+        generateSmartRepliesUseCase: shared.GenerateSmartRepliesUseCase? = KMPHelper.sharedHelper.generateSmartRepliesUseCase
     ) {
         self.getMessagesUseCase = getMessagesUseCase
         self.subscribeToMessagesUseCase = subscribeToMessagesUseCase
@@ -52,6 +55,7 @@ class ChatViewModel: ObservableObject {
         self.toggleMessageReactionUseCase = toggleMessageReactionUseCase
         self.subscribeToMessageReactionsUseCase = subscribeToMessageReactionsUseCase
         self.populateMessageReactionsUseCase = populateMessageReactionsUseCase
+        self.generateSmartRepliesUseCase = generateSmartRepliesUseCase
     }
 
     func setup(chatId: String) {
@@ -136,6 +140,7 @@ class ChatViewModel: ObservableObject {
                         self.messages.append(swiftMsg)
                         self.messages.sort(by: { $0.createdAt < $1.createdAt })
                     }
+                    self.generateSmartReplies()
                 }
             } catch {
                 logger.error("Flow collection failed: \(error.localizedDescription)")
@@ -237,6 +242,23 @@ class ChatViewModel: ObservableObject {
                 self.errorMessage = error.localizedDescription
             }
             self.isSending = false
+            self.generateSmartReplies()
+        }
+    }
+
+    func generateSmartReplies() {
+        guard let useCase = generateSmartRepliesUseCase else { return }
+
+        let recentMessages = self.messages.suffix(10).map { "\($0.senderId): \($0.content)" }
+        guard !recentMessages.isEmpty else { return }
+
+        smartRepliesTask?.cancel()
+        smartRepliesTask = Task {
+            let result = try? await useCase.invoke(recentMessages: recentMessages)
+            if Task.isCancelled { return }
+            if let replies = result?.getOrNull() as? [String] {
+                self.smartReplies = replies
+            }
         }
     }
 

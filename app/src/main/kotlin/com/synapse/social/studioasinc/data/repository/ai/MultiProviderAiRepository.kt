@@ -6,7 +6,7 @@ import com.synapse.social.studioasinc.settings.ApiKeySettingsService
 class MultiProviderAiRepository(
     private val platformRepository: AiRepository,
     private val apiKeySettingsService: ApiKeySettingsService
-) : AiRepository {
+) : AiRepository, com.synapse.social.studioasinc.shared.domain.repository.ai.AiRepository {
 
     private fun resolveRepository(): AiRepository {
         val settings = apiKeySettingsService.providerSettings.value
