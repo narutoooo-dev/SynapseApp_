@@ -52,36 +52,12 @@ fun ProfileHeaderCard(
             Box(
                 modifier = Modifier.size(SettingsSpacing.avatarSize)
             ) {
-                if (avatarUrl != null && avatarUrl.isNotBlank()) {
-                    AsyncImage(
-                        model = ImageLoader.buildImageRequest(LocalContext.current, avatarUrl),
-                        contentDescription = "$profileAvatarDescription, $displayName",
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .clip(CircleShape),
-                        contentScale = ContentScale.Crop
-                    )
-                } else {
-
-                    Surface(
-                        modifier = Modifier.fillMaxSize(),
-                        shape = CircleShape,
-                        color = MaterialTheme.colorScheme.primaryContainer
-                    ) {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                imageVector = Icons.Filled.Person,
-                                contentDescription = "$profileAvatarDescription, $displayName",
-                                modifier = Modifier.size(Sizes.IconHuge),
-                                tint = MaterialTheme.colorScheme.onPrimaryContainer
-                            )
-                        }
-                    }
-                }
-
+                com.synapse.social.studioasinc.feature.shared.components.UserAvatar(
+                    avatarUrl = avatarUrl,
+                    displayName = displayName,
+                    size = SettingsSpacing.avatarSize,
+                    modifier = Modifier.fillMaxSize()
+                )
 
                 Surface(
                     modifier = Modifier.fillMaxSize(),
