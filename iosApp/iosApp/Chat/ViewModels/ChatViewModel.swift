@@ -30,6 +30,7 @@ class ChatViewModel: ObservableObject {
     private var subscriptionTask: Task<Void, Never>? = nil
     private var typingSubscriptionTask: Task<Void, Never>? = nil
     private var reactionsSubscriptionTask: Task<Void, Never>? = nil
+    private var smartRepliesTask: Task<Void, Never>? = nil
     private let typingSubject = PassthroughSubject<Bool, Never>()
     private var typingCancellable: AnyCancellable? = nil
     
@@ -294,9 +295,12 @@ class ChatViewModel: ObservableObject {
         guard let useCase = generateSmartRepliesUseCase else { return }
 
         let recentMessages = self.messages.suffix(10).map { "\($0.senderId): \($0.content)" }
+        guard !recentMessages.isEmpty else { return }
 
-        Task {
+        smartRepliesTask?.cancel()
+        smartRepliesTask = Task {
             let result = try? await useCase.invoke(recentMessages: recentMessages)
+            if Task.isCancelled { return }
             if let replies = result?.getOrNull() as? [String] {
                 self.smartReplies = replies
             }

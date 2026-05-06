@@ -33,7 +33,7 @@ object AiModule {
     fun provideAiRepository(
         sharedAiRepository: com.synapse.social.studioasinc.shared.domain.repository.ai.AiRepository
     ): AiRepository {
-        return sharedAiRepository as AiRepository
+        return (sharedAiRepository as? AiRepository) ?: throw IllegalStateException("The provided sharedAiRepository does not implement the platform AiRepository interface.")
     }
 
     @Provides

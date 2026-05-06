@@ -17,7 +17,6 @@ class GeminiAiRepository(
 ) : AiRepository {
 
     private val apiKey = SynapseConfig.GEMINI_API_KEY
-    private val baseUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent"
 
     override suspend fun generateSmartReplies(recentMessages: List<String>): Result<List<String>> {
         if (apiKey.isBlank()) {
@@ -33,8 +32,9 @@ class GeminiAiRepository(
         """.trimIndent()
 
         return try {
-            val response: GeminiResponse = httpClient.post("$baseUrl?key=$apiKey") {
+            val response: GeminiResponse = httpClient.post(BASE_URL) {
                 contentType(ContentType.Application.Json)
+                header("x-goog-api-key", apiKey)
                 setBody(GeminiRequest(contents = listOf(Content(parts = listOf(Part(text = prompt))))))
             }.body()
 
@@ -42,7 +42,7 @@ class GeminiAiRepository(
                 ?: return Result.failure(Exception("Empty response from Gemini"))
 
             val replies = text.lines()
-                .map { it.trim() }
+                .map { it.replace(Regex("^[\\s\\d.*-]+\\s*"), "").trim() }
                 .filter { it.isNotBlank() }
                 .take(3)
 
@@ -77,4 +77,8 @@ class GeminiAiRepository(
     private data class Candidate(
         val content: Content
     )
+
+    companion object {
+        private const val BASE_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent"
+    }
 }
