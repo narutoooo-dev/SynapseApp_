@@ -46,7 +46,7 @@ class ChatViewModel @Inject constructor(
     private val getGroupMembersUseCase: com.synapse.social.studioasinc.shared.domain.usecase.chat.GetGroupMembersUseCase,
     private val getMessageByIdUseCase: com.synapse.social.studioasinc.shared.domain.usecase.chat.GetMessageByIdUseCase,
     private val chatLockManager: com.synapse.social.studioasinc.core.util.ChatLockManager,
-    private val generateSmartRepliesUseCase: com.synapse.social.studioasinc.domain.usecase.ai.GenerateSmartRepliesUseCase,
+    private val generateSmartRepliesUseCase: com.synapse.social.studioasinc.shared.domain.usecase.ai.GenerateSmartRepliesUseCase,
     private val summarizeChatUseCase: com.synapse.social.studioasinc.domain.usecase.ai.SummarizeChatUseCase,
     private val summarizeMessageUseCase: com.synapse.social.studioasinc.domain.usecase.ai.SummarizeMessageUseCase,
     private val uploadProgressManager: UploadProgressManager,
