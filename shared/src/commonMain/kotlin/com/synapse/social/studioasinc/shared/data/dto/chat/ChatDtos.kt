@@ -72,7 +72,8 @@ data class ChatDto(
     @SerialName("created_by") val createdBy: String? = null,
     @EncodeDefault @SerialName("only_admins_can_message") val onlyAdminsCanMessage: Boolean = false,
     @SerialName("created_at") val createdAt: String? = null,
-    @SerialName("updated_at") val updatedAt: String? = null
+    @SerialName("updated_at") val updatedAt: String? = null,
+    @SerialName("disappearing_mode") val disappearingMode: String? = null
 )
 
 @OptIn(ExperimentalSerializationApi::class)

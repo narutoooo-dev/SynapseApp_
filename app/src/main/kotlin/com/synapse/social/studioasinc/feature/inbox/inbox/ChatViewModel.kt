@@ -55,7 +55,9 @@ class ChatViewModel @Inject constructor(
     private val populateMessageReactionsUseCase: PopulateMessageReactionsUseCase,
     private val subscribeToMessageReactionsUseCase: SubscribeToMessageReactionsUseCase,
     private val getChatSettingsUseCase: com.synapse.social.studioasinc.shared.domain.usecase.chat.GetChatSettingsUseCase,
-    private val observeUserActiveStatusUseCase: ObserveUserActiveStatusUseCase
+    private val observeUserActiveStatusUseCase: ObserveUserActiveStatusUseCase,
+    private val setDisappearingModeUseCase: com.synapse.social.studioasinc.shared.domain.usecase.chat.SetDisappearingModeUseCase,
+    private val getDisappearingModeUseCase: com.synapse.social.studioasinc.shared.domain.usecase.chat.GetDisappearingModeUseCase
 ) : ViewModel() {
 
     private val _inputText = MutableStateFlow("")
@@ -283,6 +285,8 @@ class ChatViewModel @Inject constructor(
         _onlyAdminsCanMessage = _onlyAdminsCanMessage,
         _isCurrentUserAdmin = _isCurrentUserAdmin,
         _isParticipantActive = _isParticipantActive,
+        _disappearingMode = _disappearingMode,
+        getDisappearingModeUseCase = getDisappearingModeUseCase,
         onChatIdResolved = { currentChatId = it }
     )
 
@@ -305,6 +309,8 @@ class ChatViewModel @Inject constructor(
 
     private val settingsDelegate = ChatSettingsDelegate(
         chatLockManager = chatLockManager,
+        setDisappearingModeUseCase = setDisappearingModeUseCase,
+        viewModelScope = viewModelScope,
         _disappearingMode = _disappearingMode,
         currentChatIdProvider = { currentChatId }
     )

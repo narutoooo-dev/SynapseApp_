@@ -17,6 +17,8 @@ class KMPHelper {
     let getMessageReactionsUseCase: shared.GetMessageReactionsUseCase
     let populateMessageReactionsUseCase: shared.PopulateMessageReactionsUseCase
     let subscribeToMessageReactionsUseCase: shared.SubscribeToMessageReactionsUseCase
+    let setDisappearingModeUseCase: shared.SetDisappearingModeUseCase
+    let getDisappearingModeUseCase: shared.GetDisappearingModeUseCase
 
     let uploadMediaUseCase: shared.UploadMediaUseCase
 
@@ -63,6 +65,8 @@ class KMPHelper {
         self.getMessageReactionsUseCase = shared.GetMessageReactionsUseCase(repository: chatRepository)
         self.populateMessageReactionsUseCase = shared.PopulateMessageReactionsUseCase(repository: chatRepository)
         self.subscribeToMessageReactionsUseCase = shared.SubscribeToMessageReactionsUseCase(repository: chatRepository)
+        self.setDisappearingModeUseCase = shared.SetDisappearingModeUseCase(repository: chatRepository)
+        self.getDisappearingModeUseCase = shared.GetDisappearingModeUseCase(repository: chatRepository)
 
         let storageRepository = shared.IOSDependencies.shared.getStorageRepository()
         self.uploadMediaUseCase = shared.UploadMediaUseCase(repository: chatRepository, storageRepository: storageRepository, mediaUploadRepository: mediaUploadRepository, fileUploader: fileUploader)

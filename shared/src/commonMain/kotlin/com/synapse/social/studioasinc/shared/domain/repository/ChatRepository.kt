@@ -47,5 +47,7 @@ interface ChatRepository {
     suspend fun getReactionsForMessages(messages: List<Message>): List<Message>
     suspend fun clearLocalCache()
     fun subscribeToMessageReactions(): Flow<MessageReaction>
+    suspend fun setDisappearingMode(chatId: String, mode: com.synapse.social.studioasinc.shared.domain.model.chat.DisappearingMode): Result<Unit>
+    suspend fun getDisappearingMode(chatId: String): Result<com.synapse.social.studioasinc.shared.domain.model.chat.DisappearingMode>
 
 }

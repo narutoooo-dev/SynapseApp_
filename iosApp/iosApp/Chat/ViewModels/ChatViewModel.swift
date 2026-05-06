@@ -11,6 +11,7 @@ class ChatViewModel: ObservableObject {
     @Published var isSending = false
     @Published var smartReplies: [String] = []
     @Published var isParticipantTyping: Bool = false
+    @Published var disappearingMode: shared.DisappearingMode = .off
 
     private let getMessagesUseCase: shared.GetMessagesUseCase?
     private let subscribeToMessagesUseCase: shared.SubscribeToMessagesUseCase?
@@ -21,6 +22,8 @@ class ChatViewModel: ObservableObject {
     private let toggleMessageReactionUseCase: shared.ToggleMessageReactionUseCase?
     private let subscribeToMessageReactionsUseCase: shared.SubscribeToMessageReactionsUseCase?
     private let populateMessageReactionsUseCase: shared.PopulateMessageReactionsUseCase?
+    private let setDisappearingModeUseCase: shared.SetDisappearingModeUseCase?
+    private let getDisappearingModeUseCase: shared.GetDisappearingModeUseCase?
 
     private var chatId: String? = nil
     private var subscriptionTask: Task<Void, Never>? = nil
@@ -41,7 +44,9 @@ class ChatViewModel: ObservableObject {
         subscribeToTypingStatusUseCase: shared.SubscribeToTypingStatusUseCase? = KMPHelper.sharedHelper.subscribeToTypingStatusUseCase,
         toggleMessageReactionUseCase: shared.ToggleMessageReactionUseCase? = KMPHelper.sharedHelper.toggleMessageReactionUseCase,
         subscribeToMessageReactionsUseCase: shared.SubscribeToMessageReactionsUseCase? = KMPHelper.sharedHelper.subscribeToMessageReactionsUseCase,
-        populateMessageReactionsUseCase: shared.PopulateMessageReactionsUseCase? = KMPHelper.sharedHelper.populateMessageReactionsUseCase
+        populateMessageReactionsUseCase: shared.PopulateMessageReactionsUseCase? = KMPHelper.sharedHelper.populateMessageReactionsUseCase,
+        setDisappearingModeUseCase: shared.SetDisappearingModeUseCase? = KMPHelper.sharedHelper.setDisappearingModeUseCase,
+        getDisappearingModeUseCase: shared.GetDisappearingModeUseCase? = KMPHelper.sharedHelper.getDisappearingModeUseCase
     ) {
         self.getMessagesUseCase = getMessagesUseCase
         self.subscribeToMessagesUseCase = subscribeToMessagesUseCase
@@ -52,15 +57,44 @@ class ChatViewModel: ObservableObject {
         self.toggleMessageReactionUseCase = toggleMessageReactionUseCase
         self.subscribeToMessageReactionsUseCase = subscribeToMessageReactionsUseCase
         self.populateMessageReactionsUseCase = populateMessageReactionsUseCase
+        self.setDisappearingModeUseCase = setDisappearingModeUseCase
+        self.getDisappearingModeUseCase = getDisappearingModeUseCase
     }
 
     func setup(chatId: String) {
         self.chatId = chatId
+        fetchDisappearingMode()
         fetchMessages()
         subscribeToMessages()
         subscribeToTypingStatus()
         subscribeToMessageReactions()
         setupTypingDebounce()
+    }
+
+    func fetchDisappearingMode() {
+        guard let useCase = getDisappearingModeUseCase, let chatId = chatId else { return }
+        Task {
+            do {
+                let result = try await useCase.invoke(chatId: chatId)
+                if let mode = result.getOrNull() as? shared.DisappearingMode {
+                    self.disappearingMode = mode
+                }
+            } catch {
+                logger.error("Failed to get disappearing mode: \(error.localizedDescription)")
+            }
+        }
+    }
+
+    func setDisappearingMode(mode: shared.DisappearingMode) {
+        guard let useCase = setDisappearingModeUseCase, let chatId = chatId else { return }
+        self.disappearingMode = mode
+        Task {
+            do {
+                let _ = try await useCase.invoke(chatId: chatId, mode: mode)
+            } catch {
+                logger.error("Failed to set disappearing mode: \(error.localizedDescription)")
+            }
+        }
     }
 
     private func setupTypingDebounce() {
@@ -195,6 +229,17 @@ class ChatViewModel: ObservableObject {
         guard !content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
 
         self.isSending = true
+
+        let expiresAt: String?
+        if let seconds = self.disappearingMode.seconds {
+            let expirationDate = Date().addingTimeInterval(TimeInterval(truncating: seconds))
+            let formatter = ISO8601DateFormatter()
+            formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+            expiresAt = formatter.string(from: expirationDate)
+        } else {
+            expiresAt = nil
+        }
+
         Task {
             do {
                 let result = try await useCase.invoke(
@@ -202,7 +247,7 @@ class ChatViewModel: ObservableObject {
                     content: content,
                     mediaUrl: nil,
                     messageType: "TEXT",
-                    expiresAt: nil,
+                    expiresAt: expiresAt,
                     replyToId: nil
                 )
                 if let data = result.getOrNull() as? shared.Message {
