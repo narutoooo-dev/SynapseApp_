@@ -159,6 +159,7 @@ fun ChatsTabScreen(
                     }
 
                     SwipeToDismissBox(
+                        modifier = Modifier.padding(horizontal = Spacing.Medium),
                         state = dismissState,
                         backgroundContent = {
                             val isStartToEnd = dismissState.dismissDirection == SwipeToDismissBoxValue.StartToEnd
@@ -260,7 +261,6 @@ private fun ConversationItem(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = Spacing.Medium)
             .clip(shape)
             .background(MaterialTheme.colorScheme.surfaceContainer, shape)
             .combinedClickable(
@@ -272,14 +272,11 @@ private fun ConversationItem(
     ) {
         // Avatar with online indicator
         Box {
-            AsyncImage(
-                model = conversation.participantAvatar,
-                contentDescription = null,
+            com.synapse.social.studioasinc.feature.shared.components.UserAvatar(
+                avatarUrl = conversation.participantAvatar,
+                displayName = conversation.participantName,
+                size = InboxTheme.dimens.AvatarSize,
                 modifier = Modifier
-                    .size(InboxTheme.dimens.AvatarSize)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.surfaceVariant, CircleShape),
-                contentScale = ContentScale.Crop
             )
             if (conversation.isOnline) {
                 Box(

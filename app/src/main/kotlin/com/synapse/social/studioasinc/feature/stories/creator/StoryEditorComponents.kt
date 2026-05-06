@@ -56,6 +56,7 @@ import androidx.media3.ui.PlayerView
 import coil.compose.AsyncImage
 import com.synapse.social.studioasinc.R
 import com.synapse.social.studioasinc.domain.model.StoryMediaType
+import androidx.compose.material.icons.filled.Crop
 import com.synapse.social.studioasinc.feature.shared.theme.Sizes
 import com.synapse.social.studioasinc.feature.shared.theme.Spacing
 import kotlin.math.roundToInt
@@ -214,6 +215,7 @@ internal fun StoryTopControls(
     onToggleDrawingMode: () -> Unit,
     onAddText: () -> Unit,
     onAddSticker: () -> Unit,
+    onCycleScaleMode: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Row(
@@ -228,6 +230,9 @@ internal fun StoryTopControls(
         }
 
         Row(verticalAlignment = Alignment.CenterVertically) {
+            IconButton(onClick = onCycleScaleMode) {
+                Icon(Icons.Default.Crop, contentDescription = stringResource(R.string.story_cycle_scale), tint = MaterialTheme.colorScheme.onPrimary)
+            }
             IconButton(onClick = onAddText) {
                 Text(
                     stringResource(R.string.story_text_button_label),
@@ -325,7 +330,7 @@ internal fun StoryBackground(state: StoryCreatorState) {
                 model = mediaUri,
                 contentDescription = null,
                 modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Crop
+                contentScale = state.contentScale
             )
         }
     } else if (state.sharedPost != null) {

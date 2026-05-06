@@ -52,7 +52,7 @@ class ChatSubscriptionDelegate(
         }
 
         reactionSubscriptionJob = viewModelScope.launch {
-            subscribeToMessageReactionsUseCase().collect { reaction ->
+            subscribeToMessageReactionsUseCase(chatId).collect { reaction ->
                 onReactionEvent(reaction)
             }
         }

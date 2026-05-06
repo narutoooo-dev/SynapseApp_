@@ -5,7 +5,7 @@ import com.synapse.social.studioasinc.shared.domain.repository.ChatRepository
 import kotlinx.coroutines.flow.Flow
 
 class SubscribeToMessageReactionsUseCase(private val repository: ChatRepository) {
-    operator fun invoke(): Flow<MessageReaction> {
-        return repository.subscribeToMessageReactions()
+    operator fun invoke(chatId: String): Flow<MessageReaction> {
+        return repository.subscribeToMessageReactions(chatId)
     }
 }

@@ -196,15 +196,37 @@ class ChatViewModel: ObservableObject {
     }
 
     func subscribeToMessageReactions() {
-        guard let useCase = subscribeToMessageReactionsUseCase else { return }
+        guard let useCase = subscribeToMessageReactionsUseCase, let chatId = chatId else { return }
 
         reactionsSubscriptionTask?.cancel()
         reactionsSubscriptionTask = Task {
-            let flow = useCase.invoke()
+            let flow = useCase.invoke(chatId: chatId)
             do {
                 for try await reaction in flow.asAsyncStream(type: shared.MessageReaction.self) {
                     if let index = self.messages.firstIndex(where: { $0.id == reaction.messageId }) {
-                        fetchMessages() // Refresh for simplicity, or update locally
+                        var existing = self.messages[index]
+
+                        var reactions = existing.reactions
+                        let reactionKey = reaction.reactionEmoji
+
+                        if reaction.isDelete {
+                            if let count = reactions[reactionKey], count > 1 {
+                                reactions[reactionKey] = count - 1
+                            } else {
+                                reactions.removeValue(forKey: reactionKey)
+                            }
+                            if existing.userReaction == reactionKey && reaction.userId == self.currentUserId {
+                                existing.userReaction = nil
+                            }
+                        } else {
+                            reactions[reactionKey] = (reactions[reactionKey] ?? 0) + 1
+                            if reaction.userId == self.currentUserId {
+                                existing.userReaction = reactionKey
+                            }
+                        }
+
+                        existing.reactions = reactions
+                        self.messages[index] = existing
                     }
                 }
             } catch {
@@ -218,9 +240,9 @@ class ChatViewModel: ObservableObject {
     }
 
     func toggleReaction(messageId: String, emoji: String) {
-        guard let useCase = toggleMessageReactionUseCase else { return }
+        guard let useCase = toggleMessageReactionUseCase, let chatId = chatId else { return }
         Task {
-            let _ = try? await useCase.invoke(messageId: messageId, emoji: emoji)
+            let _ = try? await useCase.invoke(messageId: messageId, emoji: emoji, chatId: chatId)
         }
     }
 

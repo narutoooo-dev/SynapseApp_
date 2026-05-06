@@ -6,6 +6,7 @@ import com.synapse.social.studioasinc.shared.domain.repository.AuthRepository
 import com.synapse.social.studioasinc.data.repository.StoryRepository
 import com.synapse.social.studioasinc.data.repository.UserRepositoryImpl
 import com.synapse.social.studioasinc.domain.model.Story
+import androidx.compose.ui.layout.ContentScale
 import com.synapse.social.studioasinc.domain.model.StoryMediaType
 import com.synapse.social.studioasinc.domain.model.User
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -26,7 +27,8 @@ data class StoryViewerState(
     val currentStoryIndex: Int = 0,
     val progress: Float = 0f,
     val isPaused: Boolean = false,
-    val isFinished: Boolean = false
+    val isFinished: Boolean = false,
+    val contentScale: ContentScale = ContentScale.Crop
 )
 
 @HiltViewModel
@@ -210,6 +212,18 @@ class StoryViewerViewModel @Inject constructor(
 
 
         startProgress(durationOverride = durationMs)
+    }
+
+    fun cycleContentScale() {
+        _uiState.update { state ->
+            val nextScale = when (state.contentScale) {
+                ContentScale.Crop -> ContentScale.Fit
+                ContentScale.Fit -> ContentScale.FillBounds
+                ContentScale.FillBounds -> ContentScale.Inside
+                else -> ContentScale.Crop
+            }
+            state.copy(contentScale = nextScale)
+        }
     }
 
     private fun markAsSeen(storyId: String?) {

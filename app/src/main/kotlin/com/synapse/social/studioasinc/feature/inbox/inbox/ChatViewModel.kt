@@ -345,10 +345,12 @@ class ChatViewModel @Inject constructor(
     fun loadMoreMessages() {
         val chatId = currentChatId ?: return
         if (_isLoadingMore.value || !_hasMoreMessages.value) return
-        val oldest = messagingDelegate.messages.value.firstOrNull()?.createdAt ?: return
+        val oldestMessage = messagingDelegate.messages.value.firstOrNull() ?: return
+        val oldest = oldestMessage.createdAt
+        val oldestId = oldestMessage.id
         _isLoadingMore.value = true
         viewModelScope.launch {
-            getMessagesUseCase(chatId, before = oldest).onSuccess { older ->
+            getMessagesUseCase(chatId, before = oldest, beforeId = oldestId).onSuccess { older ->
                 if (older.isEmpty()) {
                     _hasMoreMessages.value = false
                 } else {
@@ -437,8 +439,21 @@ class ChatViewModel @Inject constructor(
             with(messagingDelegate) {
                 current.updateById(reaction.messageId) { msg ->
                     val counts = msg.reactions.toMutableMap()
-                    counts[reactionType] = (counts[reactionType] ?: 0) + 1
-                    val userReaction = if (reaction.userId == currentUserId) reactionType else msg.userReaction
+                    if (reaction.isDelete) {
+                        val currentCount = counts[reactionType] ?: 0
+                        if (currentCount > 1) {
+                            counts[reactionType] = currentCount - 1
+                        } else {
+                            counts.remove(reactionType)
+                        }
+                    } else {
+                        counts[reactionType] = (counts[reactionType] ?: 0) + 1
+                    }
+                    val userReaction = if (reaction.userId == currentUserId) {
+                        if (reaction.isDelete) null else reactionType
+                    } else {
+                        msg.userReaction
+                    }
                     msg.copy(reactions = counts, userReaction = userReaction)
                 }
             }
@@ -543,6 +558,7 @@ class ChatViewModel @Inject constructor(
         subscriptionDelegate.cleanup()
         inputDelegate.cleanup()
         messagingDelegate.pendingTempIds.value = emptySet()
+        _hasMoreMessages.value = true
     }
 
     override fun onCleared() {

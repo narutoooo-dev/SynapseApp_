@@ -405,7 +405,7 @@ fun MessageBubble(
             tonalElevation = Sizes.BorderThin,
             modifier = Modifier
                 .widthIn(max = bubbleMaxWidth)
-                .padding(bottom = if (message.reactions.isNotEmpty()) 12.dp else 0.dp)
+                .padding(bottom = if (reactions.isNotEmpty()) 12.dp else 0.dp)
         ) {
             Column(modifier = Modifier.padding(horizontal = Spacing.Small, vertical = Spacing.Small)) {
 
@@ -587,7 +587,7 @@ fun MessageBubble(
                 } // close Box
             }
         }
-        if (message.reactions.isNotEmpty()) {
+        if (reactions.isNotEmpty()) {
             @OptIn(ExperimentalLayoutApi::class)
             FlowRow(
                 modifier = Modifier
@@ -596,7 +596,8 @@ fun MessageBubble(
                 horizontalArrangement = Arrangement.spacedBy(Spacing.Tiny),
                 verticalArrangement = Arrangement.spacedBy(Spacing.Tiny)
             ) {
-                message.reactions.forEach { (type, count) ->
+                reactions.forEach { (emoji, count) ->
+                    val type = SharedReactionType.values().find { it.emoji == emoji } ?: SharedReactionType.LIKE
                     Surface(
                         shape = CircleShape,
                         color = if (message.userReaction == type)
@@ -611,7 +612,7 @@ fun MessageBubble(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(2.dp)
                         ) {
-                            Text(text = type.emoji, fontSize = 12.sp)
+                            Text(text = emoji, fontSize = 12.sp)
                             if (count > 1) {
                                 Text(
                                     text = count.toString(),
@@ -636,21 +637,15 @@ fun MessageBubble(
         }
         } // Box
 
-        if (message.reactions.isNotEmpty()) Spacer(modifier = Modifier.height(12.dp))
+        if (reactions.isNotEmpty()) Spacer(modifier = Modifier.height(12.dp))
 
         if (isFromMe && (position == GroupPosition.LAST || position == GroupPosition.SINGLE)
             && message.deliveryStatus == DeliveryStatus.READ) {
-            AsyncImage(
-                model = senderAvatarUrl,
-                contentDescription = stringResource(R.string.chat_cd_reader_avatar),
-                contentScale = ContentScale.Crop,
-                placeholder = rememberVectorPainter(Icons.Filled.Person),
-                error = rememberVectorPainter(Icons.Filled.Person),
-                modifier = Modifier
-                    .padding(top = Spacing.Tiny)
-                    .size(Sizes.AvatarTiny)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.surfaceVariant)
+            com.synapse.social.studioasinc.feature.shared.components.UserAvatar(
+                avatarUrl = senderAvatarUrl,
+                displayName = null,
+                size = Sizes.AvatarTiny,
+                modifier = Modifier.padding(top = Spacing.Tiny)
             )
         }
 

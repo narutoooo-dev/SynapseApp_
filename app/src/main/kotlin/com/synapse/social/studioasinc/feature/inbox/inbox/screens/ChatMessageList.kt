@@ -64,8 +64,8 @@ internal fun ChatMessageList(
             val info = listState.layoutInfo
             val total = info.totalItemsCount
             if (total < 5) return@derivedStateOf false
-            val lastVisible = info.visibleItemsInfo.lastOrNull()?.index ?: 0
-            lastVisible >= total - 3
+            val highestVisibleIndex = info.visibleItemsInfo.maxOfOrNull { it.index } ?: 0
+            highestVisibleIndex >= total - 3
         }
     }
     LaunchedEffect(shouldLoadMore.value) {
@@ -116,6 +116,7 @@ internal fun ChatMessageList(
                         isFromMe = message.isFromMe(currentUserId),
                         position = position,
                         isSelected = isSelected,
+                        reactions = message.reactions.map { it.key.emoji to it.value },
                         onToggleSelection = { if (selectedMessageIds.isNotEmpty()) message.id?.let { onToggleSelection(it) } },
                         onSwipeToReply = { onSwipeToReply(message) },
                         replyToMessage = message.replyToId?.let { messagesMap[it] },

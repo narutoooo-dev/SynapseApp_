@@ -29,6 +29,10 @@ class KMPHelper {
 
     let sharedImageLoader: shared.SharedImageLoader
 
+    let getNotificationsUseCase: shared.GetNotificationsUseCase
+    let markNotificationAsReadUseCase: shared.MarkNotificationAsReadUseCase
+    let subscribeToNotificationsUseCase: shared.SubscribeToNotificationsUseCase
+
     init() {
         let fileUploader = shared.FileUploader()
         let imgBBService = shared.ImgBBUploadService(httpClient: shared.SupabaseClient.shared.httpClient)
@@ -78,5 +82,11 @@ class KMPHelper {
         self.getStoriesUseCase = shared.GetStoriesUseCase(repository: storyRepository)
 
         self.sharedImageLoader = shared.SharedImageLoader(httpClient: shared.Ktor_client_coreHttpClient())
+
+        let notificationRepository = shared.SupabaseNotificationRepository(client: shared.SupabaseClient.shared.client)
+
+        self.getNotificationsUseCase = shared.GetNotificationsUseCase(notificationRepository: notificationRepository, authRepository: shared.IOSDependencies.shared.getAuthRepository())
+        self.markNotificationAsReadUseCase = shared.MarkNotificationAsReadUseCase(notificationRepository: notificationRepository, authRepository: shared.IOSDependencies.shared.getAuthRepository())
+        self.subscribeToNotificationsUseCase = shared.SubscribeToNotificationsUseCase(notificationRepository: notificationRepository, authRepository: shared.IOSDependencies.shared.getAuthRepository())
     }
 }

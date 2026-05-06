@@ -1,6 +1,14 @@
 import Foundation
 import shared
 
+enum AudienceType: String, CaseIterable, Identifiable {
+    case everyone = "Everyone"
+    case followers = "Followers"
+    case closeFriends = "Close Friends"
+
+    var id: String { self.rawValue }
+}
+
 class CreatePostViewModel: ObservableObject {
     @Published var text: String = ""
     @Published var mediaURLs: [URL] = []
@@ -9,6 +17,17 @@ class CreatePostViewModel: ObservableObject {
     @Published var error: String? = nil
     @Published var isPostCreated: Bool = false
     @Published var uploadProgress: Float = 0.0
+
+    @Published var audienceType: AudienceType = .everyone
+    @Published var pollOptions: [String] = ["", ""]
+    @Published var pollDuration: Int = 1
+    @Published var location: String? = nil
+    @Published var threadPosts: [String] = [""]
+    @Published var showPoll: Bool = false
+
+    var characterCount: Int {
+        return text.count
+    }
 
     // Represents KMP UseCase integrations
     // For a fully built app, inject these via an iOS DI container (like Swinject or a custom Factory)
@@ -20,6 +39,7 @@ class CreatePostViewModel: ObservableObject {
 
     init() {
         // Dependencies would be injected here
+        loadDraft()
     }
 
     func addMedia(_ urls: [URL]) {
@@ -77,8 +97,23 @@ class CreatePostViewModel: ObservableObject {
             self.isLoading = false
             self.isPostCreated = true
             self.text = ""
+            self.clearDraft()
             self.cleanupAllMedia()
         }
+    }
+
+    func saveDraft() {
+        UserDefaults.standard.set(text, forKey: "postDraftText")
+    }
+
+    func loadDraft() {
+        if let draft = UserDefaults.standard.string(forKey: "postDraftText") {
+            self.text = draft
+        }
+    }
+
+    func clearDraft() {
+        UserDefaults.standard.removeObject(forKey: "postDraftText")
     }
 
     deinit {

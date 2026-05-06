@@ -254,30 +254,15 @@ fun ProfileImageWithRing(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(if (hasStory) ringWidth + ringPadding else Spacing.ExtraSmall)
-                .clip(shape)
+                .clip(shape),
+            contentAlignment = Alignment.Center
         ) {
-            if (avatar != null) {
-                AsyncImage(
-                    model = avatar,
-                    contentDescription = stringResource(R.string.author_avatar),
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
-                )
-            } else {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(MaterialTheme.colorScheme.surfaceVariant),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Person,
-                        contentDescription = null,
-                        modifier = Modifier.size(size * 0.5f),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
+            com.synapse.social.studioasinc.feature.shared.components.UserAvatar(
+                avatarUrl = avatar,
+                displayName = null,
+                size = size,
+                modifier = Modifier.fillMaxSize()
+            )
         }
 
         if (status == UserStatus.ONLINE) {

@@ -4,5 +4,6 @@ data class MessageReaction(
     val messageId: String,
     val userId: String,
     val reactionEmoji: String,
-    val timestamp: Long
+    val timestamp: Long,
+    val isDelete: Boolean = false
 )

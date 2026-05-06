@@ -56,29 +56,12 @@ fun InboxLargeTopAppBar(
         },
         actions = {
 
-             Box(
-                 modifier = Modifier
-                     .size(Sizes.IconMassive)
-                     .clip(CircleShape)
-                     .background(MaterialTheme.colorScheme.primary)
-                     .clickable(onClick = onProfileClick),
-                 contentAlignment = Alignment.Center
-             ) {
-                 if (avatarUrl != null) {
-                     AsyncImage(
-                         model = avatarUrl,
-                         contentDescription = "Profile",
-                         modifier = Modifier.fillMaxSize(),
-                         contentScale = ContentScale.Crop
-                     )
-                 } else {
-                     Text(
-                         text = stringResource(R.string.default_avatar_letter),
-                         style = MaterialTheme.typography.titleMedium,
-                         color = MaterialTheme.colorScheme.onPrimary
-                     )
-                 }
-             }
+             com.synapse.social.studioasinc.feature.shared.components.UserAvatar(
+                 avatarUrl = avatarUrl,
+                 displayName = title,
+                 size = Sizes.IconMassive,
+                 modifier = Modifier.clickable(onClick = onProfileClick)
+             )
 
              Spacer(modifier = Modifier.width(Spacing.Medium))
         },

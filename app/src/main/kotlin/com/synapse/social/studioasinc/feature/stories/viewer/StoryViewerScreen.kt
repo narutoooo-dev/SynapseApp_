@@ -9,6 +9,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Crop
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -97,9 +98,22 @@ fun StoryViewerScreen(
                 StoryMediaContent(
                     story = currentStory,
                     isPaused = uiState.isPaused,
+                    contentScale = uiState.contentScale,
                     onVideoReady = { duration -> viewModel.onVideoReady(duration) }
                 )
 
+                IconButton(
+                    onClick = { viewModel.cycleContentScale() },
+                    modifier = Modifier
+                        .align(Alignment.BottomStart)
+                        .padding(Spacing.Medium)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Crop,
+                        contentDescription = stringResource(R.string.story_cycle_scale),
+                        tint = MaterialTheme.colorScheme.onPrimary
+                    )
+                }
 
                 Column(
                     modifier = Modifier
@@ -132,6 +146,7 @@ fun StoryViewerScreen(
 fun StoryMediaContent(
     story: Story,
     isPaused: Boolean,
+    contentScale: ContentScale,
     onVideoReady: (Long) -> Unit
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
@@ -146,7 +161,7 @@ fun StoryMediaContent(
                 model = story.mediaUrl,
                 contentDescription = null,
                 modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Crop
+                contentScale = contentScale
             )
         }
     }

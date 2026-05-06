@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.Flow
 
 interface ChatRepository {
     suspend fun getConversations(): Result<List<Conversation>>
-    suspend fun getMessages(chatId: String, limit: Int = 50, before: String? = null): Result<List<Message>>
+    suspend fun getMessages(chatId: String, limit: Int = 50, before: String? = null, beforeId: String? = null): Result<List<Message>>
     suspend fun getMessageById(messageId: String): Result<Message?>
     suspend fun sendMessage(chatId: String, content: String, mediaUrl: String? = null, messageType: String = "text", expiresAt: String? = null, replyToId: String? = null, senderPlaintext: String? = null): Result<Message>
     suspend fun getOrCreateChat(otherUserId: String): Result<String>
@@ -42,11 +42,11 @@ interface ChatRepository {
     suspend fun leaveGroup(chatId: String): Result<Unit>
     suspend fun toggleOnlyAdminsCanMessage(chatId: String, enabled: Boolean): Result<Unit>
     suspend fun getChatInfo(chatId: String): Result<com.synapse.social.studioasinc.shared.domain.model.chat.ChatInfo?>
-    suspend fun toggleMessageReaction(messageId: String, emoji: String): Result<Unit>
+    suspend fun toggleMessageReaction(messageId: String, emoji: String, chatId: String?): Result<Unit>
     suspend fun getReactionsForMessage(messageId: String): Result<List<MessageReaction>>
     suspend fun getReactionsForMessages(messages: List<Message>): List<Message>
     suspend fun clearLocalCache()
-    fun subscribeToMessageReactions(): Flow<MessageReaction>
+    fun subscribeToMessageReactions(chatId: String): Flow<MessageReaction>
     suspend fun setDisappearingMode(chatId: String, mode: com.synapse.social.studioasinc.shared.domain.model.chat.DisappearingMode): Result<Unit>
     suspend fun getDisappearingMode(chatId: String): Result<com.synapse.social.studioasinc.shared.domain.model.chat.DisappearingMode>
 
