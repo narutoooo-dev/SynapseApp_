@@ -267,13 +267,14 @@ internal class ChatRealtimeDataSource(private val client: SupabaseClientLib) {
         }
     }
 
-    fun subscribeToMessageReactions(): Flow<MessageReactionDto> = callbackFlow {
-        val channelId = "react_flow_${UUIDUtils.randomUUID()}_${Clock.System.now().toEpochMilliseconds()}"
+    fun subscribeToMessageReactions(chatId: String): Flow<MessageReactionDto> = callbackFlow {
+        val channelId = "react_flow_${chatId}_${UUIDUtils.randomUUID()}_${Clock.System.now().toEpochMilliseconds()}"
         Napier.d("Creating realtime channel for reactions: $channelId")
 
         val channel = client.realtime.channel(channelId)
         val flow = channel.postgresChangeFlow<PostgresAction>(schema = "public") {
             table = "message_reactions"
+            filter("chat_id", FilterOperator.EQ, chatId)
         }
 
         val collector = launch(AppDispatchers.IO) {
@@ -281,7 +282,10 @@ internal class ChatRealtimeDataSource(private val client: SupabaseClientLib) {
                 when (action) {
                     is PostgresAction.Insert -> try { trySend(action.decodeRecord<MessageReactionDto>()) } catch(e: Exception) {}
                     is PostgresAction.Update -> try { trySend(action.decodeRecord<MessageReactionDto>()) } catch(e: Exception) {}
-                    is PostgresAction.Delete -> try { trySend(action.decodeOldRecord<MessageReactionDto>()) } catch(e: Exception) {}
+                    is PostgresAction.Delete -> try {
+                        val oldRecord = action.decodeOldRecord<MessageReactionDto>()
+                        trySend(oldRecord.copy(isDeleteEvent = true))
+                    } catch(e: Exception) {}
                     else -> {}
                 }
             }

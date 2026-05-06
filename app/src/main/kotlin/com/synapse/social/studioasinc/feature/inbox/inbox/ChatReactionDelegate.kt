@@ -28,7 +28,8 @@ class ChatReactionDelegate(
             // Optimistic update
             onOptimisticReactionChanged(messageId, oldMessage, newUserReaction, oldUserReaction)
 
-            toggleMessageReactionUseCase(messageId, reactionType.emoji).onFailure { e ->
+            val chatId = oldMessage.chatId
+            toggleMessageReactionUseCase(messageId, reactionType.emoji, chatId).onFailure { e ->
                 // Revert
                 onError("Failed to toggle reaction: ${e.message}", oldMessage)
             }

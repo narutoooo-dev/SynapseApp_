@@ -433,8 +433,21 @@ class ChatViewModel @Inject constructor(
             with(messagingDelegate) {
                 current.updateById(reaction.messageId) { msg ->
                     val counts = msg.reactions.toMutableMap()
-                    counts[reactionType] = (counts[reactionType] ?: 0) + 1
-                    val userReaction = if (reaction.userId == currentUserId) reactionType else msg.userReaction
+                    if (reaction.isDelete) {
+                        val currentCount = counts[reactionType] ?: 0
+                        if (currentCount > 1) {
+                            counts[reactionType] = currentCount - 1
+                        } else {
+                            counts.remove(reactionType)
+                        }
+                    } else {
+                        counts[reactionType] = (counts[reactionType] ?: 0) + 1
+                    }
+                    val userReaction = if (reaction.userId == currentUserId) {
+                        if (reaction.isDelete) null else reactionType
+                    } else {
+                        msg.userReaction
+                    }
                     msg.copy(reactions = counts, userReaction = userReaction)
                 }
             }
