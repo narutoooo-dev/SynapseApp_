@@ -309,6 +309,27 @@ class SupabaseChatRepository(
         Result.failure(e)
     }
 
+    override suspend fun setDisappearingMode(chatId: String, mode: com.synapse.social.studioasinc.shared.domain.model.chat.DisappearingMode): Result<Unit> = try {
+        dataSource.setDisappearingMode(chatId, mode.name)
+        Result.success(Unit)
+    } catch (e: Exception) {
+        Logger.e("Error setting disappearing mode", throwable = e)
+        Result.failure(e)
+    }
+
+    override suspend fun getDisappearingMode(chatId: String): Result<com.synapse.social.studioasinc.shared.domain.model.chat.DisappearingMode> = try {
+        val modeString = dataSource.getDisappearingMode(chatId)
+        val mode = try {
+            modeString?.let { com.synapse.social.studioasinc.shared.domain.model.chat.DisappearingMode.valueOf(it) } ?: com.synapse.social.studioasinc.shared.domain.model.chat.DisappearingMode.OFF
+        } catch (e: Exception) {
+            com.synapse.social.studioasinc.shared.domain.model.chat.DisappearingMode.OFF
+        }
+        Result.success(mode)
+    } catch (e: Exception) {
+        Logger.e("Error getting disappearing mode", throwable = e)
+        Result.failure(e)
+    }
+
     override suspend fun deleteMessageForMe(messageId: String): Result<Unit> = try {
         dataSource.deleteMessageForMe(messageId)
         cachedMessageDao?.markDeleted(messageId)

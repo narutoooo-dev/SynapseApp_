@@ -17,7 +17,13 @@ object ChatMapper {
         createdBy = createdBy,
         onlyAdminsCanMessage = onlyAdminsCanMessage,
         createdAt = createdAt,
-        updatedAt = updatedAt
+        updatedAt = updatedAt,
+        disappearingMode = try {
+            disappearingMode?.let { com.synapse.social.studioasinc.shared.domain.model.chat.DisappearingMode.valueOf(it) }
+                ?: com.synapse.social.studioasinc.shared.domain.model.chat.DisappearingMode.OFF
+        } catch (e: Exception) {
+            com.synapse.social.studioasinc.shared.domain.model.chat.DisappearingMode.OFF
+        }
     )
 
     fun MessageDto.toDomain(): Message = Message(

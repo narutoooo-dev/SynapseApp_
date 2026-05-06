@@ -9,5 +9,6 @@ data class ChatInfo(
     val createdBy: String?,
     val onlyAdminsCanMessage: Boolean,
     val createdAt: String?,
-    val updatedAt: String?
+    val updatedAt: String?,
+    val disappearingMode: DisappearingMode = DisappearingMode.OFF
 )

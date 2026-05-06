@@ -8,6 +8,7 @@ struct ChatDetailView: View {
     @StateObject private var viewModel = ChatViewModel()
 
     private let currentUserId = "my_user_id"
+    @State private var showingDisappearingModeSheet = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -105,6 +106,26 @@ struct ChatDetailView: View {
                     }
                 }
             }
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button(action: {
+                    showingDisappearingModeSheet = true
+                }) {
+                    Image(systemName: "timer")
+                        .foregroundColor(viewModel.disappearingMode != .off ? .blue : .primary)
+                }
+            }
+        }
+        .confirmationDialog("Disappearing messages", isPresented: $showingDisappearingModeSheet, titleVisibility: .visible) {
+            Button("Off") {
+                viewModel.setDisappearingMode(mode: .off)
+            }
+            Button("24 hours") {
+                viewModel.setDisappearingMode(mode: .twentyFourHours)
+            }
+            Button("7 days") {
+                viewModel.setDisappearingMode(mode: .sevenDays)
+            }
+            Button("Cancel", role: .cancel) {}
         }
         .onAppear {
             viewModel.setup(chatId: chatId)

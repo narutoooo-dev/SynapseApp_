@@ -262,4 +262,30 @@ internal class ChatConversationDataSource(private val client: SupabaseClientLib)
             throw e
         }
     }
+
+    suspend fun setDisappearingMode(chatId: String, mode: String) = withContext(AppDispatchers.IO) {
+        try {
+            client.postgrest.from("chats").update({
+                set("disappearing_mode", mode)
+            }) {
+                filter { eq("id", chatId) }
+            }
+        } catch (e: Exception) {
+            Napier.e("Error setting disappearing mode", e)
+            throw e
+        }
+    }
+
+    suspend fun getDisappearingMode(chatId: String): String? = withContext(AppDispatchers.IO) {
+        try {
+            val chatDto = client.postgrest.from("chats").select {
+                filter { eq("id", chatId) }
+                limit(1)
+            }.decodeSingleOrNull<ChatDto>()
+            chatDto?.disappearingMode
+        } catch (e: Exception) {
+            Napier.e("Error getting disappearing mode", e)
+            null
+        }
+    }
 }

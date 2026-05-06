@@ -1625,6 +1625,10 @@ Please explain the following message from %3$s in detail, considering the contex
     <string name="shared_post_editor_title">Shared Post Editor</string>
     <string name="mute_notifications_label">Mute Notifications</string>
     <string name="disappearing_messages_label">Disappearing Messages (%1$s)</string>
+    <string name="disappearing_messages_title">Disappearing messages</string>
+    <string name="disappearing_mode_off">Off</string>
+    <string name="disappearing_mode_24_hours">24 hours</string>
+    <string name="disappearing_mode_7_days">7 days</string>
     <string name="selected_count_title">%1$d selected</string>
     <string name="upload_complete">Upload complete</string>
     <string name="notification_upload_progress">%1$d%%</string>
