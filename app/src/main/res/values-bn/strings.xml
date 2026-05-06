@@ -249,9 +249,6 @@
     <string name="status_text_week">১ সপ্তাহ আগে</string>
     <string name="status_text_month">১ মাস আগে</string>
     <string name="status_text_years">১ বছর আগে</string>
-    <string name="placeholder_button_text">বোতামের টেক্সট</string>
-    <string name="placeholder_title">শিরোনাম</string>
-    <string name="placeholder_subtitle">উপশিরোনাম</string>
     <string name="text_copied_toast">টেক্সট কপি করা হয়েছে</string>
     <string name="no_text_to_copy">কপি করার মতো কোন টেক্সট নেই</string>
     <string name="share_post_subject">পোস্ট শেয়ার করুন</string>
@@ -1135,7 +1132,6 @@
     <string name="chat_media_file">ফাইল</string>
     <string name="chat_media_image">ছবি</string>
     <string name="chat_media_video">ভিডিও</string>
-    <string name="chat_privacy_placeholder">চ্যাট গোপনীয়তা সেটিংস (বাস্তবায়িত করা হবে)</string>
     <string name="chat_summary_title">চ্যাট সারাংশ</string>
     <string name="chats_you_archive_will_appear_here">আপনি সংরক্ষণাগারভুক্ত চ্যাট এখানে প্রদর্শিত হবে</string>
     <string name="chat_type_message">একটি বার্তা টাইপ করুন...</string>

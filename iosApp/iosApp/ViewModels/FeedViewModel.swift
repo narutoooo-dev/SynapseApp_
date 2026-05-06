@@ -8,7 +8,6 @@ class FeedViewModel: ObservableObject {
     @Published var isRefreshing = false
     @Published var error: String?
 
-    // Pagination placeholder
     private var currentPage = 0
     private var canLoadMore = true
 

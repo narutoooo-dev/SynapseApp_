@@ -53,7 +53,7 @@ struct PostResultRow: View {
                 InteractionButton(icon: "bubble.right", count: post.commentsCount)
                 InteractionButton(icon: "arrow.2.squarepath", count: post.boostCount)
                 InteractionButton(icon: "heart", count: post.likesCount)
-                InteractionButton(icon: "square.and.arrow.up", count: 0) // Share, placeholder
+                InteractionButton(icon: "square.and.arrow.up", count: 0)
                 Spacer()
             }
             .padding(.leading, 50) // align with text, considering avatar width + spacing
