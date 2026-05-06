@@ -165,8 +165,13 @@ fun InboxScreen(
                         )
                     }
                 }
-                1 -> CallsTabScreen()
-                2 -> ContactsTabScreen()
+                1 -> CallsTabScreen(
+                    contentPadding = paddingValues
+                )
+                2 -> ContactsTabScreen(
+                    onNavigateToChat = onNavigateToChat,
+                    contentPadding = paddingValues
+                )
             }
         }
     }
