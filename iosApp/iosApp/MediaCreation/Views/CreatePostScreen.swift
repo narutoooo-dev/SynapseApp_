@@ -3,107 +3,226 @@ import AVFoundation
 import AVKit
 
 struct CreatePostScreen: View {
+    var onPostSuccess: (() -> Void)? = nil
     @StateObject private var viewModel = CreatePostViewModel()
+    @Environment(\.presentationMode) var presentationMode
     @State private var isShowingMediaPicker = false
     @State private var isShowingCamera = false
+    @State private var showLocationPicker = false
+
+    private var showMentionSuggestions: Bool {
+        if let lastWord = viewModel.text.split(separator: " ").last, lastWord.hasPrefix("@") {
+            return true
+        }
+        return false
+    }
+
+    private var mentionFilter: String {
+        if let lastWord = viewModel.text.split(separator: " ").last, lastWord.hasPrefix("@") {
+            return String(lastWord.dropFirst())
+        }
+        return ""
+    }
 
     var body: some View {
         NavigationView {
-            VStack {
-                if viewModel.isLoading {
-                    ProgressView("Uploading...")
-                        .padding()
-                }
+            ZStack(alignment: .bottom) {
+                ScrollView {
+                    VStack {
+                        if viewModel.isLoading {
+                            ProgressView("Uploading...")
+                                .padding()
+                        }
 
-                if let error = viewModel.error {
-                    Text(error)
-                        .foregroundColor(.red)
-                        .padding()
-                }
+                        if let error = viewModel.error {
+                            Text(error)
+                                .foregroundColor(.red)
+                                .padding()
+                        }
 
-                TextEditor(text: $viewModel.text)
-                    .frame(minHeight: 100)
-                    .padding()
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 8)
-                            .stroke(Color.gray.opacity(0.5), lineWidth: 1)
-                    )
-                    .padding()
-                    .accessibilityLabel("Post content text editor")
+                        // Thread view: display each post in the thread
+                        ForEach(Array(viewModel.threadPosts.enumerated()), id: \.offset) { index, _ in
+                            VStack(alignment: .leading) {
+                                if index > 0 {
+                                    HStack {
+                                        Rectangle()
+                                            .fill(Color.gray.opacity(0.3))
+                                            .frame(width: 2, height: 20)
+                                            .padding(.leading, 24)
+                                        Spacer()
 
-                if viewModel.uploadProgress > 0 && viewModel.uploadProgress < 1.0 {
-                    ProgressView(value: viewModel.uploadProgress)
-                        .padding(.horizontal)
-                        .accessibilityLabel("Upload progress \(Int(viewModel.uploadProgress * 100)) percent")
-                }
-
-                if !viewModel.mediaURLs.isEmpty {
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack {
-                            ForEach(viewModel.mediaURLs.indices, id: \.self) { index in
-                                ZStack(alignment: .topTrailing) {
-                                     MediaPreviewView(url: viewModel.mediaURLs[index])
-                                        .frame(width: 100, height: 100)
-                                        .cornerRadius(8)
-                                        .clipped()
-
-                                    Button(action: {
-                                        viewModel.removeMedia(at: index)
-                                    }) {
-                                        Image(systemName: "xmark.circle.fill")
-                                            .foregroundColor(.red)
-                                            .background(Color.white.clipShape(Circle()))
+                                        Button(action: {
+                                            if index < viewModel.threadPosts.count {
+                                                viewModel.threadPosts.remove(at: index)
+                                            }
+                                        }) {
+                                            Image(systemName: "xmark")
+                                                .foregroundColor(.gray)
+                                        }
+                                        .padding(.trailing)
                                     }
-                                    .padding(4)
-                                    .accessibilityLabel("Remove media attachment")
+                                }
+
+                                ZStack(alignment: .bottomTrailing) {
+                                    if index == 0 {
+                                        // Main post
+                                        RichTextEditor(text: $viewModel.text)
+                                            .frame(minHeight: 150)
+                                            .padding()
+                                            .overlay(
+                                                RoundedRectangle(cornerRadius: 8)
+                                                    .stroke(Color.gray.opacity(0.5), lineWidth: 1)
+                                            )
+                                            .padding(.horizontal)
+                                            .accessibilityLabel("Post content text editor")
+                                            .onChange(of: viewModel.text) { newText in
+                                                if !viewModel.threadPosts.isEmpty {
+                                                    viewModel.threadPosts[0] = newText
+                                                }
+                                            }
+
+                                        Text("\(viewModel.characterCount)/280")
+                                            .font(.caption)
+                                            .foregroundColor(viewModel.characterCount > 280 ? .red : (viewModel.characterCount > 260 ? .orange : .gray))
+                                            .padding(.trailing, 24)
+                                            .padding(.bottom, 8)
+                                    } else {
+                                        // Thread post
+                                        RichTextEditor(text: Binding(
+                                            get: {
+                                                index < viewModel.threadPosts.count ? viewModel.threadPosts[index] : ""
+                                            },
+                                            set: {
+                                                if index < viewModel.threadPosts.count {
+                                                    viewModel.threadPosts[index] = $0
+                                                }
+                                            }
+                                        ))
+                                            .frame(minHeight: 100)
+                                            .padding()
+                                            .overlay(
+                                                RoundedRectangle(cornerRadius: 8)
+                                                    .stroke(Color.gray.opacity(0.5), lineWidth: 1)
+                                            )
+                                            .padding(.horizontal)
+                                            .accessibilityLabel("Thread content text editor")
+                                    }
                                 }
                             }
                         }
+
+                        // Add to thread button
+                        Button(action: {
+                            viewModel.threadPosts.append("")
+                        }) {
+                            HStack {
+                                Image(systemName: "plus.circle.fill")
+                                Text("Add another post")
+                            }
+                            .foregroundColor(.blue)
+                        }
+                        .padding()
+                        .frame(maxWidth: .infinity, alignment: .leading)
+
+                        if viewModel.showPoll {
+                            PollCreatorView(options: $viewModel.pollOptions, duration: $viewModel.pollDuration)
+                                .padding(.horizontal)
+                        }
+
+                        if showLocationPicker {
+                            HStack {
+                                Image(systemName: "mappin.and.ellipse")
+                                    .foregroundColor(.blue)
+                                TextField("Search location...", text: Binding(
+                                    get: { viewModel.location ?? "" },
+                                    set: { viewModel.location = $0.isEmpty ? nil : $0 }
+                                ))
+                                .textFieldStyle(RoundedBorderTextFieldStyle())
+
+                                Button(action: {
+                                    showLocationPicker = false
+                                    viewModel.location = nil
+                                }) {
+                                    Image(systemName: "xmark.circle.fill")
+                                        .foregroundColor(.gray)
+                                }
+                            }
+                            .padding()
+                            .background(Color.blue.opacity(0.05))
+                            .cornerRadius(8)
+                            .padding(.horizontal)
+                        }
+
+                        if viewModel.uploadProgress > 0 && viewModel.uploadProgress < 1.0 {
+                            ProgressView(value: viewModel.uploadProgress)
+                                .padding(.horizontal)
+                                .accessibilityLabel("Upload progress \(Int(viewModel.uploadProgress * 100)) percent")
+                        }
+
+                        if !viewModel.mediaURLs.isEmpty {
+                            ScrollView(.horizontal, showsIndicators: false) {
+                                HStack {
+                                    ForEach(viewModel.mediaURLs.indices, id: \.self) { index in
+                                        ZStack(alignment: .topTrailing) {
+                                             MediaPreviewView(url: viewModel.mediaURLs[index])
+                                                .frame(width: 100, height: 100)
+                                                .cornerRadius(8)
+                                                .clipped()
+
+                                            Button(action: {
+                                                viewModel.removeMedia(at: index)
+                                            }) {
+                                                Image(systemName: "xmark.circle.fill")
+                                                    .foregroundColor(.red)
+                                                    .background(Color.white.clipShape(Circle()))
+                                            }
+                                            .padding(4)
+                                            .accessibilityLabel("Remove media attachment")
+                                        }
+                                    }
+                                }
+                                .padding(.horizontal)
+                            }
+                        }
+
+                        Spacer().frame(height: 100) // Space for toolbar
+                    }
+                }
+
+                if showMentionSuggestions {
+                    VStack {
+                        Spacer()
+                        MentionSuggestionView(filter: mentionFilter) { user in
+                            let words = viewModel.text.split(separator: " ", omittingEmptySubsequences: false)
+                            if var last = words.last, last.hasPrefix("@") {
+                                var newWords = Array(words.dropLast())
+                                newWords.append(Substring("@\(user.username) "))
+                                viewModel.text = newWords.joined(separator: " ")
+                            }
+                        }
                         .padding(.horizontal)
+                        .padding(.bottom, 70) // Above toolbar
                     }
                 }
 
-                Spacer()
-
-                HStack {
-                    Button(action: {
-                        isShowingMediaPicker = true
-                    }) {
-                        Image(systemName: "photo.on.rectangle")
-                            .font(.title2)
-                    }
-                    .padding()
-                    .accessibilityLabel("Open photo library")
-
-                    Button(action: {
-                        isShowingCamera = true
-                    }) {
-                        Image(systemName: "camera")
-                            .font(.title2)
-                    }
-                    .padding()
-                    .accessibilityLabel("Open camera")
-
-                    Spacer()
-
-                    Picker("Privacy", selection: $viewModel.privacy) {
-                        Text("Public").tag("public")
-                        Text("Friends").tag("friends")
-                        Text("Private").tag("private")
-                    }
-                    .pickerStyle(MenuPickerStyle())
-                }
-                .padding()
+                CreatePostToolbar(
+                    onPhotoTapped: { isShowingMediaPicker = true },
+                    onCameraTapped: { isShowingCamera = true },
+                    onGiftTapped: { /* Show GIF picker placeholder */ },
+                    onPollToggled: { viewModel.showPoll.toggle() },
+                    onLocationToggled: { showLocationPicker.toggle() },
+                    audienceType: $viewModel.audienceType
+                )
             }
             .navigationTitle("New Post")
             .navigationBarItems(
                 leading: Button("Cancel") {
-                    // Handle cancel, e.g., dismiss view
+                    presentationMode.wrappedValue.dismiss()
                 },
                 trailing: Button("Post") {
                     viewModel.submitPost()
                 }
-                .disabled(viewModel.isLoading || (viewModel.text.isEmpty && viewModel.mediaURLs.isEmpty))
+                .disabled(viewModel.isLoading || (viewModel.text.isEmpty && viewModel.mediaURLs.isEmpty) || viewModel.characterCount > 280)
             )
             .sheet(isPresented: $isShowingMediaPicker) {
                 PhotosPicker(selectedMedia: $viewModel.mediaURLs)
@@ -117,8 +236,78 @@ struct CreatePostScreen: View {
                 })
             }
             .alert(isPresented: $viewModel.isPostCreated) {
-                Alert(title: Text("Success"), message: Text("Post created successfully!"), dismissButton: .default(Text("OK")))
+                Alert(
+                    title: Text("Success"),
+                    message: Text("Post created successfully!"),
+                    dismissButton: .default(Text("OK")) {
+                        if let onSuccess = onPostSuccess {
+                            onSuccess()
+                        } else {
+                            presentationMode.wrappedValue.dismiss()
+                        }
+                    }
+                )
             }
+            .onDisappear {
+                if !viewModel.isPostCreated {
+                    viewModel.saveDraft()
+                }
+            }
+        }
+    }
+}
+
+// A custom wrapper for UITextView to support hashtag highlighting
+struct RichTextEditor: UIViewRepresentable {
+    @Binding var text: String
+
+    func makeUIView(context: Context) -> UITextView {
+        let textView = UITextView()
+        textView.delegate = context.coordinator
+        textView.font = UIFont.systemFont(ofSize: 16)
+        textView.backgroundColor = .clear
+        return textView
+    }
+
+    func updateUIView(_ uiView: UITextView, context: Context) {
+        // Only update text completely if it's vastly different (like clear draft) to preserve cursor.
+        // But we MUST reapply attributes.
+        let selectedRange = uiView.selectedRange
+
+        let mutableAttributedString = NSMutableAttributedString(string: text, attributes: [
+            .font: UIFont.systemFont(ofSize: 16),
+            .foregroundColor: UIColor.label
+        ])
+
+        // Highlight hashtags
+        let hashtagRegex = try? NSRegularExpression(pattern: "#\\w+", options: [])
+        let matches = hashtagRegex?.matches(in: text, options: [], range: NSRange(location: 0, length: text.utf16.count)) ?? []
+
+        for match in matches {
+            mutableAttributedString.addAttribute(.foregroundColor, value: UIColor.systemBlue, range: match.range)
+        }
+
+        uiView.attributedText = mutableAttributedString
+
+        // Restore cursor
+        if let currentText = uiView.text, currentText == text {
+             uiView.selectedRange = selectedRange
+        }
+    }
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(self)
+    }
+
+    class Coordinator: NSObject, UITextViewDelegate {
+        var parent: RichTextEditor
+
+        init(_ parent: RichTextEditor) {
+            self.parent = parent
+        }
+
+        func textViewDidChange(_ textView: UITextView) {
+            parent.text = textView.text
         }
     }
 }
