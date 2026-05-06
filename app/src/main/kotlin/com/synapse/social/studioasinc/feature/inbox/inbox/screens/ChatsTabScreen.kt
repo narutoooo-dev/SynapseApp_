@@ -159,6 +159,7 @@ fun ChatsTabScreen(
                     }
 
                     SwipeToDismissBox(
+                        modifier = Modifier.padding(horizontal = Spacing.Medium),
                         state = dismissState,
                         backgroundContent = {
                             val isStartToEnd = dismissState.dismissDirection == SwipeToDismissBoxValue.StartToEnd
@@ -260,7 +261,6 @@ private fun ConversationItem(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = Spacing.Medium)
             .clip(shape)
             .background(MaterialTheme.colorScheme.surfaceContainer, shape)
             .combinedClickable(
