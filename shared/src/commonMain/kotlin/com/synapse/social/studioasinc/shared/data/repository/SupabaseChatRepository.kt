@@ -44,6 +44,7 @@ import kotlinx.serialization.json.put
 
 import com.synapse.social.studioasinc.shared.data.local.database.CachedMessageDao
 import com.synapse.social.studioasinc.shared.data.local.database.CachedConversationDao
+import com.synapse.social.studioasinc.shared.data.local.database.MessageReactionDao
 
 class SupabaseChatRepository(
     private val dataSource: SupabaseChatDataSource = SupabaseChatDataSource(),
@@ -54,6 +55,7 @@ class SupabaseChatRepository(
     private val offlineActionRepository: OfflineActionRepository? = null,
     private val cachedMessageDao: CachedMessageDao? = null,
     private val cachedConversationDao: CachedConversationDao? = null,
+    private val reactionDao: MessageReactionDao? = null,
     private val externalScope: CoroutineScope = kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.SupervisorJob() + com.synapse.social.studioasinc.shared.core.util.AppDispatchers.IO)
 ) : ChatRepository {
 
@@ -442,19 +444,42 @@ class SupabaseChatRepository(
     override suspend fun toggleOnlyAdminsCanMessage(chatId: String, enabled: Boolean) = groupRepository.toggleOnlyAdminsCanMessage(chatId, enabled)
     override suspend fun getChatInfo(chatId: String) = groupRepository.getChatInfo(chatId)
 
-    override suspend fun toggleMessageReaction(messageId: String, emoji: String): Result<Unit> =
-        reactionDataSource.toggleReaction(messageId, emoji)
+    override suspend fun toggleMessageReaction(messageId: String, emoji: String, chatId: String?): Result<Unit> {
+        val result = reactionDataSource.toggleReaction(messageId, emoji, chatId)
+        if (result.isSuccess) {
+            val currentUserId = getCurrentUserId()
+            if (currentUserId != null) {
+                val existing = reactionDao?.getByMessageId(messageId)?.find { it.userId == currentUserId && it.reactionEmoji == emoji }
+                if (existing != null) {
+                    reactionDao?.delete(messageId, currentUserId, emoji)
+                } else {
+                    reactionDao?.insert(MessageReaction(messageId, currentUserId, emoji, 0L))
+                }
+            }
+        }
+        return result
+    }
 
     override suspend fun getReactionsForMessage(messageId: String): Result<List<MessageReaction>> = try {
-        val reactions = reactionDataSource.getReactionsForMessage(messageId).map { dto ->
-            MessageReaction(
-                messageId = dto.messageId,
-                userId = dto.userId,
-                reactionEmoji = dto.reactionEmoji,
-                timestamp = 0L
-            )
+        val cached = reactionDao?.getByMessageId(messageId) ?: emptyList()
+        val networkReactions = try {
+            reactionDataSource.getReactionsForMessage(messageId).map { dto ->
+                MessageReaction(
+                    messageId = dto.messageId,
+                    userId = dto.userId,
+                    reactionEmoji = dto.reactionEmoji,
+                    timestamp = 0L,
+                    isDelete = dto.isDeleteEvent
+                )
+            }.also {
+                reactionDao?.deleteAllByMessageId(messageId)
+                reactionDao?.insertAll(it)
+            }
+        } catch (e: Exception) {
+            null
         }
-        Result.success(reactions)
+
+        Result.success(networkReactions ?: cached)
     } catch (e: Exception) {
         Result.failure(e)
     }
@@ -462,11 +487,31 @@ class SupabaseChatRepository(
     override suspend fun clearLocalCache() {
         cachedConversationDao?.deleteAll()
         cachedMessageDao?.deleteAll()
+        reactionDao?.deleteAll()
     }
 
     override suspend fun getReactionsForMessages(messages: List<Message>): List<Message> = try {
         val currentUserId = getCurrentUserId()
-        val allReactions = reactionDataSource.getReactionsForMessages(messages.map { it.id })
+        val messageIds = messages.map { it.id }
+
+        val cachedReactions = messageIds.flatMap { reactionDao?.getByMessageId(it) ?: emptyList() }
+
+        val allReactions = try {
+            reactionDataSource.getReactionsForMessages(messageIds).map { dto ->
+                MessageReaction(
+                    messageId = dto.messageId,
+                    userId = dto.userId,
+                    reactionEmoji = dto.reactionEmoji,
+                    timestamp = 0L,
+                    isDelete = dto.isDeleteEvent
+                )
+            }.also {
+                messageIds.forEach { reactionDao?.deleteAllByMessageId(it) }
+                reactionDao?.insertAll(it)
+            }
+        } catch (e: Exception) {
+            cachedReactions
+        }
 
         messages.map { message ->
             val messageReactions = allReactions.filter { it.messageId == message.id }
@@ -485,13 +530,22 @@ class SupabaseChatRepository(
         messages
     }
 
-    override fun subscribeToMessageReactions(): Flow<MessageReaction> =
-        dataSource.subscribeToMessageReactions().map { dto ->
-            MessageReaction(
+    override fun subscribeToMessageReactions(chatId: String): Flow<MessageReaction> =
+        dataSource.subscribeToMessageReactions(chatId).map { dto ->
+            val reaction = MessageReaction(
                 messageId = dto.messageId,
                 userId = dto.userId,
                 reactionEmoji = dto.reactionEmoji,
-                timestamp = 0L
+                timestamp = 0L,
+                isDelete = dto.isDeleteEvent
             )
+
+            if (reaction.isDelete) {
+                reactionDao?.delete(reaction.messageId, reaction.userId, reaction.reactionEmoji)
+            } else {
+                reactionDao?.insert(reaction)
+            }
+
+            reaction
         }
 }

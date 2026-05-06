@@ -134,6 +134,6 @@ class SupabaseChatDataSource(private val client: SupabaseClientLib = SupabaseCli
     fun subscribeToReadReceipts(chatId: String): Flow<MessageDto> =
         realtime.subscribeToReadReceipts(chatId)
 
-    fun subscribeToMessageReactions(): Flow<MessageReactionDto> =
-        realtime.subscribeToMessageReactions()
+    fun subscribeToMessageReactions(chatId: String): Flow<MessageReactionDto> =
+        realtime.subscribeToMessageReactions(chatId)
 }

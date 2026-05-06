@@ -116,6 +116,7 @@ internal fun ChatMessageList(
                         isFromMe = message.isFromMe(currentUserId),
                         position = position,
                         isSelected = isSelected,
+                        reactions = message.reactions.map { it.key.emoji to it.value },
                         onToggleSelection = { if (selectedMessageIds.isNotEmpty()) message.id?.let { onToggleSelection(it) } },
                         onSwipeToReply = { onSwipeToReply(message) },
                         replyToMessage = message.replyToId?.let { messagesMap[it] },
