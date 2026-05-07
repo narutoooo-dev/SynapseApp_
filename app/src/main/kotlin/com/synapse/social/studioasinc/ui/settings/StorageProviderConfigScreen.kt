@@ -1,17 +1,39 @@
 package com.synapse.social.studioasinc.ui.settings
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.*
-import androidx.compose.ui.res.stringResource
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MediumTopAppBar
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.synapse.social.studioasinc.R
 import com.synapse.social.studioasinc.feature.shared.theme.Spacing
@@ -46,66 +68,59 @@ fun StorageProviderConfigScreen(
         }
     ) { padding ->
         LazyColumn(
-             modifier = Modifier
+            modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
                 .padding(horizontal = Spacing.Medium),
-
-
-
-
-
             verticalArrangement = Arrangement.spacedBy(Spacing.Large),
             contentPadding = PaddingValues(vertical = Spacing.Medium)
         ) {
-
             item {
-                SettingsSection(title = "Photos") {
-                    val options = listOf("ImgBB", "Cloudinary", "Supabase")
-                    options.forEachIndexed { index, provider ->
-                        SettingsCheckboxItem(
-                            title = provider,
-                            checked = photoProviders.contains(provider),
-                            onCheckedChange = { viewModel.togglePhotoProvider(provider, it) }
-                        )
-                        if (index < options.lastIndex) {
-                            SettingsDivider()
+                ProviderConfigSection(title = stringResource(R.string.storage_provider_photos)) {
+                    val options = listOf(
+                        stringResource(R.string.storage_provider_imgbb),
+                        stringResource(R.string.storage_provider_cloudinary),
+                        stringResource(R.string.storage_provider_supabase)
+                    )
+                    SettingsFilterChipGroup(
+                        options = options,
+                        selectedOptions = photoProviders,
+                        onCheckedChange = { provider, checked ->
+                            viewModel.togglePhotoProvider(provider, checked)
                         }
-                    }
+                    )
                 }
             }
 
-
             item {
-                SettingsSection(title = "Videos") {
-                    val options = listOf("Cloudinary", "Supabase")
-                    options.forEachIndexed { index, provider ->
-                        SettingsCheckboxItem(
-                            title = provider,
-                            checked = videoProviders.contains(provider),
-                            onCheckedChange = { viewModel.toggleVideoProvider(provider, it) }
-                        )
-                         if (index < options.lastIndex) {
-                            SettingsDivider()
+                ProviderConfigSection(title = stringResource(R.string.storage_provider_videos)) {
+                    val options = listOf(
+                        stringResource(R.string.storage_provider_cloudinary),
+                        stringResource(R.string.storage_provider_supabase)
+                    )
+                    SettingsFilterChipGroup(
+                        options = options,
+                        selectedOptions = videoProviders,
+                        onCheckedChange = { provider, checked ->
+                            viewModel.toggleVideoProvider(provider, checked)
                         }
-                    }
+                    )
                 }
             }
 
-
             item {
-                SettingsSection(title = "Files & Audio") {
-                    val options = listOf("Supabase", "Cloudflare")
-                    options.forEachIndexed { index, provider ->
-                        SettingsCheckboxItem(
-                            title = provider,
-                            checked = fileProviders.contains(provider),
-                            onCheckedChange = { viewModel.toggleFileProvider(provider, it) }
-                        )
-                         if (index < options.lastIndex) {
-                            SettingsDivider()
+                ProviderConfigSection(title = stringResource(R.string.storage_files_audio)) {
+                    val options = listOf(
+                        stringResource(R.string.storage_provider_supabase),
+                        stringResource(R.string.storage_provider_cloudflare_r2)
+                    )
+                    SettingsFilterChipGroup(
+                        options = options,
+                        selectedOptions = fileProviders,
+                        onCheckedChange = { provider, checked ->
+                            viewModel.toggleFileProvider(provider, checked)
                         }
-                    }
+                    )
                 }
             }
         }
@@ -113,30 +128,63 @@ fun StorageProviderConfigScreen(
 }
 
 @Composable
-fun SettingsCheckboxItem(
+private fun ProviderConfigSection(
     title: String,
-    checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit,
-    enabled: Boolean = true
+    content: @Composable () -> Unit
 ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(enabled = enabled) { onCheckedChange(!checked) }
-            .padding(horizontal = Spacing.Medium, vertical = Spacing.SmallMedium),
-        verticalAlignment = Alignment.CenterVertically
+    Card(
+        shape = MaterialTheme.shapes.medium,
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+        ),
+        modifier = Modifier.fillMaxWidth()
     ) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.bodyLarge,
-            color = if (enabled) MaterialTheme.colorScheme.onSurface
-                   else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
-            modifier = Modifier.weight(1f)
-        )
-        Checkbox(
-            checked = checked,
-            onCheckedChange = onCheckedChange,
-            enabled = enabled
-        )
+        Column(
+            modifier = Modifier.padding(Spacing.Medium),
+            verticalArrangement = Arrangement.spacedBy(Spacing.SmallMedium)
+        ) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.primary
+            )
+            content()
+        }
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun SettingsFilterChipGroup(
+    options: List<String>,
+    selectedOptions: Set<String>,
+    onCheckedChange: (String, Boolean) -> Unit
+) {
+    FlowRow(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(Spacing.Small)
+    ) {
+        options.forEach { provider ->
+            val isSelected = selectedOptions.contains(provider)
+            FilterChip(
+                selected = isSelected,
+                onClick = { onCheckedChange(provider, !isSelected) },
+                label = { Text(provider) },
+                leadingIcon = if (isSelected) {
+                    {
+                        Icon(
+                            imageVector = Icons.Default.CheckCircle,
+                            contentDescription = null,
+                            modifier = Modifier.size(FilterChipDefaults.IconSize)
+                        )
+                    }
+                } else null,
+                colors = FilterChipDefaults.filterChipColors(
+                    selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+                    selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                    selectedLeadingIconColor = MaterialTheme.colorScheme.onSecondaryContainer
+                )
+            )
+        }
     }
 }
