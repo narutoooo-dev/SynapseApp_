@@ -71,28 +71,24 @@ fun SettingsHubScreen(
                     com.synapse.social.studioasinc.ui.components.ExpressiveLoadingIndicator()
                 }
             } else {
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(horizontal = SettingsSpacing.screenPadding),
-                    verticalArrangement = Arrangement.spacedBy(SettingsSpacing.sectionSpacing),
-                    contentPadding = PaddingValues(vertical = 8.dp)
-                ) {
-                    item {
+                Column(modifier = Modifier.fillMaxSize()) {
+                    Box(modifier = Modifier.padding(horizontal = SettingsSpacing.screenPadding)) {
                         SettingsSearchBar(
                             query = searchQuery,
                             onQueryChange = viewModel::onSearchQueryChange
                         )
                     }
 
-                    if (heroCards.isNotEmpty() && searchQuery.isEmpty()) {
-                        item {
-                            SettingsHeroCardsSection(heroCards = heroCards, onCardClick = { viewModel.onActionClick(it.action) })
-                        }
-                    }
-
-                    item {
-                        userProfile?.let { profile ->
+                    Box(modifier = Modifier.weight(1f)) {
+                        LazyColumn(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(horizontal = SettingsSpacing.screenPadding),
+                            verticalArrangement = Arrangement.spacedBy(SettingsSpacing.sectionSpacing),
+                            contentPadding = PaddingValues(vertical = 8.dp)
+                        ) {
+                            item {
+                                userProfile?.let { profile ->
                             ProfileHeaderCard(
                                 displayName = profile.displayName,
                                 email = profile.email,
@@ -116,20 +112,23 @@ fun SettingsHubScreen(
                     }
                 }
 
-                // Command Palette Result Overlay
-                AnimatedVisibility(
-                    visible = searchQuery.isNotEmpty(),
-                    enter = fadeIn() + expandVertically(),
-                    exit = fadeOut() + shrinkVertically()
-                ) {
-                    SettingsCommandPaletteResults(
-                        results = searchResults,
-                        onActionClick = viewModel::onActionClick,
-                        onNavigate = { route ->
-                            val dest = SettingsDestination.fromRoute(route)
-                            if (dest != null) onNavigateToCategory(dest)
                         }
-                    )
+
+                        // Command Palette Result Overlay
+                        AnimatedVisibility(
+                            visible = searchQuery.isNotEmpty(),
+                            enter = fadeIn() + expandVertically(),
+                            exit = fadeOut() + shrinkVertically()
+                        ) {
+                            SettingsCommandPaletteResults(
+                                results = searchResults,
+                                onActionClick = viewModel::onActionClick,
+                                onNavigate = { route ->
+                                    val dest = SettingsDestination.fromRoute(route)
+                                    if (dest != null) onNavigateToCategory(dest)
+                                }
+                            )
+                        }
                 }
             }
         }
@@ -267,38 +266,32 @@ fun SettingsFlattenedContent(
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(SettingsSpacing.sectionSpacing)) {
         settingsGroups.forEach { group ->
-            var expanded by remember { mutableStateOf(false) }
-            val isExpandable = group.id in listOf("group_a", "group_b", "group_c")
-
             Column {
                 if (group.title != null) {
                     SettingsHeaderItem(
-                        title = group.title,
-                        modifier = Modifier.clickable { if (isExpandable) expanded = !expanded }
+                        title = group.title
                     )
                 }
 
-                AnimatedVisibility(visible = !isExpandable || expanded) {
-                    SettingsCard {
-                        group.categories.forEachIndexed { index, category ->
-                            val position = when {
-                                group.categories.size == 1 -> SettingsItemPosition.Single
-                                index == 0 -> SettingsItemPosition.Top
-                                index == group.categories.lastIndex -> SettingsItemPosition.Bottom
-                                else -> SettingsItemPosition.Middle
-                            }
+                SettingsCard {
+                    group.categories.forEachIndexed { index, category ->
+                        val position = when {
+                            group.categories.size == 1 -> SettingsItemPosition.Single
+                            index == 0 -> SettingsItemPosition.Top
+                            index == group.categories.lastIndex -> SettingsItemPosition.Bottom
+                            else -> SettingsItemPosition.Middle
+                        }
 
-                            SettingsNavigationItem(
-                                title = category.title,
-                                subtitle = category.subtitle,
-                                imageVector = category.icon,
-                                onClick = { onNavigate(category.destination) },
-                                position = position
-                            )
+                        SettingsNavigationItem(
+                            title = category.title,
+                            subtitle = category.subtitle,
+                            imageVector = category.icon,
+                            onClick = { onNavigate(category.destination) },
+                            position = position
+                        )
 
-                            if (index < group.categories.size - 1) {
-                                SettingsDivider()
-                            }
+                        if (index < group.categories.size - 1) {
+                            SettingsDivider()
                         }
                     }
                 }
