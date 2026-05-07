@@ -139,6 +139,9 @@ fun NavGraphBuilder.inboxGraph(navController: NavHostController) {
                     onNavigateToChat = { chatId, userId, userName, avatar ->
                         navController.navigate(AppDestination.Chat(chatId, userId, userName, avatar))
                     },
+                    onNavigateToSearch = {
+                        navController.navigate(AppDestination.Search)
+                    },
                     onNavigateToCreateGroup = { navController.navigate(AppDestination.CreateGroup) }
                 )
             }
