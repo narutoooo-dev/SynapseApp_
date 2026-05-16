@@ -39,19 +39,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
-import androidx.compose.animation.togetherWith
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.graphics.graphicsLayer
 import kotlinx.coroutines.launch
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
+import com.synapse.social.studioasinc.feature.shared.components.AnimatedCounter
 import com.synapse.social.studioasinc.feature.shared.theme.InteractionIconDefault
 import com.synapse.social.studioasinc.feature.shared.theme.InteractionLikeActive
 import com.synapse.social.studioasinc.feature.shared.theme.InteractionRepostActive
@@ -226,6 +220,10 @@ fun PostInteractionBar(
                         rotX.animateTo(-15f, tween(150))
                         rotX.animateTo(0f, tween(150))
                     }
+                } else {
+                    scale.snapTo(1f)
+                    rotY.snapTo(0f)
+                    rotX.snapTo(0f)
                 }
             }
 
@@ -259,19 +257,7 @@ fun PostInteractionBar(
                 )
                 if (likeCount > 0 && !hideLikeCount) {
                     Spacer(modifier = Modifier.width(Spacing.ExtraSmall))
-                    AnimatedContent(
-                        targetState = likeCount,
-                        transitionSpec = {
-                            if (targetState > initialState) {
-                                (slideInVertically { height -> height } + fadeIn()).togetherWith(
-                                    slideOutVertically { height -> -height } + fadeOut())
-                            } else {
-                                (slideInVertically { height -> -height } + fadeIn()).togetherWith(
-                                    slideOutVertically { height -> height } + fadeOut())
-                            }.using(SizeTransform(clip = false))
-                        },
-                        label = "LikeCountAnimation"
-                    ) { targetCount ->
+                    AnimatedCounter(count = likeCount) { targetCount ->
                         Text(
                             text = formatCount(targetCount),
                             style = MaterialTheme.typography.labelSmall,
