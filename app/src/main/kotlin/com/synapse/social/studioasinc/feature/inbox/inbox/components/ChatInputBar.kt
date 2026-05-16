@@ -159,7 +159,7 @@ fun ChatInputBar(
                 modifier = Modifier
                     .fillMaxWidth()
                     .horizontalScroll(rememberScrollState())
-                    .padding(Spacing.SmallMedium),
+                    .padding(Spacing.ExtraSmall),
                 horizontalArrangement = Arrangement.spacedBy(Spacing.Small)
             ) {
                 smartReplies.forEach { reply ->
@@ -187,7 +187,7 @@ fun ChatInputBar(
                 url = firstUrl,
                 useCase = getLinkMetadataUseCase,
                 onRemove = { dismissedPreviewUrl = firstUrl },
-                modifier = Modifier.padding(Spacing.Small).fillMaxWidth()
+                modifier = Modifier.padding(horizontal = Spacing.ExtraSmall, vertical = Spacing.ExtraSmallMedium).fillMaxWidth()
             )
         }
 
@@ -200,7 +200,7 @@ fun ChatInputBar(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = Spacing.Medium, vertical = Spacing.SmallMedium),
+                    .padding(horizontal = Spacing.Medium, vertical = Spacing.Small),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
@@ -270,7 +270,7 @@ fun ChatInputBar(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(Spacing.SmallMedium),
+                    .padding(Spacing.ExtraSmall),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 // Emoji / Attachment button
@@ -305,13 +305,12 @@ fun ChatInputBar(
                     }
                 }
 
-                Spacer(modifier = Modifier.width(Spacing.ExtraSmall))
                 BasicTextField(
                     value = inputText,
                     onValueChange = onInputTextChange,
                     modifier = Modifier
                         .weight(1f)
-                        .padding(vertical = Spacing.ExtraSmall),
+                        .padding(horizontal = Spacing.Small),
                     enabled = canSendMessage,
                     maxLines = 4,
                     textStyle = MaterialTheme.typography.bodyLarge.copy(
@@ -331,7 +330,6 @@ fun ChatInputBar(
                         }
                     }
                 )
-                Spacer(modifier = Modifier.width(Spacing.ExtraSmall))
 
                 @OptIn(ExperimentalFoundationApi::class)
                 Surface(
