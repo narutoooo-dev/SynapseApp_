@@ -31,6 +31,10 @@ class SqlDelightMessageReactionDao(
         db.messageReactionQueries.selectByMessageId(messageId).executeAsList().map { toDomainReaction(it) }
     }
 
+    override suspend fun getByMessageIds(messageIds: List<String>): List<MessageReaction> = withContext(AppDispatchers.IO) {
+        db.messageReactionQueries.selectByMessageIds(messageIds).executeAsList().map { toDomainReaction(it) }
+    }
+
     override suspend fun delete(messageId: String, userId: String, emoji: String) {
         withContext(AppDispatchers.IO) {
             db.messageReactionQueries.deleteReaction(messageId, userId, emoji)
@@ -40,6 +44,12 @@ class SqlDelightMessageReactionDao(
     override suspend fun deleteAllByMessageId(messageId: String) {
         withContext(AppDispatchers.IO) {
             db.messageReactionQueries.deleteAllByMessageId(messageId)
+        }
+    }
+
+    override suspend fun deleteAllByMessageIds(messageIds: List<String>) {
+        withContext(AppDispatchers.IO) {
+            db.messageReactionQueries.deleteAllByMessageIds(messageIds)
         }
     }
 

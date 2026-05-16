@@ -515,7 +515,7 @@ class SupabaseChatRepository(
         val currentUserId = getCurrentUserId()
         val messageIds = messages.map { it.id }
 
-        val cachedReactions = messageIds.flatMap { reactionDao?.getByMessageId(it) ?: emptyList() }
+        val cachedReactions = reactionDao?.getByMessageIds(messageIds) ?: emptyList()
 
         val allReactions = try {
             reactionDataSource.getReactionsForMessages(messageIds).map { dto ->
@@ -527,7 +527,7 @@ class SupabaseChatRepository(
                     isDelete = dto.isDeleteEvent
                 )
             }.also {
-                messageIds.forEach { reactionDao?.deleteAllByMessageId(it) }
+                reactionDao?.deleteAllByMessageIds(messageIds)
                 reactionDao?.insertAll(it)
             }
         } catch (e: Exception) {

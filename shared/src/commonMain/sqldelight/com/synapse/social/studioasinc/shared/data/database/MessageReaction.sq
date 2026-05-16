@@ -18,9 +18,17 @@ selectByMessageId:
 SELECT * FROM MessageReaction
 WHERE message_id = :messageId;
 
+selectByMessageIds:
+SELECT * FROM MessageReaction
+WHERE message_id IN :messageIds;
+
 deleteAllByMessageId:
 DELETE FROM MessageReaction
 WHERE message_id = :messageId;
+
+deleteAllByMessageIds:
+DELETE FROM MessageReaction
+WHERE message_id IN :messageIds;
 
 deleteAll:
 DELETE FROM MessageReaction;
