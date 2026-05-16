@@ -365,10 +365,27 @@ fun MessageBubble(
             verticalAlignment = Alignment.Bottom,
             horizontalArrangement = if (isFromMe) Arrangement.End else Arrangement.Start
         ) {
+            // Avatar beside the bubble for received messages (bottom-aligned)
+            if (!isFromMe && showAvatar) {
+                if (position == GroupPosition.LAST || position == GroupPosition.SINGLE) {
+                    AsyncImage(
+                        model = senderAvatarUrl,
+                        contentDescription = "Sender Avatar",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .size(Sizes.AvatarSmall)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.surfaceVariant)
+                    )
+                } else {
+                    Spacer(modifier = Modifier.size(Sizes.AvatarSmall))
+                }
+                Spacer(modifier = Modifier.width(Spacing.Small))
+            }
             Column(
                 horizontalAlignment = if (isFromMe) Alignment.End else Alignment.Start
             ) {
-        if (position == GroupPosition.FIRST || position == GroupPosition.SINGLE) {
+        if (isFromMe && (position == GroupPosition.FIRST || position == GroupPosition.SINGLE)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 if (message.isEdited) {
                     Text(
@@ -393,7 +410,7 @@ fun MessageBubble(
                 displayName = senderName ?: "",
                 timestamp = remember(message.createdAt) { formatMessageTime(message.createdAt) },
                 isStarred = false,
-                showAvatar = showAvatar
+                showAvatar = false
             )
         }
 
