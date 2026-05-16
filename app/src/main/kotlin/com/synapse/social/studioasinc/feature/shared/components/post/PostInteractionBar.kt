@@ -39,7 +39,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.graphics.graphicsLayer
 import kotlinx.coroutines.launch
@@ -252,12 +259,26 @@ fun PostInteractionBar(
                 )
                 if (likeCount > 0 && !hideLikeCount) {
                     Spacer(modifier = Modifier.width(Spacing.ExtraSmall))
-                    Text(
-                        text = formatCount(likeCount),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = if (isLiked) likeActiveColor else iconColor,
-                        fontWeight = if (isLiked) FontWeight.Bold else FontWeight.Normal
-                    )
+                    AnimatedContent(
+                        targetState = likeCount,
+                        transitionSpec = {
+                            if (targetState > initialState) {
+                                (slideInVertically { height -> height } + fadeIn()).togetherWith(
+                                    slideOutVertically { height -> -height } + fadeOut())
+                            } else {
+                                (slideInVertically { height -> -height } + fadeIn()).togetherWith(
+                                    slideOutVertically { height -> height } + fadeOut())
+                            }.using(SizeTransform(clip = false))
+                        },
+                        label = "LikeCountAnimation"
+                    ) { targetCount ->
+                        Text(
+                            text = formatCount(targetCount),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = if (isLiked) likeActiveColor else iconColor,
+                            fontWeight = if (isLiked) FontWeight.Bold else FontWeight.Normal
+                        )
+                    }
                 }
             }
 
