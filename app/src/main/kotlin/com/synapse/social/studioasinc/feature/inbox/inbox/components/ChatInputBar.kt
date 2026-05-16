@@ -159,7 +159,7 @@ fun ChatInputBar(
                 modifier = Modifier
                     .fillMaxWidth()
                     .horizontalScroll(rememberScrollState())
-                    .padding(Spacing.ExtraSmall),
+                    .padding(Spacing.SmallMedium),
                 horizontalArrangement = Arrangement.spacedBy(Spacing.Small)
             ) {
                 smartReplies.forEach { reply ->
@@ -187,7 +187,7 @@ fun ChatInputBar(
                 url = firstUrl,
                 useCase = getLinkMetadataUseCase,
                 onRemove = { dismissedPreviewUrl = firstUrl },
-                modifier = Modifier.padding(horizontal = Spacing.ExtraSmall, vertical = Spacing.ExtraSmallMedium).fillMaxWidth()
+                modifier = Modifier.padding(Spacing.Small).fillMaxWidth()
             )
         }
 
@@ -200,7 +200,7 @@ fun ChatInputBar(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = Spacing.Medium, vertical = Spacing.Small),
+                    .padding(horizontal = Spacing.Medium, vertical = Spacing.SmallMedium),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
@@ -270,7 +270,7 @@ fun ChatInputBar(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(Spacing.ExtraSmall),
+                    .padding(Spacing.SmallMedium),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 // Emoji / Attachment button
@@ -305,12 +305,13 @@ fun ChatInputBar(
                     }
                 }
 
+                Spacer(modifier = Modifier.width(Spacing.ExtraSmall))
                 BasicTextField(
                     value = inputText,
                     onValueChange = onInputTextChange,
                     modifier = Modifier
                         .weight(1f)
-                        .padding(horizontal = Spacing.Small),
+                        .padding(vertical = Spacing.ExtraSmall),
                     enabled = canSendMessage,
                     maxLines = 4,
                     textStyle = MaterialTheme.typography.bodyLarge.copy(
@@ -330,6 +331,7 @@ fun ChatInputBar(
                         }
                     }
                 )
+                Spacer(modifier = Modifier.width(Spacing.ExtraSmall))
 
                 @OptIn(ExperimentalFoundationApi::class)
                 Surface(
@@ -380,18 +382,26 @@ fun ChatInputBar(
                             inputText.isEmpty() && canSendMessage -> Icons.Default.Mic
                             else -> Icons.Default.ArrowUpward
                         }
-                        Icon(
-                            icon,
-                            contentDescription = stringResource(if (inputText.isEmpty()) R.string.voice_hold_to_record else R.string.chat_action_send),
-                            modifier = Modifier.size(Sizes.IconLarge),
-                            tint = Color.White
-                        )
+                        AnimatedContent(
+                            targetState = icon,
+                            transitionSpec = {
+                                fadeIn(animationSpec = tween(300)) + scaleIn(initialScale = 0.8f, animationSpec = tween(300)) togetherWith
+                                fadeOut(animationSpec = tween(300)) + scaleOut(targetScale = 0.8f, animationSpec = tween(300))
+                            },
+                            label = "iconAnimation"
+                        ) { targetIcon ->
+                            Icon(
+                                targetIcon,
+                                contentDescription = stringResource(if (inputText.isEmpty()) R.string.voice_hold_to_record else R.string.chat_action_send),
+                                modifier = Modifier.size(Sizes.IconLarge),
+                                tint = Color.White
+                            )
+                        }
                     }
                 }
 
             }
         }
-
         // Hint if restricted
         if (!canSendMessage) {
             Text(
