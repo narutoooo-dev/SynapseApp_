@@ -9,6 +9,8 @@ import com.synapse.social.studioasinc.domain.model.FeedItem
 import com.synapse.social.studioasinc.domain.model.Post
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.from
+import io.github.jan.supabase.postgrest.postgrest
+import io.github.jan.supabase.postgrest.rpc
 import io.github.jan.supabase.postgrest.query.Columns
 import io.github.jan.supabase.postgrest.query.Order
 import io.github.jan.supabase.postgrest.query.PostgrestQueryBuilder
@@ -73,7 +75,7 @@ class FeedPagingSource(
             Log.d("FeedPagingSource", "Loading feed timeline at position: $position, pageSize: $pageSize")
 
             val currentUserId = client.auth.currentUserOrNull()?.id ?: ""
-            val timelineResponse = withContext(Dispatchers.IO) {
+            val rpcResult = withContext(Dispatchers.IO) {
                 // Use the personalized feed RPC to get ranked post IDs
                 client.postgrest.rpc(
                     function = "get_ranked_post_ids",
@@ -83,11 +85,13 @@ class FeedPagingSource(
                         put("offset_val", position)
                     }
                 ).decodeList<JsonObject>()
-            }.map {
+            }
+
+            val timelineResponse: List<JsonObject> = rpcResult.map { item ->
                 // Convert RPC result to match the expected timeline structure for the rest of the method
                 buildJsonObject {
-                    put("id", it["post_id"] ?: JsonNull)
-                    put("post_id", it["post_id"] ?: JsonNull)
+                    put("id", item["post_id"] ?: JsonNull)
+                    put("post_id", item["post_id"] ?: JsonNull)
                     put("item_type", "post")
                 }
             }
@@ -98,13 +102,8 @@ class FeedPagingSource(
                 return LoadResult.Page(data = emptyList(), prevKey = null, nextKey = null)
             }
 
-            val postIds = timelineResponse.mapNotNull {
-                val type = it["item_type"]?.let { if (it is kotlinx.serialization.json.JsonPrimitive) it else null }?.contentOrNull
-                if (type == "post" || type == "reshare") {
-                    it["post_id"]?.let { if (it is kotlinx.serialization.json.JsonPrimitive) it else null }?.contentOrNull ?: it["id"]?.let { if (it is kotlinx.serialization.json.JsonPrimitive) it else null }?.contentOrNull
-                } else null
-            }
-            val commentIds = timelineResponse.filter { it["item_type"]?.let { if (it is kotlinx.serialization.json.JsonPrimitive) it else null }?.contentOrNull == "comment" }.mapNotNull { it["id"]?.let { if (it is kotlinx.serialization.json.JsonPrimitive) it else null }?.contentOrNull }
+            val postIds = timelineResponse.mapNotNull { it["post_id"]?.let { if (it is JsonPrimitive) it else null }?.contentOrNull ?: it["id"]?.let { if (it is JsonPrimitive) it else null }?.contentOrNull }
+            val commentIds = timelineResponse.filter { it["item_type"]?.let { if (it is JsonPrimitive) it else null }?.contentOrNull == "comment" }.mapNotNull { it["id"]?.let { if (it is JsonPrimitive) it else null }?.contentOrNull }
 
             // 1. Fetch full Posts
             val postsMap = if (postIds.isNotEmpty()) {
