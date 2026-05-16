@@ -297,7 +297,7 @@ fun StoryUserHeader(
                 )
             } else {
                 Text(
-                    text = (user?.displayName ?: user?.username ?: "?").take(1).uppercase(),
+                    text = (user?.displayName ?: user?.username)?.firstOrNull()?.uppercaseChar()?.toString() ?: "?",
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

@@ -161,7 +161,7 @@ private fun ViewerListItem(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = viewer?.displayName?.firstOrNull()?.uppercase() ?: "?",
+                    text = viewer?.displayName?.firstOrNull()?.uppercaseChar()?.toString() ?: "?",
                     style = MaterialTheme.typography.titleMedium
                 )
             }

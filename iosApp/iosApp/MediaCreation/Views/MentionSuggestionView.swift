@@ -41,7 +41,11 @@ struct MentionSuggestionView: View {
                                         .fill(Color.gray.opacity(0.3))
                                         .frame(width: 40, height: 40)
                                         .overlay(
-                                            Text(String(user.displayName?.prefix(1) ?? "?"))
+                                            Text({ () -> String in
+                                                let nameToUse = user.displayName ?? user.username
+                                                guard let firstChar = nameToUse.first else { return "?" }
+                                                return String(firstChar).uppercased()
+                                            }())
                                                 .foregroundColor(.white)
                                         )
 

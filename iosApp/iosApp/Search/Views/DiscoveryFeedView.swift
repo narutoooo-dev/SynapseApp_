@@ -108,7 +108,11 @@ struct SuggestedUserCard: View {
                 .fill(Color.gray.opacity(0.3))
                 .frame(width: 60, height: 60)
                 .overlay(
-                    Text(user.displayName?.prefix(1).uppercased() ?? user.handle?.prefix(1).uppercased() ?? "?")
+                    Text({ () -> String in
+                        let nameToUse = user.displayName ?? user.handle ?? ""
+                        guard let firstChar = nameToUse.first else { return "?" }
+                        return String(firstChar).uppercased()
+                    }())
                         .foregroundColor(.gray)
                         .font(.title3)
                 )

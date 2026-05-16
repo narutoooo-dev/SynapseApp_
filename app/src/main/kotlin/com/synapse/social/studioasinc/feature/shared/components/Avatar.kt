@@ -44,7 +44,7 @@ fun CircularAvatar(
             contentAlignment = Alignment.Center
         ) {
             Text(
-                text = displayName?.firstOrNull { it.isLetterOrDigit() }?.uppercaseChar()?.toString() ?: displayName?.firstOrNull()?.uppercaseChar()?.toString() ?: "?",
+                text = displayName?.firstOrNull()?.uppercaseChar()?.toString() ?: "?",
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onPrimaryContainer
             )
