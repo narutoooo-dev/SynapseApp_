@@ -72,13 +72,24 @@ class FeedPagingSource(
         return try {
             Log.d("FeedPagingSource", "Loading feed timeline at position: $position, pageSize: $pageSize")
 
+            val currentUserId = client.auth.currentUserOrNull()?.id ?: ""
             val timelineResponse = withContext(Dispatchers.IO) {
-                client.from("feed_timeline")
-                    .select {
-                        order("timestamp", order = Order.DESCENDING)
-                        range(position.toLong(), (position + pageSize - 1).toLong())
+                // Use the personalized feed RPC to get ranked post IDs
+                client.postgrest.rpc(
+                    function = "get_ranked_post_ids",
+                    parameters = buildJsonObject {
+                        put("requesting_user_id", currentUserId)
+                        put("limit_val", pageSize)
+                        put("offset_val", position)
                     }
-                    .decodeList<JsonObject>()
+                ).decodeList<JsonObject>()
+            }.map {
+                // Convert RPC result to match the expected timeline structure for the rest of the method
+                buildJsonObject {
+                    put("id", it["post_id"] ?: JsonNull)
+                    put("post_id", it["post_id"] ?: JsonNull)
+                    put("item_type", "post")
+                }
             }
 
             Log.d("FeedPagingSource", "Loaded ${timelineResponse.size} feed items")
