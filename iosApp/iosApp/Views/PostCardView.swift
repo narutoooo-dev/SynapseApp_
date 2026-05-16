@@ -16,11 +16,7 @@ struct PostCardView: View {
                     .fill(Color.gray.opacity(0.3))
                     .frame(width: 40, height: 40)
                     .overlay(
-                        Text({ () -> String in
-                            let nameToUse = post.displayName ?? post.username ?? ""
-                            guard let firstChar = nameToUse.first else { return "?" }
-                            return String(firstChar).uppercased()
-                        }())
+                        Text(String((post.displayName ?? post.username)?.first ?? "?").uppercased())
                             .foregroundColor(.gray)
                     )
 

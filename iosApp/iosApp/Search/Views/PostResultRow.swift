@@ -13,11 +13,7 @@ struct PostResultRow: View {
                     .fill(Color.gray.opacity(0.3))
                     .frame(width: 40, height: 40)
                     .overlay(
-                        Text({ () -> String in
-                            let nameToUse = post.authorName ?? post.authorHandle ?? ""
-                            guard let firstChar = nameToUse.first else { return "?" }
-                            return String(firstChar).uppercased()
-                        }())
+                        Text(String((post.authorName ?? post.authorHandle)?.first ?? "?").uppercased())
                             .foregroundColor(.gray)
                             .font(.subheadline)
                     )
