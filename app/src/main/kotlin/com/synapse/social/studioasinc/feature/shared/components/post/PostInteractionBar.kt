@@ -36,6 +36,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.graphics.graphicsLayer
+import kotlinx.coroutines.launch
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import com.synapse.social.studioasinc.feature.shared.theme.InteractionIconDefault
@@ -181,6 +188,40 @@ fun PostInteractionBar(
             }
 
             // Like
+            val scale = remember { Animatable(1f) }
+            val rotY = remember { Animatable(0f) }
+            val rotX = remember { Animatable(0f) }
+
+            LaunchedEffect(isLiked) {
+                if (isLiked) {
+                    scale.snapTo(1f)
+                    rotY.snapTo(0f)
+                    rotX.snapTo(0f)
+
+                    launch {
+                        scale.animateTo(
+                            targetValue = 1.4f,
+                            animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy)
+                        )
+                        scale.animateTo(
+                            targetValue = 1f,
+                            animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy)
+                        )
+                    }
+
+                    launch {
+                        rotY.animateTo(20f, tween(100))
+                        rotY.animateTo(-20f, tween(100))
+                        rotY.animateTo(0f, tween(100))
+                    }
+
+                    launch {
+                        rotX.animateTo(-15f, tween(150))
+                        rotX.animateTo(0f, tween(150))
+                    }
+                }
+            }
+
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
@@ -200,7 +241,14 @@ fun PostInteractionBar(
                         likeCount
                     ),
                     tint = if (isLiked) likeActiveColor else iconColor,
-                    modifier = Modifier.size(Sizes.IconMedium)
+                    modifier = Modifier
+                        .size(Sizes.IconMedium)
+                        .graphicsLayer {
+                            scaleX = scale.value
+                            scaleY = scale.value
+                            rotationY = rotY.value
+                            rotationX = rotX.value
+                        }
                 )
                 if (likeCount > 0 && !hideLikeCount) {
                     Spacer(modifier = Modifier.width(Spacing.ExtraSmall))
