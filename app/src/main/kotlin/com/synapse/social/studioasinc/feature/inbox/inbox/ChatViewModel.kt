@@ -548,6 +548,10 @@ class ChatViewModel @Inject constructor(
         settingsDelegate.setDisappearingMode(mode)
     }
 
+    fun sendMediaMessage(mediaUrl: String, fileName: String, contentType: String, messageType: String, caption: String? = null) {
+        mediaDelegate.sendMediaMessage(mediaUrl, fileName, contentType, messageType, caption)
+    }
+
     fun uploadAndSendMedia(filePath: String, fileName: String, contentType: String, messageType: String, caption: String? = null) {
         mediaDelegate.uploadAndSendMedia(filePath, fileName, contentType, messageType, caption)
     }

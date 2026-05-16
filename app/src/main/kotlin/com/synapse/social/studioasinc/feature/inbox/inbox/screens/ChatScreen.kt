@@ -506,8 +506,8 @@ fun ChatScreen(
                                 coroutineScope.launch {
                                     val result = voiceUploadService.upload(outputFile, com.synapse.social.studioasinc.shared.domain.model.StorageConfig())
                                     result.onSuccess { url ->
-                                        viewModel.uploadAndSendMedia(
-                                            filePath = url,
+                                        viewModel.sendMediaMessage(
+                                            mediaUrl = url,
                                             fileName = "voice_message.m4a",
                                             contentType = "audio/mp4",
                                             messageType = "audio"
