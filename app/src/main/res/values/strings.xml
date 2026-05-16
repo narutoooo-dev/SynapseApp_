@@ -1752,4 +1752,6 @@ Please explain the following message from %3$s in detail, considering the contex
     <string name="remove_credentials">Remove %1$s credentials</string>
     <string name="collapse_configuration">Collapse %1$s configuration</string>
     <string name="expand_configuration">Expand %1$s configuration</string>
+    <string name="storage_config_required_title">Configuration Required</string>
+    <string name="storage_config_required_message">Please configure this provider below before selecting it.</string>
 </resources>
