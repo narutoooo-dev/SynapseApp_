@@ -40,6 +40,7 @@ fun CreateGroupScreen(
 ) {
     val users by viewModel.users.collectAsStateWithLifecycle()
     val selectedUsers by viewModel.selectedUsers.collectAsStateWithLifecycle()
+    val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
     val groupName by viewModel.groupName.collectAsStateWithLifecycle()
     val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
     val error by viewModel.error.collectAsStateWithLifecycle()
@@ -109,8 +110,19 @@ fun CreateGroupScreen(
                 label = { Text(stringResource(R.string.group_name_label)) },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(Spacing.Medium),
+                    .padding(horizontal = Spacing.Medium, vertical = Spacing.Small),
                 singleLine = true
+            )
+
+            OutlinedTextField(
+                value = searchQuery,
+                onValueChange = { viewModel.onSearchQueryChange(it) },
+                label = { Text(stringResource(R.string.search_by_username_hint)) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = Spacing.Medium, vertical = Spacing.Small),
+                singleLine = true,
+                placeholder = { Text(stringResource(R.string.search_hint)) }
             )
 
             Text(
