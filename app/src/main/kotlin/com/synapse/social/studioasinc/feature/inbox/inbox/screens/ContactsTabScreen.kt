@@ -22,8 +22,10 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.synapse.social.studioasinc.R
 import com.synapse.social.studioasinc.feature.inbox.inbox.ContactsViewModel
 import com.synapse.social.studioasinc.feature.inbox.inbox.components.ContactItem
 import com.synapse.social.studioasinc.feature.inbox.inbox.components.InboxEmptyState
@@ -35,6 +37,7 @@ import com.synapse.social.studioasinc.feature.shared.theme.Spacing
 @Composable
 fun ContactsTabScreen(
     onNavigateToChat: (String, String?, String?, String?) -> Unit,
+    onNavigateToSearch: () -> Unit,
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(),
     viewModel: ContactsViewModel = hiltViewModel()
@@ -107,12 +110,12 @@ fun ContactsTabScreen(
         }
 
         FloatingActionButton(
-            onClick = { /* TODO: Find Friends */ },
+            onClick = onNavigateToSearch,
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(bottom = contentPadding.calculateBottomPadding() + 16.dp, end = 16.dp)
         ) {
-            Icon(Icons.Default.GroupAdd, contentDescription = "Find Friends")
+            Icon(Icons.Default.GroupAdd, contentDescription = stringResource(R.string.find_friends))
         }
     }
 }

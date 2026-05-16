@@ -31,6 +31,7 @@ import kotlinx.coroutines.launch
 fun InboxScreen(
     onNavigateToProfile: (String) -> Unit,
     onNavigateToChat: (String, String?, String?, String?) -> Unit,
+    onNavigateToSearch: () -> Unit,
     onNavigateToCreateGroup: () -> Unit = {},
     viewModel: InboxViewModel = hiltViewModel()
 ) {
@@ -170,6 +171,7 @@ fun InboxScreen(
                 )
                 2 -> ContactsTabScreen(
                     onNavigateToChat = onNavigateToChat,
+                    onNavigateToSearch = onNavigateToSearch,
                     contentPadding = paddingValues
                 )
             }
