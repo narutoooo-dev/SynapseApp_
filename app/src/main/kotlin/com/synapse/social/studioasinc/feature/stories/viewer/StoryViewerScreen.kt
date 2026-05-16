@@ -152,7 +152,7 @@ fun StoryMediaContent(
     Box(modifier = Modifier.fillMaxSize()) {
         if (story.mediaType == StoryMediaType.VIDEO && story.mediaUrl != null) {
             VideoPlayer(
-                mediaUrl = story.mediaUrl ?: "",
+                mediaUrl = story.mediaUrl,
                 isPaused = isPaused,
                 onVideoReady = onVideoReady
             )
@@ -297,7 +297,7 @@ fun StoryUserHeader(
                 )
             } else {
                 Text(
-                    text = (user?.displayName ?: user?.username ?: "?").take(1).uppercase(),
+                    text = (user?.displayName ?: user?.username).let { name -> name?.firstOrNull { it.isLetterOrDigit() } ?: name?.firstOrNull() }?.uppercaseChar()?.toString() ?: "?",
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
