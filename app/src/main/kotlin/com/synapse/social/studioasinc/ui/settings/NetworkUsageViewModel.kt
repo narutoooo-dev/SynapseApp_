@@ -1,8 +1,11 @@
 package com.synapse.social.studioasinc.ui.settings
 
+import android.content.Context
+import android.content.SharedPreferences
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -10,51 +13,74 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+import androidx.annotation.StringRes
+
 data class NetworkUsageItem(
-    val label: String,
+    @StringRes val labelRes: Int,
     val iconRes: Int?,
     val sentBytes: Long,
     val receivedBytes: Long
 )
 
+data class NetworkUsageUiState(
+    val usageItems: List<NetworkUsageItem> = emptyList(),
+    val totalSent: Long = 0L,
+    val totalReceived: Long = 0L,
+    val isLoading: Boolean = true,
+    val lastResetTime: Long = 0L
+)
+
 @HiltViewModel
-class NetworkUsageViewModel @Inject constructor() : ViewModel() {
+class NetworkUsageViewModel @Inject constructor(
+    @ApplicationContext private val context: Context
+) : ViewModel() {
 
-    private val _usageItems = MutableStateFlow<List<NetworkUsageItem>>(emptyList())
-    val usageItems: StateFlow<List<NetworkUsageItem>> = _usageItems.asStateFlow()
+    private val sharedPrefs: SharedPreferences = context.getSharedPreferences("network_stats_prefs", Context.MODE_PRIVATE)
 
-    private val _totalSent = MutableStateFlow(0L)
-    val totalSent: StateFlow<Long> = _totalSent.asStateFlow()
-
-    private val _totalReceived = MutableStateFlow(0L)
-    val totalReceived: StateFlow<Long> = _totalReceived.asStateFlow()
-
-    private val _isLoading = MutableStateFlow(true)
-    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+    private val _uiState = MutableStateFlow(NetworkUsageUiState())
+    val uiState: StateFlow<NetworkUsageUiState> = _uiState.asStateFlow()
 
     init {
         loadData()
     }
 
     private fun loadData() {
-        viewModelScope.launch {
-            _isLoading.value = true
-            delay(500)
+        viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+            _uiState.value = _uiState.value.copy(isLoading = true)
+
+            val totalTxBytes = android.net.TrafficStats.getTotalTxBytes()
+            val totalRxBytes = android.net.TrafficStats.getTotalRxBytes()
+
+            val mobileTxBytes = android.net.TrafficStats.getMobileTxBytes()
+            val mobileRxBytes = android.net.TrafficStats.getMobileRxBytes()
+
+            val wifiTxBytes = maxOf(0L, totalTxBytes - mobileTxBytes)
+            val wifiRxBytes = maxOf(0L, totalRxBytes - mobileRxBytes)
+
+            val myUid = android.os.Process.myUid()
+            val appTxBytes = android.net.TrafficStats.getUidTxBytes(myUid).let { if (it == android.net.TrafficStats.UNSUPPORTED.toLong()) 0L else it }
+            val appRxBytes = android.net.TrafficStats.getUidRxBytes(myUid).let { if (it == android.net.TrafficStats.UNSUPPORTED.toLong()) 0L else it }
 
             val items = listOf(
-                NetworkUsageItem("Calls", null, 150L * 1024 * 1024, 200L * 1024 * 1024),
-                NetworkUsageItem("Media", null, 500L * 1024 * 1024, 1500L * 1024 * 1024),
-                NetworkUsageItem("Google Drive", null, 50L * 1024 * 1024, 10L * 1024 * 1024),
-                NetworkUsageItem("Messages", null, 10L * 1024 * 1024, 25L * 1024 * 1024),
-                NetworkUsageItem("Status", null, 100L * 1024 * 1024, 800L * 1024 * 1024),
-                NetworkUsageItem("Roaming", null, 0L, 0L)
+                NetworkUsageItem(com.synapse.social.studioasinc.R.string.network_usage_mobile_data, null, mobileTxBytes, mobileRxBytes),
+                NetworkUsageItem(com.synapse.social.studioasinc.R.string.network_usage_wifi, null, wifiTxBytes, wifiRxBytes),
+                NetworkUsageItem(com.synapse.social.studioasinc.R.string.network_usage_this_app, null, appTxBytes, appRxBytes)
             )
 
-            _usageItems.value = items
-            _totalSent.value = items.sumOf { it.sentBytes }
-            _totalReceived.value = items.sumOf { it.receivedBytes }
+            val lastResetTime = sharedPrefs.getLong("network_stats_reset_time", 0L)
 
-            _isLoading.value = false
+            _uiState.value = _uiState.value.copy(
+                usageItems = items,
+                totalSent = totalTxBytes,
+                totalReceived = totalRxBytes,
+                isLoading = false,
+                lastResetTime = lastResetTime
+            )
         }
+    }
+
+    fun resetStats() {
+        sharedPrefs.edit().putLong("network_stats_reset_time", System.currentTimeMillis()).apply()
+        loadData()
     }
 }
