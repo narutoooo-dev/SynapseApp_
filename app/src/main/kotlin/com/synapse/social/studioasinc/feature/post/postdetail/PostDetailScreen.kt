@@ -35,6 +35,7 @@ import com.synapse.social.studioasinc.feature.shared.components.post.ReactionPic
 import com.synapse.social.studioasinc.feature.shared.components.post.SharedPostItem
 import com.synapse.social.studioasinc.feature.shared.components.post.PostUiMapper
 import com.synapse.social.studioasinc.feature.shared.components.post.PostCard
+import com.synapse.social.studioasinc.feature.shared.theme.LocalUiAtmosphere
 import com.synapse.social.studioasinc.feature.shared.components.post.PostSummarySheet
 import com.synapse.social.studioasinc.ui.components.ExpressiveLoadingIndicator
 import kotlinx.coroutines.launch
@@ -56,6 +57,7 @@ fun PostDetailScreen(
     viewModel: PostDetailViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val atmosphereState = LocalUiAtmosphere.current
 
     val pagingItems = viewModel.commentsPagingFlow.collectAsLazyPagingItems()
 
@@ -78,8 +80,11 @@ fun PostDetailScreen(
 
     val currentUserId = uiState.currentUserId
 
-    LaunchedEffect(postId, rootCommentId) {
+    DisposableEffect(postId, rootCommentId) {
         viewModel.loadPost(postId, rootCommentId)
+        onDispose {
+            atmosphereState.reset()
+        }
     }
 
     LaunchedEffect(uiState.refreshTrigger) {

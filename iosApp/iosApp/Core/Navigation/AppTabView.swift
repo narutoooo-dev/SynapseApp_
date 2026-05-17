@@ -4,7 +4,10 @@ struct AppTabView: View {
     @EnvironmentObject var navigator: AppNavigator
 
     var body: some View {
-        TabView(selection: $navigator.selectedTab) {
+        ZStack {
+            AppTheme.AmbientBackground()
+
+            TabView(selection: $navigator.selectedTab) {
             HomeView()
                 .tabItem {
                     Label("Home", systemImage: "house.fill")
@@ -34,6 +37,7 @@ struct AppTabView: View {
                     Label("Profile", systemImage: "person.fill")
                 }
                 .tag(AppTab.profile)
+            }
         }
     }
 }
