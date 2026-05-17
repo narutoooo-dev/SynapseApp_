@@ -54,6 +54,7 @@ import com.synapse.social.studioasinc.ui.inbox.theme.InboxTheme
 import com.synapse.social.studioasinc.feature.inbox.inbox.models.EmptyStateType
 import com.synapse.social.studioasinc.shared.domain.model.settings.ChatListLayout
 import com.synapse.social.studioasinc.shared.domain.model.settings.ChatSwipeGesture
+import com.synapse.social.studioasinc.ui.animations.PeekingBox
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -258,18 +259,47 @@ private fun ConversationItem(
 ) {
     var showFolderSheet by remember { mutableStateOf(false) }
 
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(shape)
-            .background(MaterialTheme.colorScheme.surfaceContainer, shape)
-            .combinedClickable(
-                onClick = onClick,
-                onLongClick = { if (folders.isNotEmpty()) showFolderSheet = true }
-            )
-            .padding(horizontal = Spacing.Medium, vertical = Spacing.SmallMedium),
-        verticalAlignment = Alignment.CenterVertically
+    PeekingBox(
+        modifier = Modifier.fillMaxWidth(),
+        peekContent = {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clip(shape)
+                    .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f))
+                    .padding(horizontal = Spacing.Medium),
+                contentAlignment = Alignment.CenterStart
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Default.Check,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Spacer(modifier = Modifier.width(Spacing.Small))
+                    Text(
+                        text = "Quick Peak",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+        }
     ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(shape)
+                .background(MaterialTheme.colorScheme.surfaceContainer, shape)
+                .combinedClickable(
+                    onClick = onClick,
+                    onLongClick = { if (folders.isNotEmpty()) showFolderSheet = true }
+                )
+                .padding(horizontal = Spacing.Medium, vertical = Spacing.SmallMedium),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
         // Avatar with online indicator
         Box {
             com.synapse.social.studioasinc.feature.shared.components.UserAvatar(
@@ -394,6 +424,7 @@ private fun ConversationItem(
             }
         }
     }
+    }
 
     if (showFolderSheet) {
         ModalBottomSheet(onDismissRequest = { showFolderSheet = false }) {
@@ -434,7 +465,7 @@ private fun ConversationItem(
 /**
  * Formats an ISO 8601 timestamp into a human-friendly relative string.
  */
-private fun formatTimestamp(isoTimestamp: String?): String {
+ private fun formatTimestamp(isoTimestamp: String?): String {
     if (isoTimestamp == null) return ""
     return try {
         val instant = Instant.parse(isoTimestamp)
