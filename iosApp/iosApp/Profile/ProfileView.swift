@@ -27,7 +27,11 @@ struct ProfileView: View {
                     HStack(spacing: 40) {
                         NavigationLink(destination: FollowersFollowingView()) {
                             VStack {
-                                Text("\(viewModel.user?.followersCount ?? 0)").font(.headline)
+                                AnimatedCounter(
+                                    count: Int(viewModel.user?.followersCount ?? 0),
+                                    font: .headline,
+                                    fontWeight: .bold
+                                )
                                 Text("Followers").font(.caption)
                             }
                         }
@@ -36,7 +40,11 @@ struct ProfileView: View {
 
                         NavigationLink(destination: FollowersFollowingView()) {
                             VStack {
-                                Text("\(viewModel.user?.followingCount ?? 0)").font(.headline)
+                                AnimatedCounter(
+                                    count: Int(viewModel.user?.followingCount ?? 0),
+                                    font: .headline,
+                                    fontWeight: .bold
+                                )
                                 Text("Following").font(.caption)
                             }
                         }
