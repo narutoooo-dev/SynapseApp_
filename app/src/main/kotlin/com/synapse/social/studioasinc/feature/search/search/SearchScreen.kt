@@ -7,6 +7,7 @@ import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
 import androidx.compose.animation.*
+import androidx.compose.animation.core.tween
 import com.synapse.social.studioasinc.R
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.*
@@ -33,10 +34,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.layout.boundsInRoot
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.synapse.social.studioasinc.core.ui.animation.NeuralParticleEmitter
 import com.synapse.social.studioasinc.feature.search.search.components.AccountCard
 import com.synapse.social.studioasinc.feature.search.search.components.HashtagCard
 import com.synapse.social.studioasinc.feature.search.search.components.NewsCard
@@ -73,6 +78,9 @@ fun SearchScreen(
     var selectedPost by remember { mutableStateOf<Post?>(null) }
     var showSummarySheet by remember { mutableStateOf(false) }
 
+    var searchBarBounds by remember { mutableStateOf<Rect?>(null) }
+    var showNeuralAnimation by remember { mutableStateOf(true) }
+    var contentVisible by remember { mutableStateOf(false) }
 
     val pagerState = rememberPagerState(
         initialPage = 0,
@@ -111,80 +119,115 @@ fun SearchScreen(
         }
     }
 
-    Scaffold(
-        containerColor = MaterialTheme.colorScheme.background,
-        contentColor = MaterialTheme.colorScheme.onBackground,
-        snackbarHost = { SnackbarHost(snackbarHostState) },
-        topBar = {
-
-            SearchBar(
-                inputField = {
-                    SearchBarDefaults.InputField(
-                        query = uiState.query,
-                        onQueryChange = viewModel::onQueryChange,
-                        onSearch = viewModel::onSearch,
-                        expanded = false,
-                        onExpandedChange = {},
-                        placeholder = { Text(stringResource(R.string.search_synapse_hint)) },
-                        leadingIcon = { Icon(Icons.Default.Search, contentDescription = stringResource(R.string.search)) },
-                        trailingIcon = {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                if (uiState.query.isNotEmpty()) {
-                                    IconButton(onClick = viewModel::clearSearch) {
-                                        Icon(Icons.Default.Close, contentDescription = stringResource(R.string.clear))
-                                    }
-                                } else {
-                                    IconButton(onClick = { Toast.makeText(context, context.getString(R.string.voice_search), Toast.LENGTH_SHORT).show() }) {
-                                        Icon(Icons.Default.Mic, contentDescription = stringResource(R.string.voice_search))
+    Box(modifier = Modifier.fillMaxSize()) {
+        Scaffold(
+            containerColor = MaterialTheme.colorScheme.background,
+            contentColor = MaterialTheme.colorScheme.onBackground,
+            snackbarHost = { SnackbarHost(snackbarHostState) },
+            topBar = {
+                AnimatedVisibility(
+                    visible = contentVisible,
+                    enter = fadeIn(animationSpec = tween(500)) + expandVertically(animationSpec = tween(500))
+                ) {
+                    SearchBar(
+                        inputField = {
+                            SearchBarDefaults.InputField(
+                                query = uiState.query,
+                                onQueryChange = viewModel::onQueryChange,
+                                onSearch = viewModel::onSearch,
+                                expanded = false,
+                                onExpandedChange = {},
+                                placeholder = { Text(stringResource(R.string.search_synapse_hint)) },
+                                leadingIcon = {
+                                    Icon(
+                                        Icons.Default.Search,
+                                        contentDescription = stringResource(R.string.search)
+                                    )
+                                },
+                                trailingIcon = {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        if (uiState.query.isNotEmpty()) {
+                                            IconButton(onClick = viewModel::clearSearch) {
+                                                Icon(
+                                                    Icons.Default.Close,
+                                                    contentDescription = stringResource(R.string.clear)
+                                                )
+                                            }
+                                        } else {
+                                            IconButton(onClick = {
+                                                Toast.makeText(
+                                                    context,
+                                                    context.getString(R.string.voice_search),
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
+                                            }) {
+                                                Icon(
+                                                    Icons.Default.Mic,
+                                                    contentDescription = stringResource(R.string.voice_search)
+                                                )
+                                            }
+                                        }
                                     }
                                 }
-                            }
-                        }
-                    )
-                },
-                expanded = false,
-                onExpandedChange = {},
-                colors = SearchBarDefaults.colors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                    dividerColor = MaterialTheme.colorScheme.outlineVariant
-                ),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = Spacing.Medium, vertical = Spacing.Small)
-            ) {
-                // Search History
-                val history = uiState.searchHistory
-                if (history.isNotEmpty()) {
-                    Text(
-                        text = stringResource(R.string.recent_searches),
-                        style = MaterialTheme.typography.labelMedium,
-                        modifier = Modifier.padding(horizontal = Spacing.Medium, vertical = Spacing.Small)
-                    )
-                    Row(
+                            )
+                        },
+                        expanded = false,
+                        onExpandedChange = {},
+                        colors = SearchBarDefaults.colors(
+                            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                            dividerColor = MaterialTheme.colorScheme.outlineVariant
+                        ),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = Spacing.Medium),
-                        horizontalArrangement = Arrangement.spacedBy(Spacing.Small)
+                            .padding(horizontal = Spacing.Medium, vertical = Spacing.Small)
+                            .onGloballyPositioned { coords ->
+                                searchBarBounds = coords.boundsInRoot()
+                            }
                     ) {
-                        history.forEach { query ->
-                            FilterChip(
-                                selected = false,
-                                onClick = { viewModel.onSearch(query) },
-                                label = { Text(query) }
+                        // Search History
+                        val history = uiState.searchHistory
+                        if (history.isNotEmpty()) {
+                            Text(
+                                text = stringResource(R.string.recent_searches),
+                                style = MaterialTheme.typography.labelMedium,
+                                modifier = Modifier.padding(
+                                    horizontal = Spacing.Medium,
+                                    vertical = Spacing.Small
+                                )
                             )
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = Spacing.Medium),
+                                horizontalArrangement = Arrangement.spacedBy(Spacing.Small)
+                            ) {
+                                history.forEach { query ->
+                                    FilterChip(
+                                        selected = false,
+                                        onClick = { viewModel.onSearch(query) },
+                                        label = { Text(query) }
+                                    )
+                                }
+                            }
                         }
                     }
                 }
             }
-        }
-    ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-        ) {
+        ) { innerPadding ->
+            AnimatedVisibility(
+                visible = contentVisible,
+                enter = fadeIn(animationSpec = tween(600, delayMillis = 200)) + slideInVertically(
+                    initialOffsetY = { it / 10 },
+                    animationSpec = tween(600, delayMillis = 200)
+                )
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding)
+                ) {
 
-            PrimaryScrollableTabRow(
+                    PrimaryScrollableTabRow(
                 selectedTabIndex = pagerState.currentPage,
                 containerColor = MaterialTheme.colorScheme.surface,
                 contentColor = MaterialTheme.colorScheme.primary,
@@ -380,9 +423,20 @@ fun SearchScreen(
                         } // End else branch
                     } // End outer when
                 } // End SkeletonMorphedContent
-            } // End HorizontalPager
-        } // End Column
-    } // End Scaffold
+                } // End HorizontalPager
+            } // End Column
+        } // End Scaffold
+
+        NeuralParticleEmitter(
+            targetRect = searchBarBounds ?: Rect(100f, 100f, 1000f, 250f),
+            isAnimating = showNeuralAnimation,
+            onAnimationComplete = {
+                showNeuralAnimation = false
+                contentVisible = true
+            },
+            modifier = Modifier.fillMaxSize()
+        )
+    }
 
     selectedPost?.let { post ->
         PostOptionsBottomSheet(
