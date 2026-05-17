@@ -29,6 +29,7 @@ import androidx.compose.runtime.snapshotFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.flow.filter
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -46,6 +47,7 @@ import com.synapse.social.studioasinc.feature.shared.components.post.PostActions
 import com.synapse.social.studioasinc.feature.shared.components.post.SharedPostItem
 import com.synapse.social.studioasinc.feature.shared.components.post.PostOptionsBottomSheet
 import com.synapse.social.studioasinc.feature.shared.components.post.PostCard
+import com.synapse.social.studioasinc.feature.shared.theme.LocalUiAtmosphere
 import com.synapse.social.studioasinc.feature.shared.components.post.PostUiMapper
 import com.synapse.social.studioasinc.feature.shared.components.post.PostSummarySheet
 import com.synapse.social.studioasinc.ui.components.ExpressivePullToRefreshIndicator
@@ -70,6 +72,7 @@ fun FeedScreen(
     contentPadding: PaddingValues = PaddingValues(0.dp)
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val atmosphereState = LocalUiAtmosphere.current
     val posts = viewModel.posts.collectAsLazyPagingItems()
     var selectedPost by remember { mutableStateOf<Post?>(null) }
     var showSummarySheet by remember { mutableStateOf(false) }
@@ -112,6 +115,12 @@ fun FeedScreen(
     val currentOnUserClick by rememberUpdatedState(onUserClick)
     val currentOnMediaClick by rememberUpdatedState(onMediaClick)
     val currentOnStoryClick by rememberUpdatedState(onStoryClick)
+
+    DisposableEffect(Unit) {
+        onDispose {
+            atmosphereState.reset()
+        }
+    }
 
 
 

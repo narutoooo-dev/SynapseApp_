@@ -15,6 +15,23 @@ extension Color {
 
 struct AppTheme {
     static let primaryColor = Color(hex: shared.SynapseTheme.RoyalBlue)
+
+    struct AmbientBackground: View {
+        @StateObject private var atmosphere = UiAtmosphereState.shared
+        @Environment(\.colorScheme) var colorScheme
+
+        var body: some View {
+            LinearGradient(
+                gradient: Gradient(colors: [
+                    atmosphere.dominantColor.opacity(colorScheme == .dark ? 0.15 : 0.1),
+                    .clear
+                ]),
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .ignoresSafeArea()
+        }
+    }
     static let secondaryColor = Color.gray
 
     struct Spacing {

@@ -8,8 +8,11 @@ struct PostDetailView: View {
     }
 
     var body: some View {
-        VStack(spacing: 0) {
-            ScrollView {
+        ZStack {
+            AppTheme.AmbientBackground()
+
+            VStack(spacing: 0) {
+                ScrollView {
                 VStack(spacing: 0) {
                     // AI Summary Button for long threads
                     if viewModel.post.commentsCount > 5 {
@@ -104,6 +107,10 @@ struct PostDetailView: View {
                 .clipShape(Circle())
             }
             .padding()
+        }
+        }
+        .onDisappear {
+            UiAtmosphereState.shared.reset()
         }
         .navigationTitle("Post Detail")
         .navigationBarTitleDisplayMode(.inline)

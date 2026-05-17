@@ -20,16 +20,23 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.CachePolicy
+import com.synapse.social.studioasinc.core.ui.util.AmbientColorExtractor
+import com.synapse.social.studioasinc.feature.shared.theme.LocalUiAtmosphere
 import com.synapse.social.studioasinc.feature.shared.theme.Sizes
 import com.synapse.social.studioasinc.feature.shared.theme.Spacing
 
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.remember
+import com.synapse.social.studioasinc.feature.shared.theme.UiAtmosphereColors
 import com.synapse.social.studioasinc.ui.settings.PostViewStyle
 
 @Composable
@@ -41,6 +48,8 @@ fun MediaContent(
     postViewStyle: PostViewStyle = PostViewStyle.SWIPE
 ) {
     if (mediaUrls.isEmpty()) return
+    val atmosphereState = LocalUiAtmosphere.current
+    val extractedColors = remember { mutableStateMapOf<Int, UiAtmosphereColors>() }
 
     if (mediaUrls.size == 1) {
         val url = mediaUrls.first()
@@ -61,7 +70,13 @@ fun MediaContent(
                     .fillMaxWidth()
                     .heightIn(max = Sizes.HeightMediaSingle)
                     .clip(RoundedCornerShape(Sizes.CornerMedium)),
-                contentScale = ContentScale.Fit
+                contentScale = ContentScale.Fit,
+                onSuccess = { result ->
+                    AmbientColorExtractor.extractColorsFromDrawable(result.result.drawable) { colors ->
+                        extractedColors[0] = colors
+                        atmosphereState.updateColors(colors)
+                    }
+                }
             )
             if (isVideo) {
                 Icon(
@@ -78,8 +93,14 @@ fun MediaContent(
 
         PostMediaGrid(mediaUrls, onMediaClick, modifier)
     } else {
-
         val pagerState = androidx.compose.foundation.pager.rememberPagerState(pageCount = { mediaUrls.size })
+
+        LaunchedEffect(pagerState.currentPage) {
+            extractedColors[pagerState.currentPage]?.let { colors ->
+                atmosphereState.updateColors(colors)
+            }
+        }
+
         Box(modifier = modifier.fillMaxWidth()) {
             androidx.compose.foundation.pager.HorizontalPager(
                 state = pagerState,
@@ -102,7 +123,15 @@ fun MediaContent(
                             .fillMaxWidth()
                             .heightIn(max = Sizes.HeightMediaSingle)
                             .clip(RoundedCornerShape(Sizes.CornerMedium)),
-                        contentScale = ContentScale.Fit
+                        contentScale = ContentScale.Fit,
+                        onSuccess = { result ->
+                            AmbientColorExtractor.extractColorsFromDrawable(result.result.drawable) { colors ->
+                                extractedColors[page] = colors
+                                if (page == pagerState.currentPage) {
+                                    atmosphereState.updateColors(colors)
+                                }
+                            }
+                        }
                     )
                 }
             }
