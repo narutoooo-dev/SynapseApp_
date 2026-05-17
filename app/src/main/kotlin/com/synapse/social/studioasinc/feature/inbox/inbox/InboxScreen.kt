@@ -29,8 +29,9 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun InboxScreen(
+    shareText: String? = null,
     onNavigateToProfile: (String) -> Unit,
-    onNavigateToChat: (String, String?, String?, String?) -> Unit,
+    onNavigateToChat: (String, String?, String?, String?, String?) -> Unit,
     onNavigateToSearch: () -> Unit,
     onNavigateToCreateGroup: () -> Unit = {},
     viewModel: InboxViewModel = hiltViewModel()
@@ -144,12 +145,12 @@ fun InboxScreen(
                                     if (activity != null) {
                                         viewModel.authenticateChat(
                                             activity = activity,
-                                            onSuccess = { onNavigateToChat(chatId, userId, userName, avatar) },
+                                            onSuccess = { onNavigateToChat(chatId, userId, userName, avatar, shareText) },
                                             onError = { /* Handle error, maybe show Snackbar */ }
                                         )
                                     }
                                 } else {
-                                    onNavigateToChat(chatId, userId, userName, avatar)
+                                    onNavigateToChat(chatId, userId, userName, avatar, shareText)
                                 }
                             },
                             isLocked = { viewModel.isChatLocked(it) },
@@ -170,6 +171,7 @@ fun InboxScreen(
                     contentPadding = paddingValues
                 )
                 2 -> ContactsTabScreen(
+                    shareText = shareText,
                     onNavigateToChat = onNavigateToChat,
                     onNavigateToSearch = onNavigateToSearch,
                     contentPadding = paddingValues

@@ -36,7 +36,8 @@ import com.synapse.social.studioasinc.feature.shared.theme.Spacing
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ContactsTabScreen(
-    onNavigateToChat: (String, String?, String?, String?) -> Unit,
+    shareText: String? = null,
+    onNavigateToChat: (String, String?, String?, String?, String?) -> Unit,
     onNavigateToSearch: () -> Unit,
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(),
@@ -94,7 +95,7 @@ fun ContactsTabScreen(
                             ContactItem(
                                 contact = contact,
                                 onContactClick = { user ->
-                                    onNavigateToChat(user.uid, user.uid, user.displayName ?: user.username, user.avatar)
+                                    onNavigateToChat(user.uid, user.uid, user.displayName ?: user.username, user.avatar, shareText)
                                 },
                                 onContactLongClick = { user ->
                                     // Placeholder for options

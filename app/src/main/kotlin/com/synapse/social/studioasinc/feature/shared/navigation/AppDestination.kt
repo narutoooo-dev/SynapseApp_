@@ -8,7 +8,7 @@ sealed interface AppDestination {
     @Serializable
     data class Profile(val userId: String) : AppDestination
     @Serializable
-    data object Inbox : AppDestination
+    data class Inbox(val shareText: String? = null) : AppDestination
     @Serializable
     data object Search : AppDestination
     @Serializable
@@ -32,12 +32,13 @@ sealed interface AppDestination {
         val chatId: String, 
         val userId: String? = null,
         val participantName: String? = null,
-        val participantAvatar: String? = null
+        val participantAvatar: String? = null,
+        val prefilledText: String? = null
     ) : AppDestination
     @Serializable
     data class StoryViewer(val userId: String) : AppDestination
     @Serializable
-    data object StoryCreator : AppDestination
+    data class StoryCreator(val shareUrl: String? = null) : AppDestination
     @Serializable
     data object ChatPrivacy : AppDestination
     @Serializable

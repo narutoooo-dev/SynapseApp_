@@ -50,7 +50,9 @@ internal fun ShareProfileSection(
     viewModel: ProfileViewModel,
     profile: com.synapse.social.studioasinc.data.model.UserProfile?,
     context: Context,
-    profileLinkLabel: String
+    profileLinkLabel: String,
+    onNavigateToStoryCreator: (String?) -> Unit,
+    onNavigateToInbox: (String?) -> Unit
 ) {
     if (state.showShareSheet) {
         ShareProfileBottomSheet(
@@ -65,11 +67,15 @@ internal fun ShareProfileSection(
                 viewModel.hideShareSheet()
             },
             onShareToStory = {
-                Toast.makeText(context, context.getString(R.string.toast_share_story_soon), Toast.LENGTH_SHORT).show()
+                val username = profile?.username ?: ""
+                val url = "${BuildConfig.APP_DOMAIN}/profile/$username"
+                onNavigateToStoryCreator(url)
                 viewModel.hideShareSheet()
             },
             onShareViaMessage = {
-                Toast.makeText(context, context.getString(R.string.toast_share_message_soon), Toast.LENGTH_SHORT).show()
+                val username = profile?.username ?: ""
+                val url = "${BuildConfig.APP_DOMAIN}/profile/$username"
+                onNavigateToInbox(url)
                 viewModel.hideShareSheet()
             },
             onShareExternal = {

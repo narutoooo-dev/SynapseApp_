@@ -63,7 +63,8 @@ fun ProfileScreen(
     onNavigateToSettings: () -> Unit = {},
     onNavigateToUserProfile: (String) -> Unit = {},
     onNavigateToChat: (String, String?, String?) -> Unit = { _, _, _ -> },
-    onNavigateToStoryCreator: () -> Unit = {},
+    onNavigateToStoryCreator: (String?) -> Unit = {},
+    onNavigateToInbox: (String?) -> Unit = {},
     onNavigateToQuotePost: (String) -> Unit = {},
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
@@ -211,7 +212,9 @@ fun ProfileScreen(
             viewModel = viewModel,
             profile = profile,
             context = context,
-            profileLinkLabel = profileLinkLabel
+            profileLinkLabel = profileLinkLabel,
+            onNavigateToStoryCreator = onNavigateToStoryCreator,
+            onNavigateToInbox = onNavigateToInbox
         )
 
         ViewAsSection(

@@ -49,7 +49,7 @@ internal fun ProfileContent(
     onNavigateToQuotePost: (String) -> Unit,
     onNavigateToUserProfile: (String) -> Unit,
     onNavigateToChat: (String, String?, String?) -> Unit,
-    onNavigateToStoryCreator: () -> Unit,
+    onNavigateToStoryCreator: (String?) -> Unit,
     onCustomizeClick: () -> Unit = {},
     onOpenMediaViewer: (List<String>, Int) -> Unit,
     onShowPostOptions: (Post) -> Unit
@@ -163,7 +163,7 @@ internal fun ProfileContent(
                         }
                     },
                     onMessageClick = { onNavigateToChat(profile.id, profile.name ?: profile.username, profile.avatar) },
-                    onAddStoryClick = onNavigateToStoryCreator,
+                    onAddStoryClick = { onNavigateToStoryCreator(null) },
                     onMoreClick = { viewModel.toggleMoreMenu() },
                     onStatsClick = { stat ->
                         when (stat) {

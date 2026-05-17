@@ -324,7 +324,10 @@ class ChatViewModel @Inject constructor(
     val messageSummary: StateFlow<String?> = aiDelegate.messageSummary
     val isSummarizingMessage: StateFlow<Boolean> = aiDelegate.isSummarizingMessage
 
-    fun initialize(chatId: String, participantId: String? = null) {
+    fun initialize(chatId: String, participantId: String? = null, prefilledText: String? = null) {
+        if (!prefilledText.isNullOrEmpty() && _inputText.value.isEmpty()) {
+            _inputText.value = prefilledText
+        }
         if (currentChatId == chatId && chatId != "new") return
         
         cleanup()

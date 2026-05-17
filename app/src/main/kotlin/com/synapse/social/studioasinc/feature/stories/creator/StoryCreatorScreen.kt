@@ -71,18 +71,21 @@ import androidx.media3.ui.PlayerView
 import androidx.media3.ui.AspectRatioFrameLayout
 
 const val EXTRA_SHARED_POST_ID = "shared_post_id"
+const val EXTRA_SHARE_URL = "share_url"
 
 @AndroidEntryPoint
 class StoryCreatorActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val sharedPostId = intent.getStringExtra(EXTRA_SHARED_POST_ID)
+        val shareUrl = intent.getStringExtra(EXTRA_SHARE_URL)
         setContent {
             SynapseTheme {
                 StoryCreatorScreen(
                     onClose = { finish() },
                     onStoryPosted = { finish() },
-                    sharedPostId = sharedPostId
+                    sharedPostId = sharedPostId,
+                    shareUrl = shareUrl
                 )
             }
         }
@@ -128,6 +131,7 @@ fun StoryCreatorScreen(
     onClose: () -> Unit,
     onStoryPosted: () -> Unit,
     sharedPostId: String? = null,
+    shareUrl: String? = null,
     viewModel: StoryCreatorViewModel = hiltViewModel(),
     modifier: Modifier = Modifier
 ) {
@@ -137,6 +141,12 @@ fun StoryCreatorScreen(
     LaunchedEffect(sharedPostId) {
         if (sharedPostId != null) {
             viewModel.loadSharedPost(sharedPostId)
+        }
+    }
+
+    LaunchedEffect(shareUrl) {
+        if (shareUrl != null) {
+            viewModel.addTextOverlay(shareUrl)
         }
     }
 

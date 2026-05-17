@@ -131,13 +131,15 @@ fun NavGraphBuilder.homeGraph(navController: NavHostController, reelUploadManage
 }
 
 fun NavGraphBuilder.inboxGraph(navController: NavHostController) {
-    composable<AppDestination.Inbox> {
+    composable<AppDestination.Inbox> { backStackEntry ->
+                val args = backStackEntry.toRoute<AppDestination.Inbox>()
                 InboxScreen(
+                    shareText = args.shareText,
                     onNavigateToProfile = { userId ->
                         navController.navigate(AppDestination.Profile(userId))
                     },
-                    onNavigateToChat = { chatId, userId, userName, avatar ->
-                        navController.navigate(AppDestination.Chat(chatId, userId, userName, avatar))
+                    onNavigateToChat = { chatId, userId, userName, avatar, prefilledText ->
+                        navController.navigate(AppDestination.Chat(chatId, userId, userName, avatar, prefilledText))
                     },
                     onNavigateToSearch = {
                         navController.navigate(AppDestination.Search)
@@ -152,6 +154,7 @@ fun NavGraphBuilder.inboxGraph(navController: NavHostController) {
                     participantId = args.userId,
                     initialParticipantName = args.participantName,
                     initialParticipantAvatar = args.participantAvatar,
+                    prefilledText = args.prefilledText,
                     onNavigateBack = { navController.popBackStack() },
                     onNavigateToGroupInfo = { chatId, groupName ->
                         navController.navigate(AppDestination.GroupInfo(chatId, groupName))
@@ -228,8 +231,13 @@ fun NavGraphBuilder.profileGraph(navController: NavHostController) {
                     onNavigateToUserProfile = { targetUid ->
                         navController.navigate(AppDestination.Profile(targetUid))
                     },
-                    onNavigateToStoryCreator = {
-                        context.startActivity(Intent(context, StoryCreatorActivity::class.java))
+                    onNavigateToStoryCreator = { shareUrl ->
+                        val intent = Intent(context, StoryCreatorActivity::class.java)
+                        shareUrl?.let { intent.putExtra(com.synapse.social.studioasinc.feature.stories.creator.EXTRA_SHARE_URL, it) }
+                        context.startActivity(intent)
+                    },
+                    onNavigateToInbox = { shareText ->
+                        navController.navigate(AppDestination.Inbox(shareText))
                     },
                     viewModel = viewModel
                 )

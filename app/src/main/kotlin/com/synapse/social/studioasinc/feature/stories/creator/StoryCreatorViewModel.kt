@@ -205,11 +205,11 @@ class StoryCreatorViewModel @Inject constructor(
         }
     }
 
-    fun addTextOverlay() {
+    fun addTextOverlay(initialText: String = "") {
         _state.update { state ->
             state.copy(
                 textOverlays = state.textOverlays + TextOverlay(
-                    text = "",
+                    text = initialText,
                     position = Offset(100f, 100f)
                 )
             )

@@ -160,6 +160,7 @@ fun ChatScreen(
     participantId: String? = null,
     initialParticipantName: String? = null,
     initialParticipantAvatar: String? = null,
+    prefilledText: String? = null,
     onNavigateBack: () -> Unit,
     onNavigateToGroupInfo: (String, String) -> Unit = { _, _ -> },
     onNavigateToUserMoreOptions: (String) -> Unit = {},
@@ -168,7 +169,7 @@ fun ChatScreen(
 ) {
     // Initialize the ViewModel with the chat ID
     LaunchedEffect(chatId) {
-        viewModel.initialize(chatId, participantId)
+        viewModel.initialize(chatId, participantId, prefilledText)
     }
 
     // Re-fetch messages when screen resumes (catches messages missed while screen was off)
@@ -393,7 +394,7 @@ fun ChatScreen(
                             color = MaterialTheme.colorScheme.error
                         )
                         Spacer(modifier = Modifier.height(Spacing.Small))
-                        TextButton(onClick = { viewModel.initialize(chatId, participantId) }) {
+                        TextButton(onClick = { viewModel.initialize(chatId, participantId, prefilledText) }) {
                             Text(stringResource(R.string.action_retry))
                         }
                     }
