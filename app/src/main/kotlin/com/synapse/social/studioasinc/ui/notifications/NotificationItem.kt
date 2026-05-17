@@ -1,10 +1,13 @@
 package com.synapse.social.studioasinc.ui.notifications
 
 import androidx.annotation.StringRes
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -12,17 +15,16 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Immutable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.foundation.background
-import androidx.compose.runtime.Immutable
-import com.synapse.social.studioasinc.ui.components.CircularAvatar
 import com.synapse.social.studioasinc.feature.shared.theme.Sizes
 import com.synapse.social.studioasinc.feature.shared.theme.Spacing
+import com.synapse.social.studioasinc.ui.animations.PeekingBox
+import com.synapse.social.studioasinc.ui.components.CircularAvatar
 
 sealed interface UiText {
     data class DynamicString(val value: String) : UiText
@@ -60,51 +62,72 @@ fun NotificationItem(
     val actorNameString = notification.actorName.asString()
     val messageString = notification.message.asString()
 
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .clickable(onClick = { onNotificationClick(notification) })
-            .padding(Spacing.Medium),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        CircularAvatar(
-            imageUrl = notification.actorAvatar,
-            contentDescription = "Avatar",
-            size = Sizes.IconGiant,
-            onClick = { onUserClick(notification.actorId ?: "") }
-        )
-
-        Spacer(modifier = Modifier.width(Spacing.Medium))
-
-        Column(modifier = Modifier.weight(1f)) {
-            Row {
+    PeekingBox(
+        modifier = modifier,
+        peekContent = {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                    .padding(Spacing.Medium),
+                contentAlignment = Alignment.CenterEnd
+            ) {
                 Text(
-                    text = actorNameString,
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.clickable(onClick = { onUserClick(notification.actorId ?: "") })
-                )
-                Spacer(modifier = Modifier.width(Spacing.ExtraSmall))
-                Text(
-                    text = messageString,
-                    style = MaterialTheme.typography.bodyLarge
+                    text = "View details",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Bold
                 )
             }
-            Text(
-                text = notification.timestamp,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
         }
-
-        if (!notification.isRead) {
-            Spacer(modifier = Modifier.width(Spacing.Small))
-
-             androidx.compose.foundation.layout.Box(
-                modifier = Modifier
-                    .size(8.dp)
-                    .background(MaterialTheme.colorScheme.primary, androidx.compose.foundation.shape.CircleShape)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(MaterialTheme.colorScheme.surface)
+                .clickable(onClick = { onNotificationClick(notification) })
+                .padding(Spacing.Medium),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            CircularAvatar(
+                imageUrl = notification.actorAvatar,
+                contentDescription = "Avatar",
+                size = Sizes.IconGiant,
+                onClick = { onUserClick(notification.actorId ?: "") }
             )
+
+            Spacer(modifier = Modifier.width(Spacing.Medium))
+
+            Column(modifier = Modifier.weight(1f)) {
+                Row {
+                    Text(
+                        text = actorNameString,
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.clickable(onClick = { onUserClick(notification.actorId ?: "") })
+                    )
+                    Spacer(modifier = Modifier.width(Spacing.ExtraSmall))
+                    Text(
+                        text = messageString,
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                }
+                Text(
+                    text = notification.timestamp,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            if (!notification.isRead) {
+                Spacer(modifier = Modifier.width(Spacing.Small))
+
+                Box(
+                    modifier = Modifier
+                        .size(8.dp)
+                        .background(MaterialTheme.colorScheme.primary, androidx.compose.foundation.shape.CircleShape)
+                )
+            }
         }
     }
 }

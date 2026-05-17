@@ -1,12 +1,17 @@
 package com.synapse.social.studioasinc.ui.home
 
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AddBox
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Notifications
@@ -18,6 +23,7 @@ import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.PlayCircle
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -51,9 +57,11 @@ import com.synapse.social.studioasinc.ui.navigation.HomeNavGraph
 import com.synapse.social.studioasinc.feature.shared.reels.ReelUploadManager
 import com.synapse.social.studioasinc.feature.shared.reels.components.UploadProgressOverlay
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @Composable
 fun HomeScreen(
+    sharedTransitionScope: SharedTransitionScope,
+    animatedVisibilityScope: AnimatedVisibilityScope,
     reelUploadManager: ReelUploadManager,
     onNavigateToSearch: () -> Unit,
     onNavigateToProfile: (String) -> Unit,
@@ -86,6 +94,33 @@ fun HomeScreen(
         Scaffold(
             modifier = if (isPostDetail) Modifier else Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
             contentWindowInsets = if (isPostDetail) WindowInsets(0, 0, 0, 0) else ScaffoldDefaults.contentWindowInsets,
+            floatingActionButton = {
+                if (!isPostDetail && isFeedScreen) {
+                    with(sharedTransitionScope) {
+                        FloatingActionButton(
+                            onClick = { onNavigateToCreatePost(null) },
+                            shape = CircleShape,
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            contentColor = MaterialTheme.colorScheme.onPrimary,
+                            modifier = Modifier
+                                .padding(bottom = if (isBottomBarVisible) 0.dp else Sizes.HeightMedium)
+                                .sharedBounds(
+                                    rememberSharedContentState(key = "create_post_fab"),
+                                    animatedVisibilityScope = animatedVisibilityScope
+                                )
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Add,
+                                contentDescription = stringResource(R.string.create_post),
+                                modifier = Modifier.sharedElement(
+                                    rememberSharedContentState(key = "create_post_icon"),
+                                    animatedVisibilityScope = animatedVisibilityScope
+                                )
+                            )
+                        }
+                    }
+                }
+            },
             topBar = {
                 if (!isPostDetail) {
                     TopAppBar(
@@ -96,16 +131,6 @@ fun HomeScreen(
                             )
                         },
                         actions = {
-
-                            androidx.compose.material3.FilledTonalIconButton(
-                                onClick = { onNavigateToCreatePost(null) }
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.AddBox,
-                                    contentDescription = stringResource(R.string.create_post)
-                                )
-                            }
-
 
                             IconButton(onClick = onNavigateToSearch) {
                                 Icon(

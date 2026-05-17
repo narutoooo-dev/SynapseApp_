@@ -5,7 +5,13 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.BoundsTransform
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import kotlinx.coroutines.launch
@@ -23,9 +29,11 @@ import com.canhub.cropper.CropImageView
 import com.synapse.social.studioasinc.ui.createpost.CreatePostSearchViewModel
 import com.synapse.social.studioasinc.ui.createpost.CreatePostSearchUiState
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @Composable
 fun CreatePostScreen(
+    sharedTransitionScope: SharedTransitionScope,
+    animatedVisibilityScope: AnimatedVisibilityScope,
     viewModel: CreatePostViewModel = hiltViewModel(),
     searchViewModel: CreatePostSearchViewModel = hiltViewModel(),
     onNavigateUp: () -> Unit
@@ -114,104 +122,121 @@ fun CreatePostScreen(
     val scaffoldState = rememberBottomSheetScaffoldState()
     val scope = rememberCoroutineScope()
 
-    BottomSheetScaffold(
-        scaffoldState = scaffoldState,
-        sheetPeekHeight = 72.dp,
-        sheetDragHandle = {
-            StickyBottomActionArea(
-                onMediaClick = { launchMediaPicker() },
-                onTagClick = { showTagScreen = true },
-                onFeelingClick = { showFeelingScreen = true },
-                onLocationClick = { showLocationScreen = true },
-                onPollClick = {
-                    if (uiState.mediaItems.isNotEmpty()) {
-                        Toast.makeText(context, context.getString(R.string.warn_remove_media_for_poll), Toast.LENGTH_SHORT).show()
-                    } else {
-                        showPollSheet = true
-                    }
-                },
-                onYoutubeClick = { showYoutubeDialog = true },
-                modifier = Modifier.imePadding()
-            )
-        },
-        sheetContent = {
-            AddToPostSheet(
-                onDismiss = { scope.launch { scaffoldState.bottomSheetState.partialExpand() } },
-                onMediaClick = { launchMediaPicker() },
-                onPollClick = {
-                    if (uiState.mediaItems.isNotEmpty()) {
-                        Toast.makeText(context, context.getString(R.string.warn_remove_media_for_poll), Toast.LENGTH_SHORT).show()
-                    } else {
-                        showPollSheet = true
-                    }
-                },
-                onLocationClick = { showLocationScreen = true },
-                onYoutubeClick = { showYoutubeDialog = true },
-                onTagClick = { showTagScreen = true },
-                onFeelingClick = { showFeelingScreen = true }
-            )
-        },
-        topBar = {
-            CreatePostTopBar(
-                isEditMode = uiState.isEditMode,
-                isLoading = uiState.isLoading,
-                postText = uiState.postText,
-                mediaItemsCount = uiState.mediaItems.size,
-                hasPoll = uiState.pollData != null,
-                onNavigateUp = onNavigateUp,
-                onSubmitPost = { viewModel.submitPost() }
-            )
-        },
-        containerColor = MaterialTheme.colorScheme.background
-    ) { padding ->
-        CreatePostContent(
-            uiState = uiState,
-            searchUiState = searchUiState,
-            focusRequester = focusRequester,
-            focusManager = focusManager,
-            padding = padding,
-            onPrivacyClick = { showPrivacySheet = true },
-            onUpdateText = { viewModel.updateText(it) },
-            onRemoveMedia = { viewModel.removeMedia(it) },
-            onEditMedia = { index ->
-                val item = uiState.mediaItems[index]
-                editingMediaIndex = index
-                val uri = if (item.url.startsWith("content://") || item.url.startsWith("file://") || item.url.startsWith("http")) {
-                    Uri.parse(item.url)
-                } else {
-                    Uri.fromFile(java.io.File(item.url))
-                }
-                cropImage.launch(
-                    CropImageContractOptions(
-                        uri = uri,
-                        cropImageOptions = CropImageOptions().apply {
-                            guidelines = CropImageView.Guidelines.ON
-                            activityTitle = context.getString(R.string.title_edit_image)
-                            cropMenuCropButtonTitle = context.getString(R.string.action_save)
-                            showCropOverlay = true
-                            showProgressBar = true
+    with(sharedTransitionScope) {
+        BottomSheetScaffold(
+            scaffoldState = scaffoldState,
+            modifier = Modifier
+                .fillMaxSize()
+                .sharedBounds(
+                    rememberSharedContentState(key = "create_post_fab"),
+                    animatedVisibilityScope = animatedVisibilityScope,
+                    boundsTransform = BoundsTransform { _, _ ->
+                        spring(
+                            dampingRatio = 0.8f,
+                            stiffness = 380f
+                        )
+                    },
+                    clipInOverlayDuringTransition = OverlayClip(RoundedCornerShape(28.dp))
+                ),
+            sheetPeekHeight = 72.dp,
+            sheetDragHandle = {
+                StickyBottomActionArea(
+                    onMediaClick = { launchMediaPicker() },
+                    onTagClick = { showTagScreen = true },
+                    onFeelingClick = { showFeelingScreen = true },
+                    onLocationClick = { showLocationScreen = true },
+                    onPollClick = {
+                        if (uiState.mediaItems.isNotEmpty()) {
+                            Toast.makeText(context, context.getString(R.string.warn_remove_media_for_poll), Toast.LENGTH_SHORT).show()
+                        } else {
+                            showPollSheet = true
                         }
-                    )
+                    },
+                    onYoutubeClick = { showYoutubeDialog = true },
+                    modifier = Modifier.imePadding()
                 )
             },
-            onRemovePoll = { viewModel.setPoll(null) },
-            onRemoveYoutube = { viewModel.setYoutubeUrl(null) },
-            onRemoveLocation = { viewModel.setLocation(null) },
-            onAddThreadPost = { viewModel.addThreadPost() },
-            onUpdateThreadText = { index, text -> viewModel.updateThreadPostText(index, text) },
-            onRemoveThreadMedia = { postIndex, mediaIndex -> viewModel.removeThreadMedia(postIndex, mediaIndex) },
-            onEditThreadMedia = { postIndex, mediaIndex ->
-                // Editing thread media logic
-                val item = uiState.threadPosts[postIndex].mediaItems[mediaIndex]
-                editingMediaIndex = null // Ideally track this properly, but editing thread media index needs extra state.
-                // For now, keep it simple and skip editing thread media if too complex.
-                // It's possible to just remove and re-add for thread media
+            sheetContent = {
+                AddToPostSheet(
+                    onDismiss = { scope.launch { scaffoldState.bottomSheetState.partialExpand() } },
+                    onMediaClick = { launchMediaPicker() },
+                    onPollClick = {
+                        if (uiState.mediaItems.isNotEmpty()) {
+                            Toast.makeText(context, context.getString(R.string.warn_remove_media_for_poll), Toast.LENGTH_SHORT).show()
+                        } else {
+                            showPollSheet = true
+                        }
+                    },
+                    onLocationClick = { showLocationScreen = true },
+                    onYoutubeClick = { showYoutubeDialog = true },
+                    onTagClick = { showTagScreen = true },
+                    onFeelingClick = { showFeelingScreen = true }
+                )
             },
-            onAddThreadMedia = { postIndex ->
-                threadMediaPickerIndex = postIndex
-                threadMediaLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageAndVideo))
-            }
-        )
+            topBar = {
+                CreatePostTopBar(
+                    sharedTransitionScope = sharedTransitionScope,
+                    animatedVisibilityScope = animatedVisibilityScope,
+                    isEditMode = uiState.isEditMode,
+                    isLoading = uiState.isLoading,
+                    postText = uiState.postText,
+                    mediaItemsCount = uiState.mediaItems.size,
+                    hasPoll = uiState.pollData != null,
+                    onNavigateUp = onNavigateUp,
+                    onSubmitPost = { viewModel.submitPost() }
+                )
+            },
+            containerColor = MaterialTheme.colorScheme.background
+        ) { padding ->
+            CreatePostContent(
+                uiState = uiState,
+                searchUiState = searchUiState,
+                focusRequester = focusRequester,
+                focusManager = focusManager,
+                padding = padding,
+                onPrivacyClick = { showPrivacySheet = true },
+                onUpdateText = { viewModel.updateText(it) },
+                onRemoveMedia = { viewModel.removeMedia(it) },
+                onEditMedia = { index ->
+                    val item = uiState.mediaItems[index]
+                    editingMediaIndex = index
+                    val uri = if (item.url.startsWith("content://") || item.url.startsWith("file://") || item.url.startsWith("http")) {
+                        Uri.parse(item.url)
+                    } else {
+                        Uri.fromFile(java.io.File(item.url))
+                    }
+                    cropImage.launch(
+                        CropImageContractOptions(
+                            uri = uri,
+                            cropImageOptions = CropImageOptions().apply {
+                                guidelines = CropImageView.Guidelines.ON
+                                activityTitle = context.getString(R.string.title_edit_image)
+                                cropMenuCropButtonTitle = context.getString(R.string.action_save)
+                                showCropOverlay = true
+                                showProgressBar = true
+                            }
+                        )
+                    )
+                },
+                onRemovePoll = { viewModel.setPoll(null) },
+                onRemoveYoutube = { viewModel.setYoutubeUrl(null) },
+                onRemoveLocation = { viewModel.setLocation(null) },
+                onAddThreadPost = { viewModel.addThreadPost() },
+                onUpdateThreadText = { index, text -> viewModel.updateThreadPostText(index, text) },
+                onRemoveThreadMedia = { postIndex, mediaIndex -> viewModel.removeThreadMedia(postIndex, mediaIndex) },
+                onEditThreadMedia = { postIndex, mediaIndex ->
+                    // Editing thread media logic
+                    val item = uiState.threadPosts[postIndex].mediaItems[mediaIndex]
+                    editingMediaIndex = null // Ideally track this properly, but editing thread media index needs extra state.
+                    // For now, keep it simple and skip editing thread media if too complex.
+                    // It's possible to just remove and re-add for thread media
+                },
+                onAddThreadMedia = { postIndex ->
+                    threadMediaPickerIndex = postIndex
+                    threadMediaLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageAndVideo))
+                }
+            )
+        }
     }
 
     CreatePostSheets(

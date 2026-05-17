@@ -8,6 +8,7 @@ import com.synapse.social.studioasinc.data.repository.UserRepositoryImpl
 import com.synapse.social.studioasinc.domain.model.Story
 import androidx.compose.ui.layout.ContentScale
 import com.synapse.social.studioasinc.domain.model.StoryMediaType
+import com.synapse.social.studioasinc.domain.model.StoryViewWithUser
 import com.synapse.social.studioasinc.domain.model.User
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
@@ -15,6 +16,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -28,7 +31,11 @@ data class StoryViewerState(
     val progress: Float = 0f,
     val isPaused: Boolean = false,
     val isFinished: Boolean = false,
-    val contentScale: ContentScale = ContentScale.Crop
+    val contentScale: ContentScale = ContentScale.Crop,
+    val viewers: List<StoryViewWithUser> = emptyList(),
+    val isLoadingViewers: Boolean = false,
+    val showViewersSheet: Boolean = false,
+    val isOwnStory: Boolean = false
 )
 
 @HiltViewModel
@@ -51,11 +58,15 @@ class StoryViewerViewModel @Inject constructor(
             android.util.Log.d("StoryViewerViewModel", "Loading stories for user: $userId")
             
             // Fetch user and stories in parallel
-            val userResult = userRepository.getUserById(userId)
-            val storiesResult = storyRepository.getUserStories(userId)
+            val (user, stories) = coroutineScope {
+                val userResultDeferred = async { userRepository.getUserById(userId) }
+                val storiesResultDeferred = async { storyRepository.getUserStories(userId) }
 
-            val user = userResult.getOrNull()
-            val stories = storiesResult.getOrNull() ?: emptyList()
+                val userResult = userResultDeferred.await()
+                val storiesResult = storiesResultDeferred.await()
+
+                Pair(userResult.getOrNull(), storiesResult.getOrNull() ?: emptyList())
+            }
 
             android.util.Log.d("StoryViewerViewModel", "User fetched: ${user != null}, Stories count: ${stories.size}")
 
@@ -70,13 +81,16 @@ class StoryViewerViewModel @Inject constructor(
                 }
                 else -> {
                     android.util.Log.d("StoryViewerViewModel", "Successfully loaded ${stories.size} stories for user: ${user.displayName ?: user.username}")
+                    val currentUserId = authRepository.getCurrentUserId()
+                    val isOwnStory = stories.isNotEmpty() && stories[0].userId == currentUserId
                     _uiState.update {
                         it.copy(
                             isLoading = false,
                             stories = stories,
                             user = user,
                             currentStoryIndex = 0,
-                            progress = 0f
+                            progress = 0f,
+                            isOwnStory = isOwnStory
                         )
                     }
                     val firstStory = stories[0]
@@ -182,28 +196,28 @@ class StoryViewerViewModel @Inject constructor(
 
     fun resume() {
         _uiState.update { it.copy(isPaused = false) }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
         startProgress()
+    }
+
+    fun loadViewers(storyId: String) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoadingViewers = true) }
+            val result = storyRepository.getStoryViewers(storyId)
+            _uiState.update {
+                it.copy(
+                    isLoadingViewers = false,
+                    viewers = result.getOrNull() ?: emptyList()
+                )
+            }
+        }
+    }
+
+    fun showViewersSheet() {
+        _uiState.update { it.copy(showViewersSheet = true) }
+    }
+
+    fun hideViewersSheet() {
+        _uiState.update { it.copy(showViewersSheet = false) }
     }
 
     fun onVideoReady(durationMs: Long) {

@@ -125,6 +125,6 @@ val storageModule = module {
     single { ValidateProviderConfigUseCase() }
 
     single<MediaUploadRepository> { MediaUploadRepositoryImpl(get(), get(), get(), get(), get()) }
-    single { UploadMediaUseCase(get(), get(), get()) }
+    single { UploadMediaUseCase(get(), get(), get(), get()) }
 
 }
