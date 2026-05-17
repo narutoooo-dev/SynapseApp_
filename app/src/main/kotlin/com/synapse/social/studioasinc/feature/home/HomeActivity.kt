@@ -10,9 +10,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.*
-import androidx.compose.ui.Modifier
 import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
 import com.synapse.social.studioasinc.feature.auth.ui.components.ProfileCompletionDialogFragment
@@ -71,55 +69,56 @@ class HomeActivity : AppCompatActivity() {
                     HomeScreen(
                         reelUploadManager = reelUploadManager,
                         onNavigateToSearch = {
-                        ActivityTransitions.startActivityWithTransition(
-                            this,
-                            Intent(this, SearchActivity::class.java)
-                        )
-                    },
-                    onNavigateToProfile = { userId ->
-                        val targetUid = if (userId == "me") getCurrentUserIdUseCase() else userId
-                        if (targetUid != null) {
-                            IntentUtils.openUrl(this, "synapse://profile/$targetUid")
-                        }
-                    },
-                    onNavigateToInbox = {
-                        val intent = Intent(this, com.synapse.social.studioasinc.feature.shared.main.MainActivity::class.java).apply {
-                            putExtra("destination", "inbox")
-                            flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
-                        }
-                        startActivity(intent)
-                        finish()
-                    },
-                    onNavigateToCreatePost = {
-                        ActivityTransitions.startActivityWithTransition(
-                            this,
-                            Intent(this, CreatePostActivity::class.java)
-                        )
-                    },
-                    onNavigateToQuotePost = { postId ->
-                        val intent = Intent(this, com.synapse.social.studioasinc.feature.shared.main.MainActivity::class.java).apply {
-                            putExtra("destination", "quote")
-                        }
-                        startActivity(intent)
-                    },
-                    onNavigateToStoryViewer = { userId ->
-                        val intent = Intent(this@HomeActivity, StoryViewerActivity::class.java).apply {
-                            putExtra("user_id", userId)
-                        }
-                        ActivityTransitions.startActivityWithTransition(this@HomeActivity, intent)
-                    },
-                    onNavigateToCreateReel = {
-                        ActivityTransitions.startActivityWithTransition(
-                            this,
-                            Intent(this, CreatePostActivity::class.java).apply {
-                                putExtra("type", "reel")
+                            ActivityTransitions.startActivityWithTransition(
+                                this@HomeActivity,
+                                Intent(this@HomeActivity, SearchActivity::class.java)
+                            )
+                        },
+                        onNavigateToProfile = { userId ->
+                            val targetUid = if (userId == "me") getCurrentUserIdUseCase() else userId
+                            if (targetUid != null) {
+                                IntentUtils.openUrl(this@HomeActivity, "synapse://profile/$targetUid")
                             }
-                        )
-                    },
-                    sharedTransitionScope = this@SharedTransitionLayout,
-                    animatedVisibilityScope = this@AnimatedVisibility
-                )
-              }
+                        },
+                        onNavigateToInbox = {
+                            val intent = Intent(this@HomeActivity, com.synapse.social.studioasinc.feature.shared.main.MainActivity::class.java).apply {
+                                putExtra("destination", "inbox")
+                                flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
+                            }
+                            startActivity(intent)
+                            finish()
+                        },
+                        onNavigateToCreatePost = { postId ->
+                            ActivityTransitions.startActivityWithTransition(
+                                this@HomeActivity,
+                                Intent(this@HomeActivity, CreatePostActivity::class.java)
+                            )
+                        },
+                        onNavigateToQuotePost = { postId ->
+                            val intent = Intent(this@HomeActivity, com.synapse.social.studioasinc.feature.shared.main.MainActivity::class.java).apply {
+                                putExtra("destination", "quote")
+                            }
+                            startActivity(intent)
+                        },
+                        onNavigateToStoryViewer = { userId ->
+                            val intent = Intent(this@HomeActivity, StoryViewerActivity::class.java).apply {
+                                putExtra("user_id", userId)
+                            }
+                            ActivityTransitions.startActivityWithTransition(this@HomeActivity, intent)
+                        },
+                        onNavigateToCreateReel = {
+                            ActivityTransitions.startActivityWithTransition(
+                                this@HomeActivity,
+                                Intent(this@HomeActivity, CreatePostActivity::class.java).apply {
+                                    putExtra("type", "reel")
+                                }
+                            )
+                        },
+                        sharedTransitionScope = this@SharedTransitionLayout,
+                        animatedVisibilityScope = this@AnimatedVisibility
+                    )
+                  }
+                }
             }
         }
 
