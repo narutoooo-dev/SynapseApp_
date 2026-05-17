@@ -11,6 +11,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -47,9 +50,11 @@ import com.synapse.social.studioasinc.feature.shared.theme.AccentBlue
 import com.synapse.social.studioasinc.feature.shared.theme.AccentYellow
 import com.synapse.social.studioasinc.feature.shared.theme.Sizes
 import com.synapse.social.studioasinc.feature.shared.theme.Spacing
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @Composable
 fun CreatePostTopBar(
+    sharedTransitionScope: SharedTransitionScope,
+    animatedVisibilityScope: AnimatedVisibilityScope,
     isEditMode: Boolean,
     isLoading: Boolean,
     postText: String,
@@ -59,6 +64,7 @@ fun CreatePostTopBar(
     onSubmitPost: () -> Unit
 ) {
     TopAppBar(
+        modifier = Modifier,
         title = {
             Text(
                 text = if (isEditMode) stringResource(R.string.title_edit_post) else stringResource(R.string.title_create_post),
@@ -68,7 +74,16 @@ fun CreatePostTopBar(
         },
         navigationIcon = {
             IconButton(onClick = onNavigateUp) {
-                Icon(Icons.Default.Close, contentDescription = stringResource(R.string.cd_close))
+                with(sharedTransitionScope) {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = stringResource(R.string.cd_close),
+                        modifier = Modifier.sharedElement(
+                            rememberSharedContentState(key = "create_post_icon"),
+                            animatedVisibilityScope = animatedVisibilityScope
+                        )
+                    )
+                }
             }
         },
         actions = {

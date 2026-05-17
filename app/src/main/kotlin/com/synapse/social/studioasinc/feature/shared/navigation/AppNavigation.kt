@@ -1,6 +1,10 @@
 package com.synapse.social.studioasinc.ui.navigation
 
 import android.content.Intent
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionLayout
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.layout.Box
 import com.synapse.social.studioasinc.R
 import androidx.compose.foundation.layout.fillMaxSize
@@ -45,6 +49,7 @@ import com.synapse.social.studioasinc.ui.settings.SettingsNavHost
 import kotlinx.serialization.Serializable
 import com.synapse.social.studioasinc.feature.inbox.inbox.screens.ChatScreen
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun AppNavigation(
     navController: NavHostController,
@@ -52,69 +57,81 @@ fun AppNavigation(
     reelUploadManager: ReelUploadManager,
     modifier: Modifier = Modifier
 ) {
-    NavHost(
-        navController = navController,
-        startDestination = startDestination,
-        modifier = modifier
-    ) {
-        authGraph(navController)
-        homeGraph(navController, reelUploadManager)
-        inboxGraph(navController)
-        postGraph(navController)
-        profileGraph(navController)
-        storyGraph(navController)
-
+    SharedTransitionLayout(modifier = modifier) {
+        NavHost(
+            navController = navController,
+            startDestination = startDestination,
+            modifier = Modifier.fillMaxSize()
+        ) {
+            authGraph(navController, this@SharedTransitionLayout)
+            homeGraph(navController, reelUploadManager, this@SharedTransitionLayout)
+            inboxGraph(navController, this@SharedTransitionLayout)
+            postGraph(navController, this@SharedTransitionLayout)
+            profileGraph(navController, this@SharedTransitionLayout)
+            storyGraph(navController, this@SharedTransitionLayout)
+        }
     }
 }
 
-fun NavGraphBuilder.authGraph(navController: NavHostController) {
+@OptIn(ExperimentalSharedTransitionApi::class)
+fun NavGraphBuilder.authGraph(
+    navController: NavHostController,
+    sharedTransitionScope: SharedTransitionScope
+) {
     composable<AppDestination.Auth> {
-                val viewModel: com.synapse.social.studioasinc.feature.auth.presentation.viewmodel.SignInViewModel = hiltViewModel()
-                AuthScreen(
-                    signInViewModel = viewModel,
-                    onInitiateGoogleSignIn = {
-                        // Usually handled by Activity; delegated to viewModel in production
-                    },
-                    onNavigateToMain = {
-                        navController.navigate(AppDestination.Home) {
-                            popUpTo(AppDestination.Auth) { inclusive = true }
-                        }
-                    }
-                )
+        val viewModel: com.synapse.social.studioasinc.feature.auth.presentation.viewmodel.SignInViewModel = hiltViewModel()
+        AuthScreen(
+            signInViewModel = viewModel,
+            onInitiateGoogleSignIn = {
+                // Usually handled by Activity; delegated to viewModel in production
+            },
+            onNavigateToMain = {
+                navController.navigate(AppDestination.Home) {
+                    popUpTo(AppDestination.Auth) { inclusive = true }
+                }
             }
+        )
+    }
 }
 
-fun NavGraphBuilder.homeGraph(navController: NavHostController, reelUploadManager: ReelUploadManager) {
+@OptIn(ExperimentalSharedTransitionApi::class)
+fun NavGraphBuilder.homeGraph(
+    navController: NavHostController,
+    reelUploadManager: ReelUploadManager,
+    sharedTransitionScope: SharedTransitionScope
+) {
     composable<AppDestination.Home> {
-                HomeScreen(
-                    reelUploadManager = reelUploadManager,
-                    onNavigateToSearch = {
-                        navController.navigate(AppDestination.Search)
-                    },
-                    onNavigateToProfile = { userId ->
-                        navController.navigate(AppDestination.Profile(userId))
-                    },
-                    onNavigateToInbox = {
-                        try {
-                            navController.navigate(AppDestination.Inbox)
-                        } catch (e: IllegalArgumentException) {
-                            // Handle error
-                        }
-                    },
-                    onNavigateToCreatePost = { postId ->
-                        navController.navigate(AppDestination.CreatePost(postId = postId))
-                    },
-                    onNavigateToQuotePost = { postId ->
-                        navController.navigate(AppDestination.QuotePost(postId))
-                    },
-                    onNavigateToStoryViewer = { userId ->
-                        navController.navigate(AppDestination.StoryViewer(userId))
-                    },
-                    onNavigateToCreateReel = {
-                        navController.navigate(AppDestination.CreatePost(type = "reel"))
-                    }
-                )
+        HomeScreen(
+            sharedTransitionScope = sharedTransitionScope,
+            animatedVisibilityScope = this@composable,
+            reelUploadManager = reelUploadManager,
+            onNavigateToSearch = {
+                navController.navigate(AppDestination.Search)
+            },
+            onNavigateToProfile = { userId ->
+                navController.navigate(AppDestination.Profile(userId))
+            },
+            onNavigateToInbox = {
+                try {
+                    navController.navigate(AppDestination.Inbox)
+                } catch (e: IllegalArgumentException) {
+                    // Handle error
+                }
+            },
+            onNavigateToCreatePost = { postId ->
+                navController.navigate(AppDestination.CreatePost(postId = postId))
+            },
+            onNavigateToQuotePost = { postId ->
+                navController.navigate(AppDestination.QuotePost(postId))
+            },
+            onNavigateToStoryViewer = { userId ->
+                navController.navigate(AppDestination.StoryViewer(userId))
+            },
+            onNavigateToCreateReel = {
+                navController.navigate(AppDestination.CreatePost(type = "reel"))
             }
+        )
+    }
     composable<AppDestination.Search> {
                 val viewModel: SearchViewModel = hiltViewModel()
                 SearchScreen(
@@ -130,7 +147,11 @@ fun NavGraphBuilder.homeGraph(navController: NavHostController, reelUploadManage
             }
 }
 
-fun NavGraphBuilder.inboxGraph(navController: NavHostController) {
+@OptIn(ExperimentalSharedTransitionApi::class)
+fun NavGraphBuilder.inboxGraph(
+    navController: NavHostController,
+    sharedTransitionScope: SharedTransitionScope
+) {
     composable<AppDestination.Inbox> {
                 InboxScreen(
                     onNavigateToProfile = { userId ->
@@ -190,7 +211,11 @@ fun NavGraphBuilder.inboxGraph(navController: NavHostController) {
             }
 }
 
-fun NavGraphBuilder.profileGraph(navController: NavHostController) {
+@OptIn(ExperimentalSharedTransitionApi::class)
+fun NavGraphBuilder.profileGraph(
+    navController: NavHostController,
+    sharedTransitionScope: SharedTransitionScope
+) {
     composable<AppDestination.Profile>(
                 deepLinks = listOf(navDeepLink<AppDestination.Profile>(basePath = "synapse://profile"))
             ) { backStackEntry ->
@@ -317,29 +342,35 @@ fun NavGraphBuilder.profileGraph(navController: NavHostController) {
             }
 }
 
-fun NavGraphBuilder.postGraph(navController: NavHostController) {
+@OptIn(ExperimentalSharedTransitionApi::class)
+fun NavGraphBuilder.postGraph(
+    navController: NavHostController,
+    sharedTransitionScope: SharedTransitionScope
+) {
     composable<AppDestination.CreatePost> { backStackEntry ->
-                val viewModel: CreatePostViewModel = hiltViewModel()
-                val args = backStackEntry.toRoute<AppDestination.CreatePost>()
-                val postId = args.postId
-                val type = args.type
-                val replyToPostId = args.replyToPostId
+        val viewModel: CreatePostViewModel = hiltViewModel()
+        val args = backStackEntry.toRoute<AppDestination.CreatePost>()
+        val postId = args.postId
+        val type = args.type
+        val replyToPostId = args.replyToPostId
 
-                LaunchedEffect(postId, replyToPostId, type) {
-                    viewModel.setCompositionType(type)
-                    if (postId != null) {
-                        viewModel.loadPostForEdit(postId)
-                    }
-                    if (replyToPostId != null) {
-                        viewModel.setReplyToPostId(replyToPostId)
-                    }
-                }
-
-                CreatePostScreen(
-                    viewModel = viewModel,
-                    onNavigateUp = { navController.popBackStack() }
-                )
+        LaunchedEffect(postId, replyToPostId, type) {
+            viewModel.setCompositionType(type)
+            if (postId != null) {
+                viewModel.loadPostForEdit(postId)
             }
+            if (replyToPostId != null) {
+                viewModel.setReplyToPostId(replyToPostId)
+            }
+        }
+
+        CreatePostScreen(
+            sharedTransitionScope = sharedTransitionScope,
+            animatedVisibilityScope = this@composable,
+            viewModel = viewModel,
+            onNavigateUp = { navController.popBackStack() }
+        )
+    }
     composable<AppDestination.PostDetail> { backStackEntry ->
                 val args = backStackEntry.toRoute<AppDestination.PostDetail>()
                 PostDetailScreen(
@@ -372,7 +403,11 @@ fun NavGraphBuilder.postGraph(navController: NavHostController) {
             }
 }
 
-fun NavGraphBuilder.storyGraph(navController: NavHostController) {
+@OptIn(ExperimentalSharedTransitionApi::class)
+fun NavGraphBuilder.storyGraph(
+    navController: NavHostController,
+    sharedTransitionScope: SharedTransitionScope
+) {
     composable<AppDestination.StoryViewer> { backStackEntry ->
                 val args = backStackEntry.toRoute<AppDestination.StoryViewer>()
                 val userId = args.userId
