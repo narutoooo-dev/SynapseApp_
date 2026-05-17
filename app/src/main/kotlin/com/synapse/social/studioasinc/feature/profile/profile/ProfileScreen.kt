@@ -6,7 +6,6 @@ import android.widget.Toast
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -65,6 +64,8 @@ fun ProfileScreen(
     onNavigateToChat: (String, String?, String?) -> Unit = { _, _, _ -> },
     onNavigateToStoryCreator: () -> Unit = {},
     onNavigateToQuotePost: (String) -> Unit = {},
+    sharedTransitionScope: SharedTransitionScope? = null,
+    animatedVisibilityScope: AnimatedVisibilityScope? = null,
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -180,7 +181,9 @@ fun ProfileScreen(
                         onShowPostOptions = { post ->
                             selectedPost = post
                             showPostOptions = true
-                        }
+                        },
+                        sharedTransitionScope = sharedTransitionScope,
+                        animatedVisibilityScope = animatedVisibilityScope
                     )
                 }
             }

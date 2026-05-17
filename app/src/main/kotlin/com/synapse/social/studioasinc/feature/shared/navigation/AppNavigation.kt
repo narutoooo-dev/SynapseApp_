@@ -1,6 +1,10 @@
 package com.synapse.social.studioasinc.ui.navigation
 
 import android.content.Intent
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionLayout
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.layout.Box
 import com.synapse.social.studioasinc.R
 import androidx.compose.foundation.layout.fillMaxSize
@@ -45,6 +49,7 @@ import com.synapse.social.studioasinc.ui.settings.SettingsNavHost
 import kotlinx.serialization.Serializable
 import com.synapse.social.studioasinc.feature.inbox.inbox.screens.ChatScreen
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun AppNavigation(
     navController: NavHostController,
@@ -52,188 +57,202 @@ fun AppNavigation(
     reelUploadManager: ReelUploadManager,
     modifier: Modifier = Modifier
 ) {
-    NavHost(
-        navController = navController,
-        startDestination = startDestination,
-        modifier = modifier
-    ) {
-        authGraph(navController)
-        homeGraph(navController, reelUploadManager)
-        inboxGraph(navController)
-        postGraph(navController)
-        profileGraph(navController)
-        storyGraph(navController)
-
+    SharedTransitionLayout(modifier = modifier) {
+        NavHost(
+            navController = navController,
+            startDestination = startDestination,
+            modifier = Modifier.fillMaxSize()
+        ) {
+            authGraph(navController)
+            homeGraph(this@SharedTransitionLayout, navController, reelUploadManager)
+            inboxGraph(navController)
+            postGraph(this@SharedTransitionLayout, navController)
+            profileGraph(this@SharedTransitionLayout, navController)
+            storyGraph(navController)
+        }
     }
 }
 
 fun NavGraphBuilder.authGraph(navController: NavHostController) {
     composable<AppDestination.Auth> {
-                val viewModel: com.synapse.social.studioasinc.feature.auth.presentation.viewmodel.SignInViewModel = hiltViewModel()
-                AuthScreen(
-                    signInViewModel = viewModel,
-                    onInitiateGoogleSignIn = {
-                        // Usually handled by Activity; delegated to viewModel in production
-                    },
-                    onNavigateToMain = {
-                        navController.navigate(AppDestination.Home) {
-                            popUpTo(AppDestination.Auth) { inclusive = true }
-                        }
-                    }
-                )
+        val viewModel: com.synapse.social.studioasinc.feature.auth.presentation.viewmodel.SignInViewModel = hiltViewModel()
+        AuthScreen(
+            signInViewModel = viewModel,
+            onInitiateGoogleSignIn = {
+                // Usually handled by Activity; delegated to viewModel in production
+            },
+            onNavigateToMain = {
+                navController.navigate(AppDestination.Home) {
+                    popUpTo(AppDestination.Auth) { inclusive = true }
+                }
             }
+        )
+    }
 }
 
-fun NavGraphBuilder.homeGraph(navController: NavHostController, reelUploadManager: ReelUploadManager) {
+@OptIn(ExperimentalSharedTransitionApi::class)
+fun NavGraphBuilder.homeGraph(
+    sharedTransitionScope: SharedTransitionScope,
+    navController: NavHostController,
+    reelUploadManager: ReelUploadManager
+) {
     composable<AppDestination.Home> {
-                HomeScreen(
-                    reelUploadManager = reelUploadManager,
-                    onNavigateToSearch = {
-                        navController.navigate(AppDestination.Search)
-                    },
-                    onNavigateToProfile = { userId ->
-                        navController.navigate(AppDestination.Profile(userId))
-                    },
-                    onNavigateToInbox = {
-                        try {
-                            navController.navigate(AppDestination.Inbox)
-                        } catch (e: IllegalArgumentException) {
-                            // Handle error
-                        }
-                    },
-                    onNavigateToCreatePost = { postId ->
-                        navController.navigate(AppDestination.CreatePost(postId = postId))
-                    },
-                    onNavigateToQuotePost = { postId ->
-                        navController.navigate(AppDestination.QuotePost(postId))
-                    },
-                    onNavigateToStoryViewer = { userId ->
-                        navController.navigate(AppDestination.StoryViewer(userId))
-                    },
-                    onNavigateToCreateReel = {
-                        navController.navigate(AppDestination.CreatePost(type = "reel"))
-                    }
-                )
-            }
+        HomeScreen(
+            reelUploadManager = reelUploadManager,
+            onNavigateToSearch = {
+                navController.navigate(AppDestination.Search)
+            },
+            onNavigateToProfile = { userId ->
+                navController.navigate(AppDestination.Profile(userId))
+            },
+            onNavigateToInbox = {
+                try {
+                    navController.navigate(AppDestination.Inbox)
+                } catch (e: IllegalArgumentException) {
+                    // Handle error
+                }
+            },
+            onNavigateToCreatePost = { postId ->
+                navController.navigate(AppDestination.CreatePost(postId = postId))
+            },
+            onNavigateToQuotePost = { postId ->
+                navController.navigate(AppDestination.QuotePost(postId))
+            },
+            onNavigateToStoryViewer = { userId ->
+                navController.navigate(AppDestination.StoryViewer(userId))
+            },
+            onNavigateToCreateReel = {
+                navController.navigate(AppDestination.CreatePost(type = "reel"))
+            },
+            sharedTransitionScope = sharedTransitionScope,
+            animatedVisibilityScope = this@composable
+        )
+    }
     composable<AppDestination.Search> {
-                val viewModel: SearchViewModel = hiltViewModel()
-                SearchScreen(
-                    viewModel = viewModel,
-                    onNavigateToProfile = { userId ->
-                        navController.navigate(AppDestination.Profile(userId))
-                    },
-                    onNavigateToPost = { postId ->
-                        navController.navigate(AppDestination.PostDetail(postId))
-                    },
-                    onBack = { navController.popBackStack() }
-                )
-            }
+        val viewModel: SearchViewModel = hiltViewModel()
+        SearchScreen(
+            viewModel = viewModel,
+            onNavigateToProfile = { userId ->
+                navController.navigate(AppDestination.Profile(userId))
+            },
+            onNavigateToPost = { postId ->
+                navController.navigate(AppDestination.PostDetail(postId))
+            },
+            onBack = { navController.popBackStack() }
+        )
+    }
 }
 
 fun NavGraphBuilder.inboxGraph(navController: NavHostController) {
     composable<AppDestination.Inbox> {
-                InboxScreen(
-                    onNavigateToProfile = { userId ->
-                        navController.navigate(AppDestination.Profile(userId))
-                    },
-                    onNavigateToChat = { chatId, userId, userName, avatar ->
-                        navController.navigate(AppDestination.Chat(chatId, userId, userName, avatar))
-                    },
-                    onNavigateToSearch = {
-                        navController.navigate(AppDestination.Search)
-                    },
-                    onNavigateToCreateGroup = { navController.navigate(AppDestination.CreateGroup) }
-                )
-            }
+        InboxScreen(
+            onNavigateToProfile = { userId ->
+                navController.navigate(AppDestination.Profile(userId))
+            },
+            onNavigateToChat = { chatId, userId, userName, avatar ->
+                navController.navigate(AppDestination.Chat(chatId, userId, userName, avatar))
+            },
+            onNavigateToSearch = {
+                navController.navigate(AppDestination.Search)
+            },
+            onNavigateToCreateGroup = { navController.navigate(AppDestination.CreateGroup) }
+        )
+    }
     composable<AppDestination.Chat> { backStackEntry ->
-                val args = backStackEntry.toRoute<AppDestination.Chat>()
-                ChatScreen(
-                    chatId = args.chatId,
-                    participantId = args.userId,
-                    initialParticipantName = args.participantName,
-                    initialParticipantAvatar = args.participantAvatar,
-                    onNavigateBack = { navController.popBackStack() },
-                    onNavigateToGroupInfo = { chatId, groupName ->
-                        navController.navigate(AppDestination.GroupInfo(chatId, groupName))
-                    },
-                    onNavigateToUserMoreOptions = { userId ->
-                        navController.navigate(AppDestination.UserMoreOptions(userId))
-                    },
-                    onNavigateToProfile = { userId ->
-                        navController.navigate(AppDestination.Profile(userId))
-                    }
-                )
+        val args = backStackEntry.toRoute<AppDestination.Chat>()
+        ChatScreen(
+            chatId = args.chatId,
+            participantId = args.userId,
+            initialParticipantName = args.participantName,
+            initialParticipantAvatar = args.participantAvatar,
+            onNavigateBack = { navController.popBackStack() },
+            onNavigateToGroupInfo = { chatId, groupName ->
+                navController.navigate(AppDestination.GroupInfo(chatId, groupName))
+            },
+            onNavigateToUserMoreOptions = { userId ->
+                navController.navigate(AppDestination.UserMoreOptions(userId))
+            },
+            onNavigateToProfile = { userId ->
+                navController.navigate(AppDestination.Profile(userId))
             }
+        )
+    }
     composable<AppDestination.CreateGroup> {
-                com.synapse.social.studioasinc.feature.inbox.inbox.CreateGroupScreen(
-                    onNavigateBack = { navController.popBackStack() },
-                    onGroupCreated = { chatId ->
-                        navController.popBackStack()
-                        navController.navigate(AppDestination.Chat(chatId = chatId))
-                    }
-                )
+        com.synapse.social.studioasinc.feature.inbox.inbox.CreateGroupScreen(
+            onNavigateBack = { navController.popBackStack() },
+            onGroupCreated = { chatId ->
+                navController.popBackStack()
+                navController.navigate(AppDestination.Chat(chatId = chatId))
             }
+        )
+    }
     composable<AppDestination.GroupInfo> { backStackEntry ->
-                val args = backStackEntry.toRoute<AppDestination.GroupInfo>()
-                com.synapse.social.studioasinc.feature.inbox.inbox.GroupInfoScreen(
-                    chatId = args.chatId,
-                    groupName = args.groupName,
-                    onNavigateBack = { navController.popBackStack() }
-                )
-            }
+        val args = backStackEntry.toRoute<AppDestination.GroupInfo>()
+        com.synapse.social.studioasinc.feature.inbox.inbox.GroupInfoScreen(
+            chatId = args.chatId,
+            groupName = args.groupName,
+            onNavigateBack = { navController.popBackStack() }
+        )
+    }
     composable<AppDestination.UserMoreOptions> { backStackEntry ->
-                val args = backStackEntry.toRoute<AppDestination.UserMoreOptions>()
-                com.synapse.social.studioasinc.feature.inbox.inbox.screens.UserMoreOptionsScreen(
-                    userId = args.userId,
-                    onNavigateBack = { navController.popBackStack() }
-                )
-            }
+        val args = backStackEntry.toRoute<AppDestination.UserMoreOptions>()
+        com.synapse.social.studioasinc.feature.inbox.inbox.screens.UserMoreOptionsScreen(
+            userId = args.userId,
+            onNavigateBack = { navController.popBackStack() }
+        )
+    }
 }
 
-fun NavGraphBuilder.profileGraph(navController: NavHostController) {
+@OptIn(ExperimentalSharedTransitionApi::class)
+fun NavGraphBuilder.profileGraph(
+    sharedTransitionScope: SharedTransitionScope,
+    navController: NavHostController
+) {
     composable<AppDestination.Profile>(
-                deepLinks = listOf(navDeepLink<AppDestination.Profile>(basePath = "synapse://profile"))
-            ) { backStackEntry ->
-                val context = LocalContext.current
-                val args = backStackEntry.toRoute<AppDestination.Profile>()
-                val userId = args.userId
-                val currentUserId = AuthHelper.getCurrentUserId() ?: return@composable
-                val targetUserId = if (userId == "me") currentUserId else userId
-                val viewModel: ProfileViewModel = hiltViewModel()
-                ProfileScreen(
-                    userId = targetUserId,
-                    currentUserId = currentUserId,
-                    onNavigateBack = { navController.popBackStack() },
-                    onNavigateToEditProfile = {
-                        navController.navigate(AppDestination.EditProfile)
-                    },
-                    onNavigateToEditPost = { postId ->
-                        navController.navigate(AppDestination.CreatePost(postId = postId))
-                    },
-                    onNavigateToSettings = {
-                        navController.navigate(AppDestination.Settings)
-                    },
-                    onNavigateToChat = { targetUserId, userName, avatar ->
-                        navController.navigate(AppDestination.Chat(chatId = "new", userId = targetUserId, participantName = userName, participantAvatar = avatar))
-                    },
-                    onNavigateToFollowers = {
-                        navController.navigate(AppDestination.FollowList(userId, 0))
-                    },
-                    onNavigateToFollowing = {
-                        navController.navigate(AppDestination.FollowList(userId, 1))
-                    },
-                    onNavigateToQuotePost = { postId ->
-                        navController.navigate(AppDestination.QuotePost(postId))
-                    },
-                    onNavigateToUserProfile = { targetUid ->
-                        navController.navigate(AppDestination.Profile(targetUid))
-                    },
-                    onNavigateToStoryCreator = {
-                        context.startActivity(Intent(context, StoryCreatorActivity::class.java))
-                    },
-                    viewModel = viewModel
-                )
-            }
+        deepLinks = listOf(navDeepLink<AppDestination.Profile>(basePath = "synapse://profile"))
+    ) { backStackEntry ->
+        val context = LocalContext.current
+        val args = backStackEntry.toRoute<AppDestination.Profile>()
+        val userId = args.userId
+        val currentUserId = AuthHelper.getCurrentUserId() ?: return@composable
+        val targetUserId = if (userId == "me") currentUserId else userId
+        val viewModel: ProfileViewModel = hiltViewModel()
+        ProfileScreen(
+            userId = targetUserId,
+            currentUserId = currentUserId,
+            onNavigateBack = { navController.popBackStack() },
+            onNavigateToEditProfile = {
+                navController.navigate(AppDestination.EditProfile)
+            },
+            onNavigateToEditPost = { postId ->
+                navController.navigate(AppDestination.CreatePost(postId = postId))
+            },
+            onNavigateToSettings = {
+                navController.navigate(AppDestination.Settings)
+            },
+            onNavigateToChat = { targetUserId, userName, avatar ->
+                navController.navigate(AppDestination.Chat(chatId = "new", userId = targetUserId, participantName = userName, participantAvatar = avatar))
+            },
+            onNavigateToFollowers = {
+                navController.navigate(AppDestination.FollowList(userId, 0))
+            },
+            onNavigateToFollowing = {
+                navController.navigate(AppDestination.FollowList(userId, 1))
+            },
+            onNavigateToQuotePost = { postId ->
+                navController.navigate(AppDestination.QuotePost(postId))
+            },
+            onNavigateToUserProfile = { targetUid ->
+                navController.navigate(AppDestination.Profile(targetUid))
+            },
+            onNavigateToStoryCreator = {
+                context.startActivity(Intent(context, StoryCreatorActivity::class.java))
+            },
+            viewModel = viewModel,
+            sharedTransitionScope = sharedTransitionScope,
+            animatedVisibilityScope = this@composable
+        )
+    }
     composable<AppDestination.EditProfile> {
                 val viewModel: EditProfileViewModel = hiltViewModel()
 
@@ -317,9 +336,13 @@ fun NavGraphBuilder.profileGraph(navController: NavHostController) {
             }
 }
 
-fun NavGraphBuilder.postGraph(navController: NavHostController) {
+@OptIn(ExperimentalSharedTransitionApi::class)
+fun NavGraphBuilder.postGraph(
+    sharedTransitionScope: SharedTransitionScope,
+    navController: NavHostController
+) {
     composable<AppDestination.CreatePost> { backStackEntry ->
-                val viewModel: CreatePostViewModel = hiltViewModel()
+        val viewModel: CreatePostViewModel = hiltViewModel()
                 val args = backStackEntry.toRoute<AppDestination.CreatePost>()
                 val postId = args.postId
                 val type = args.type
@@ -341,28 +364,30 @@ fun NavGraphBuilder.postGraph(navController: NavHostController) {
                 )
             }
     composable<AppDestination.PostDetail> { backStackEntry ->
-                val args = backStackEntry.toRoute<AppDestination.PostDetail>()
-                PostDetailScreen(
-                    postId = args.postId,
-                    rootCommentId = args.commentId,
-                    onNavigateBack = { navController.popBackStack() },
-                    onNavigateToProfile = { userId ->
-                        navController.navigate(AppDestination.Profile(userId))
-                    },
-                    onNavigateToEditPost = { pid ->
-                        navController.navigate(AppDestination.CreatePost(pid))
-                },
-                onNavigateToQuotePost = { pid ->
-                        navController.navigate(AppDestination.QuotePost(pid))
-                },
-                onNavigateToReplyToPost = { pid ->
-                    navController.navigate(AppDestination.CreatePost(replyToPostId = pid))
-                },
-                onNavigateToCommentDetail = { postId, commentId ->
-                    navController.navigate(AppDestination.PostDetail(postId, commentId))
-                    }
-                )
-            }
+        val args = backStackEntry.toRoute<AppDestination.PostDetail>()
+        PostDetailScreen(
+            postId = args.postId,
+            rootCommentId = args.commentId,
+            onNavigateBack = { navController.popBackStack() },
+            onNavigateToProfile = { userId ->
+                navController.navigate(AppDestination.Profile(userId))
+            },
+            onNavigateToEditPost = { pid ->
+                navController.navigate(AppDestination.CreatePost(pid))
+            },
+            onNavigateToQuotePost = { pid ->
+                navController.navigate(AppDestination.QuotePost(pid))
+            },
+            onNavigateToReplyToPost = { pid ->
+                navController.navigate(AppDestination.CreatePost(replyToPostId = pid))
+            },
+            onNavigateToCommentDetail = { postId, commentId ->
+                navController.navigate(AppDestination.PostDetail(postId, commentId))
+            },
+            sharedTransitionScope = sharedTransitionScope,
+            animatedVisibilityScope = this@composable
+        )
+    }
     composable<AppDestination.QuotePost> {
                 val viewModel: com.synapse.social.studioasinc.feature.createpost.quote.QuotePostViewModel = hiltViewModel()
                 com.synapse.social.studioasinc.feature.createpost.quote.QuotePostScreen(

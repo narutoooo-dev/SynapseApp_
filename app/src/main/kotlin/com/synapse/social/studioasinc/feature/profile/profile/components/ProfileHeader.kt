@@ -36,10 +36,16 @@ import com.synapse.social.studioasinc.feature.shared.components.animatedShape
 import com.synapse.social.studioasinc.feature.shared.theme.Spacing
 import com.synapse.social.studioasinc.feature.shared.theme.Sizes
 import com.synapse.social.studioasinc.domain.model.UserStatus
+import com.synapse.social.studioasinc.feature.shared.util.liquidSplashEffect
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun ProfileHeader(
     avatar: String?,
+    uid: String? = null,
     status: UserStatus?,
     coverImageUrl: String?,
     name: String?,
@@ -65,7 +71,9 @@ fun ProfileHeader(
     onCoverPhotoClick: () -> Unit = {},
     scrollOffset: Float = 0f,
     bioExpanded: Boolean = false,
-    onToggleBio: () -> Unit = {}
+    onToggleBio: () -> Unit = {},
+    sharedTransitionScope: SharedTransitionScope? = null,
+    animatedVisibilityScope: AnimatedVisibilityScope? = null
 ) {
     val coverHeight = Sizes.HeightExtraLarge
     val overlap = Sizes.HeightMedium
@@ -181,6 +189,17 @@ fun ProfileHeader(
                 .padding(start = Spacing.Medium)
                 .padding(top = avatarPaddingTop)
         ) {
+            val avatarModifier = if (sharedTransitionScope != null && animatedVisibilityScope != null && uid != null) {
+                with(sharedTransitionScope) {
+                    Modifier.sharedElement(
+                        rememberSharedContentState(key = "avatar_$uid"),
+                        animatedVisibilityScope = animatedVisibilityScope
+                    )
+                }
+            } else {
+                Modifier
+            }
+
             ProfileImageWithRing(
                 avatar = avatar,
                 size = avatarSize,
@@ -188,7 +207,7 @@ fun ProfileHeader(
                 hasStory = hasStory,
                 isOwnProfile = isOwnProfile,
                 onClick = onProfileImageClick,
-                modifier = Modifier.border(avatarBorderWidth, MaterialTheme.colorScheme.surface, CircleShape)
+                modifier = avatarModifier.border(avatarBorderWidth, MaterialTheme.colorScheme.surface, CircleShape)
             )
         }
     }
@@ -310,6 +329,10 @@ private fun ProfileActionButtons(
                 modifier = Modifier
                     .weight(1f)
                     .height(Spacing.ButtonHeight)
+                    .liquidSplashEffect(
+                        trigger = isFollowing,
+                        color = MaterialTheme.colorScheme.primary
+                    )
             )
 
             ExpressiveButton(

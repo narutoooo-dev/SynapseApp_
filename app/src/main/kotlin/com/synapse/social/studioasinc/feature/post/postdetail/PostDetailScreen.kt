@@ -39,10 +39,14 @@ import com.synapse.social.studioasinc.feature.shared.components.post.PostSummary
 import com.synapse.social.studioasinc.ui.components.ExpressiveLoadingIndicator
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.CoroutineScope
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.ui.platform.SoftwareKeyboardController
 import androidx.paging.compose.LazyPagingItems
 
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun PostDetailScreen(
     postId: String,
@@ -53,6 +57,8 @@ fun PostDetailScreen(
     onNavigateToReplyToPost: (String) -> Unit,
     onNavigateToCommentDetail: (String, String) -> Unit,
     onNavigateBack: () -> Unit,
+    sharedTransitionScope: SharedTransitionScope? = null,
+    animatedVisibilityScope: AnimatedVisibilityScope? = null,
     viewModel: PostDetailViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -207,7 +213,7 @@ fun PostDetailScreen(
         )
     }
 
-    @OptIn(ExperimentalMaterial3Api::class)
+    @OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
     Scaffold(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = { PostDetailTopBar(onNavigateBack) },
@@ -233,6 +239,8 @@ fun PostDetailScreen(
             uiState = uiState,
             paddingValues = paddingValues,
             pagingItems = pagingItems,
+            sharedTransitionScope = sharedTransitionScope,
+            animatedVisibilityScope = animatedVisibilityScope,
             onReplyClick = { comment ->
                 viewModel.setReplyTo(comment)
                 scope.launch {
@@ -267,6 +275,7 @@ fun PostDetailScreen(
     }
 }
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 private fun PostDetailContent(
     uiState: PostDetailUiState,
@@ -288,7 +297,9 @@ private fun PostDetailContent(
     onPostOptionClick: (com.synapse.social.studioasinc.domain.model.Post) -> Unit,
     onPostPollVote: (com.synapse.social.studioasinc.domain.model.Post, Int) -> Unit,
     onPostMediaClick: (Int) -> Unit,
-    onPostReactionSelected: (com.synapse.social.studioasinc.domain.model.Post, ReactionType) -> Unit
+    onPostReactionSelected: (com.synapse.social.studioasinc.domain.model.Post, ReactionType) -> Unit,
+    sharedTransitionScope: SharedTransitionScope? = null,
+    animatedVisibilityScope: AnimatedVisibilityScope? = null
 ) {
     Box(
         modifier = Modifier
@@ -344,6 +355,8 @@ private fun PostDetailContent(
                                     onPollVote = { },
                                     onReactionSelected = { onShowReactions(ancestor) },
                                     onQuoteClick = { },
+                                    sharedTransitionScope = sharedTransitionScope,
+                                    animatedVisibilityScope = animatedVisibilityScope,
                                     modifier = Modifier.fillMaxWidth()
                                 )
                             }
@@ -371,6 +384,8 @@ private fun PostDetailContent(
                                 onPollVote = { },
                                 onReactionSelected = { onShowReactions(rootComment) },
                                 onQuoteClick = { },
+                                sharedTransitionScope = sharedTransitionScope,
+                                animatedVisibilityScope = animatedVisibilityScope,
                                 modifier = Modifier.fillMaxWidth()
                             )
                         } else {
@@ -409,6 +424,8 @@ private fun PostDetailContent(
                                 onPollVote = { optionId -> onPostPollVote(mergedPost, optionId.toIntOrNull() ?: 0) },
                                 onReactionSelected = { reaction -> onPostReactionSelected(mergedPost, reaction) },
                                 onQuoteClick = { onNavigateToQuotePost(mergedPost.id) },
+                                sharedTransitionScope = sharedTransitionScope,
+                                animatedVisibilityScope = animatedVisibilityScope,
                                 modifier = Modifier.fillMaxWidth()
                             )
                         }

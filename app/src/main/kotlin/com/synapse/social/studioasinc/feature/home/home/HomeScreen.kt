@@ -26,6 +26,9 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ScaffoldDefaults
 import androidx.compose.material3.Text
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -51,7 +54,7 @@ import com.synapse.social.studioasinc.ui.navigation.HomeNavGraph
 import com.synapse.social.studioasinc.feature.shared.reels.ReelUploadManager
 import com.synapse.social.studioasinc.feature.shared.reels.components.UploadProgressOverlay
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @Composable
 fun HomeScreen(
     reelUploadManager: ReelUploadManager,
@@ -62,6 +65,8 @@ fun HomeScreen(
     onNavigateToQuotePost: (String) -> Unit,
     onNavigateToStoryViewer: (String) -> Unit,
     onNavigateToCreateReel: () -> Unit,
+    sharedTransitionScope: SharedTransitionScope,
+    animatedVisibilityScope: AnimatedVisibilityScope,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val navController = rememberNavController()
@@ -154,6 +159,8 @@ fun HomeScreen(
                 onNavigateToStoryViewer = onNavigateToStoryViewer,
                 onNavigateToCreateReel = onNavigateToCreateReel,
                 onNavigateToCreatePost = { onNavigateToCreatePost(null) },
+                sharedTransitionScope = sharedTransitionScope,
+                animatedVisibilityScope = animatedVisibilityScope,
                 modifier = Modifier.padding(innerPadding),
                 bottomPadding = Sizes.HeightLarge
             )

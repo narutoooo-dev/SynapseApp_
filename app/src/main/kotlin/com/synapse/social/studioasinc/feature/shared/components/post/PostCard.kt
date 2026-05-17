@@ -41,6 +41,9 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
 import com.synapse.social.studioasinc.ui.settings.PostViewStyle
 
 
@@ -75,6 +78,7 @@ data class PostCardState(
     val isLastReply: Boolean = false
 )
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun PostCard(
     state: PostCardState,
@@ -92,6 +96,8 @@ fun PostCard(
     onPollVote: (String) -> Unit,
     onReactionSelected: ((ReactionType) -> Unit)? = null,
     onParentAuthorClick: (() -> Unit)? = null,
+    sharedTransitionScope: SharedTransitionScope? = null,
+    animatedVisibilityScope: AnimatedVisibilityScope? = null,
     modifier: Modifier = Modifier
 ) {
     var showReactionPicker by remember { mutableStateOf(false) }
@@ -172,11 +178,22 @@ fun PostCard(
                     .width(avatarSize),
                 contentAlignment = Alignment.TopCenter
             ) {
+                val avatarModifier = if (sharedTransitionScope != null && animatedVisibilityScope != null) {
+                    with(sharedTransitionScope) {
+                        Modifier.sharedElement(
+                            rememberSharedContentState(key = "avatar_${state.user.uid}"),
+                            animatedVisibilityScope = animatedVisibilityScope
+                        )
+                    }
+                } else {
+                    Modifier
+                }
                 CircularAvatar(
                     imageUrl = state.user.avatar,
                     contentDescription = "Avatar of ${state.user.username}",
                     onClick = onUserClick,
-                    size = avatarSize
+                    size = avatarSize,
+                    modifier = avatarModifier
                 )
             }
 
@@ -199,6 +216,17 @@ fun PostCard(
                 // Memoize conditional parameters to avoid recomputation
                 val contentMediaUrls = state.mediaUrls
 
+                val contentModifier = if (sharedTransitionScope != null && animatedVisibilityScope != null) {
+                    with(sharedTransitionScope) {
+                        Modifier.sharedElement(
+                            rememberSharedContentState(key = "media_${state.post.id}"),
+                            animatedVisibilityScope = animatedVisibilityScope
+                        )
+                    }
+                } else {
+                    Modifier
+                }
+
                 PostContent(
                     text = state.post.postText,
                     mediaUrls = contentMediaUrls,
@@ -212,7 +240,7 @@ fun PostCard(
                     quotedPost = state.post.quotedPost,
                     linkPreviews = state.post.linkPreviews,
                     isExpanded = state.isExpanded,
-                    modifier = Modifier
+                    modifier = contentModifier
                 )
 
                 PostInteractionBar(
@@ -232,7 +260,8 @@ fun PostCard(
                     onBookmarkClick = onBookmarkClick,
                     onReactionLongPress = if (onReactionSelected != null) {
                         { showReactionPicker = true }
-                    } else null
+                    } else null,
+                    onReactionSelected = onReactionSelected
                 )
             }
         }

@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ProfileView: View {
     @StateObject private var viewModel = ProfileViewModel()
+    @Namespace private var animation
 
     var body: some View {
         NavigationView {
@@ -11,6 +12,7 @@ struct ProfileView: View {
                         .resizable()
                         .frame(width: 100, height: 100)
                         .foregroundColor(.gray)
+                        .matchedGeometryEffect(id: "avatar_\(viewModel.user?.uid ?? "")", in: animation)
                         .accessibilityLabel("Profile Picture")
 
                     Text(viewModel.user?.displayName ?? viewModel.user?.username ?? "Loading...")

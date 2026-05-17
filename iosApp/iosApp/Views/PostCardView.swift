@@ -2,6 +2,7 @@ import SwiftUI
 
 struct PostCardView: View {
     var post: Post
+    var animation: Namespace.ID? = nil
     var onLike: () -> Void
     var onComment: () -> Void
     var onShare: () -> Void
@@ -12,13 +13,26 @@ struct PostCardView: View {
             // Header
             HStack(alignment: .center, spacing: 10) {
                 // Avatar Placeholder
-                Circle()
-                    .fill(Color.gray.opacity(0.3))
-                    .frame(width: 40, height: 40)
-                    .overlay(
-                        Text(String((post.displayName ?? post.username)?.first ?? "?").uppercased())
-                            .foregroundColor(.gray)
-                    )
+                Group {
+                    if let animation = animation {
+                        Circle()
+                            .fill(Color.gray.opacity(0.3))
+                            .frame(width: 40, height: 40)
+                            .overlay(
+                                Text(String((post.displayName ?? post.username)?.first ?? "?").uppercased())
+                                    .foregroundColor(.gray)
+                            )
+                            .matchedGeometryEffect(id: "avatar_\(post.authorUid ?? "")", in: animation)
+                    } else {
+                        Circle()
+                            .fill(Color.gray.opacity(0.3))
+                            .frame(width: 40, height: 40)
+                            .overlay(
+                                Text(String((post.displayName ?? post.username)?.first ?? "?").uppercased())
+                                    .foregroundColor(.gray)
+                            )
+                    }
+                }
 
                 VStack(alignment: .leading, spacing: 2) {
                     HStack(spacing: 4) {
@@ -63,11 +77,18 @@ struct PostCardView: View {
             // Media Content (Image/Video)
             if let mediaItems = post.mediaItems, let firstMedia = mediaItems.first {
                 if firstMedia.type == .image {
-                    CachedImageView(urlString: firstMedia.url)
-                        .frame(maxHeight: 300)
-                        .clipped()
-                        .cornerRadius(12)
-                        .padding(.horizontal)
+                    Group {
+                        if let animation = animation {
+                            CachedImageView(urlString: firstMedia.url)
+                                .matchedGeometryEffect(id: "media_\(post.id)", in: animation)
+                        } else {
+                            CachedImageView(urlString: firstMedia.url)
+                        }
+                    }
+                    .frame(maxHeight: 300)
+                    .clipped()
+                    .cornerRadius(12)
+                    .padding(.horizontal)
                 } else if firstMedia.type == .video {
                     // Video Placeholder
                     Rectangle()

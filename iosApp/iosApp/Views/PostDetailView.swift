@@ -2,9 +2,11 @@ import SwiftUI
 
 struct PostDetailView: View {
     @StateObject private var viewModel: PostDetailViewModel
+    var animation: Namespace.ID? = nil
 
-    init(post: Post) {
+    init(post: Post, animation: Namespace.ID? = nil) {
         _viewModel = StateObject(wrappedValue: PostDetailViewModel(post: post))
+        self.animation = animation
     }
 
     var body: some View {
@@ -31,6 +33,7 @@ struct PostDetailView: View {
                     // Full Post Card
                     PostCardView(
                         post: viewModel.post,
+                        animation: animation,
                         onLike: { /* Detail like logic */ },
                         onComment: { /* Scroll to comment field */ },
                         onShare: { /* Detail share logic */ },

@@ -55,6 +55,7 @@ import androidx.compose.ui.unit.dp
 import com.synapse.social.studioasinc.R
 import com.synapse.social.studioasinc.feature.shared.theme.Sizes
 import com.synapse.social.studioasinc.feature.shared.theme.Spacing
+import com.synapse.social.studioasinc.feature.shared.util.liquidSplashEffect
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -74,10 +75,12 @@ fun PostInteractionBar(
     onQuoteClick: () -> Unit = {},
     onBookmarkClick: () -> Unit,
     onReactionLongPress: (() -> Unit)? = null,
+    onReactionSelected: ((com.synapse.social.studioasinc.domain.model.ReactionType) -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     val haptic = LocalHapticFeedback.current
     var showRepostMenu by remember { mutableStateOf(false) }
+    var explosionReaction by remember { mutableStateOf<com.synapse.social.studioasinc.domain.model.ReactionType?>(null) }
 
     Column(modifier = modifier.fillMaxWidth()) {
 
@@ -231,7 +234,12 @@ fun PostInteractionBar(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .combinedClickable(
-                        onClick = onLikeClick,
+                        onClick = {
+                            onLikeClick()
+                            if (!isLiked) {
+                                explosionReaction = com.synapse.social.studioasinc.domain.model.ReactionType.LIKE
+                            }
+                        },
                         onLongClick = {
                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                             onReactionLongPress?.invoke()
@@ -239,22 +247,35 @@ fun PostInteractionBar(
                     )
                     .padding(vertical = Spacing.ExtraSmall)
             ) {
-                Icon(
-                    imageVector = if (isLiked) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                    contentDescription = stringResource(
-                        if (isLiked) R.string.like_post_liked else R.string.like_post_with_count,
-                        likeCount
-                    ),
-                    tint = if (isLiked) likeActiveColor else iconColor,
-                    modifier = Modifier
-                        .size(Sizes.IconMedium)
-                        .graphicsLayer {
-                            scaleX = scale.value
-                            scaleY = scale.value
-                            rotationY = rotY.value
-                            rotationX = rotX.value
-                        }
-                )
+                Box(contentAlignment = Alignment.Center) {
+                    if (explosionReaction != null) {
+                        ReactionExplosion(
+                            reaction = explosionReaction!!,
+                            onAnimationEnd = { explosionReaction = null },
+                            modifier = Modifier.align(Alignment.Center)
+                        )
+                    }
+                    Icon(
+                        imageVector = if (isLiked) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                        contentDescription = stringResource(
+                            if (isLiked) R.string.like_post_liked else R.string.like_post_with_count,
+                            likeCount
+                        ),
+                        tint = if (isLiked) likeActiveColor else iconColor,
+                        modifier = Modifier
+                            .size(Sizes.IconMedium)
+                            .liquidSplashEffect(
+                                trigger = isLiked,
+                                color = likeActiveColor
+                            )
+                            .graphicsLayer {
+                                scaleX = scale.value
+                                scaleY = scale.value
+                                rotationY = rotY.value
+                                rotationX = rotX.value
+                            }
+                    )
+                }
                 if (likeCount > 0 && !hideLikeCount) {
                     Spacer(modifier = Modifier.width(Spacing.ExtraSmall))
                     AnimatedCounter(count = likeCount) { targetCount ->

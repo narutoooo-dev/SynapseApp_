@@ -1,5 +1,8 @@
 package com.synapse.social.studioasinc.feature.shared.components.post
 
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -11,6 +14,7 @@ import com.synapse.social.studioasinc.ui.settings.PostViewStyle
 
 
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun SharedPostItem(
     post: Post,
@@ -18,7 +22,9 @@ fun SharedPostItem(
     postViewStyle: PostViewStyle = PostViewStyle.SWIPE,
     actions: PostActions,
     isExpanded: Boolean = false,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    sharedTransitionScope: SharedTransitionScope? = null,
+    animatedVisibilityScope: AnimatedVisibilityScope? = null
 ) {
 
     val state = remember(post, currentProfile?.id, isExpanded) {
@@ -68,8 +74,9 @@ fun SharedPostItem(
         onMediaClick = onMediaClick,
         onOptionsClick = onOptionsClick,
         onPollVote = onPollVote,
-
         onReactionSelected = { reaction -> actions.onReactionSelected(post, reaction) },
+        sharedTransitionScope = sharedTransitionScope,
+        animatedVisibilityScope = animatedVisibilityScope,
         modifier = modifier
     )
 }

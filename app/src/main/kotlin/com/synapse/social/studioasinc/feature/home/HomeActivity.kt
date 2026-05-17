@@ -6,8 +6,13 @@ import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
 import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
 import com.synapse.social.studioasinc.feature.auth.ui.components.ProfileCompletionDialogFragment
@@ -60,9 +65,12 @@ class HomeActivity : AppCompatActivity() {
                 darkTheme = darkTheme,
                 dynamicColor = dynamicColor
             ) {
-                HomeScreen(
-                    reelUploadManager = reelUploadManager,
-                    onNavigateToSearch = {
+                @OptIn(ExperimentalSharedTransitionApi::class)
+                SharedTransitionLayout {
+                  AnimatedVisibility(visible = true) {
+                    HomeScreen(
+                        reelUploadManager = reelUploadManager,
+                        onNavigateToSearch = {
                         ActivityTransitions.startActivityWithTransition(
                             this,
                             Intent(this, SearchActivity::class.java)
@@ -107,8 +115,11 @@ class HomeActivity : AppCompatActivity() {
                                 putExtra("type", "reel")
                             }
                         )
-                    }
+                    },
+                    sharedTransitionScope = this@SharedTransitionLayout,
+                    animatedVisibilityScope = this@AnimatedVisibility
                 )
+              }
             }
         }
 

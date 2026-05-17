@@ -10,6 +10,12 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHost
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.core.tween
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
@@ -48,11 +54,11 @@ import com.synapse.social.studioasinc.feature.shared.components.post.PostOptions
 import com.synapse.social.studioasinc.feature.shared.components.post.PostCard
 import com.synapse.social.studioasinc.feature.shared.components.post.PostUiMapper
 import com.synapse.social.studioasinc.feature.shared.components.post.PostSummarySheet
-import com.synapse.social.studioasinc.ui.components.ExpressivePullToRefreshIndicator
+import com.synapse.social.studioasinc.feature.shared.components.SynapsePullToRefreshIndicator
 import com.synapse.social.studioasinc.feature.stories.tray.StoryTray
 import com.synapse.social.studioasinc.feature.stories.tray.StoryTrayViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @Composable
 fun FeedScreen(
     linkViewModel: com.synapse.social.studioasinc.feature.shared.components.LinkPreviewViewModel = androidx.hilt.navigation.compose.hiltViewModel(),
@@ -67,7 +73,9 @@ fun FeedScreen(
     onStoryClick: (String) -> Unit = { _ -> },
     onAddStoryClick: () -> Unit = {},
     onCreatePostClick: () -> Unit = {},
-    contentPadding: PaddingValues = PaddingValues(0.dp)
+    contentPadding: PaddingValues = PaddingValues(0.dp),
+    sharedTransitionScope: SharedTransitionScope? = null,
+    animatedVisibilityScope: AnimatedVisibilityScope? = null
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val posts = viewModel.posts.collectAsLazyPagingItems()
@@ -157,7 +165,7 @@ fun FeedScreen(
             },
             state = pullToRefreshState,
             indicator = {
-                ExpressivePullToRefreshIndicator(
+                SynapsePullToRefreshIndicator(
                     state = pullToRefreshState,
                     isRefreshing = isRefreshing,
                     modifier = Modifier.align(Alignment.TopCenter)
@@ -221,24 +229,43 @@ fun FeedScreen(
                 ) { index ->
                     val feedItem = posts[index]
                     if (feedItem != null) {
-                        when (feedItem) {
-                            is FeedItem.PostItem -> {
-                                SharedPostItem(
-                                    post = feedItem.post,
-                                    postViewStyle = uiState.postViewStyle,
-                                    actions = actions
-                                )
-                            }
-                            is FeedItem.CommentItem -> {
-                                FeedCommentItem(
-                                    feedItem = feedItem,
-                                    postViewStyle = uiState.postViewStyle,
-                                    viewModel = viewModel,
-                                    onCommentClick = currentOnCommentClick,
-                                    onUserClick = currentOnUserClick,
-                                    onMediaClick = currentOnMediaClick,
-                                    onOptionsClick = { post -> selectedPost = post }
-                                )
+                        val isInitiallyLoaded = remember { mutableStateOf(false) }
+                        LaunchedEffect(Unit) {
+                            isInitiallyLoaded.value = true
+                        }
+
+                        androidx.compose.animation.AnimatedVisibility(
+                            visible = isInitiallyLoaded.value,
+                            enter = slideInVertically(
+                                initialOffsetY = { it / 2 },
+                                animationSpec = tween(durationMillis = 400, delayMillis = (index % 10) * 50)
+                            ) + fadeIn(
+                                animationSpec = tween(durationMillis = 400, delayMillis = (index % 10) * 50)
+                            )
+                        ) {
+                            when (feedItem) {
+                                is FeedItem.PostItem -> {
+                                    SharedPostItem(
+                                        post = feedItem.post,
+                                        postViewStyle = uiState.postViewStyle,
+                                        actions = actions,
+                                        sharedTransitionScope = sharedTransitionScope,
+                                        animatedVisibilityScope = animatedVisibilityScope
+                                    )
+                                }
+                                is FeedItem.CommentItem -> {
+                                    FeedCommentItem(
+                                        feedItem = feedItem,
+                                        postViewStyle = uiState.postViewStyle,
+                                        viewModel = viewModel,
+                                        onCommentClick = currentOnCommentClick,
+                                        onUserClick = currentOnUserClick,
+                                        onMediaClick = currentOnMediaClick,
+                                        onOptionsClick = { post -> selectedPost = post },
+                                        sharedTransitionScope = sharedTransitionScope,
+                                        animatedVisibilityScope = animatedVisibilityScope
+                                    )
+                                }
                             }
                         }
                     }
@@ -323,6 +350,7 @@ fun FeedScreen(
     }
 }
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 private fun FeedCommentItem(
     feedItem: FeedItem.CommentItem,
@@ -331,7 +359,9 @@ private fun FeedCommentItem(
     onCommentClick: (String) -> Unit,
     onUserClick: (String) -> Unit,
     onMediaClick: (Int) -> Unit,
-    onOptionsClick: (Post) -> Unit
+    onOptionsClick: (Post) -> Unit,
+    sharedTransitionScope: SharedTransitionScope? = null,
+    animatedVisibilityScope: AnimatedVisibilityScope? = null
 ) {
     // Memoize mapped state to prevent re-mapping on every scroll frame
     val commentState = remember(feedItem) {
@@ -367,6 +397,8 @@ private fun FeedCommentItem(
         onOptionsClick = onOptionsClickAction,
         onPollVote = onPollVote,
         onReactionSelected = onReactionSelected,
-        onParentAuthorClick = onParentAuthorClick
+        onParentAuthorClick = onParentAuthorClick,
+        sharedTransitionScope = sharedTransitionScope,
+        animatedVisibilityScope = animatedVisibilityScope
     )
 }

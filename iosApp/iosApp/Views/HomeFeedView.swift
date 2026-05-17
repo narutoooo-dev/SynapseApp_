@@ -2,6 +2,7 @@ import SwiftUI
 
 struct HomeFeedView: View {
     @StateObject private var viewModel = FeedViewModel()
+    @Namespace private var animation
 
     var body: some View {
         NavigationView {
@@ -25,9 +26,10 @@ struct HomeFeedView: View {
                     ScrollView {
                         LazyVStack(spacing: 0) {
                             ForEach(viewModel.posts) { post in
-                                NavigationLink(destination: PostDetailView(post: post)) {
+                                NavigationLink(destination: PostDetailView(post: post, animation: animation)) {
                                     PostCardView(
                                         post: post,
+                                        animation: animation,
                                         onLike: { viewModel.toggleLike(for: post) },
                                         onComment: { /* Handled by navigation */ },
                                         onShare: { /* Share action */ },

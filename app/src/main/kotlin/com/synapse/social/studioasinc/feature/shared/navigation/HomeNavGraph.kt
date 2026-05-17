@@ -1,6 +1,9 @@
 package com.synapse.social.studioasinc.ui.navigation
 
 import android.content.Intent
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -43,6 +46,7 @@ sealed interface HomeDestinations {
     data object CreateReelPlaceholder : HomeDestinations
 }
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun HomeNavGraph(
     navController: NavHostController,
@@ -52,6 +56,8 @@ fun HomeNavGraph(
     onNavigateToStoryViewer: (String) -> Unit = {},
     onNavigateToCreateReel: () -> Unit = {},
     onNavigateToCreatePost: () -> Unit = {},
+    sharedTransitionScope: SharedTransitionScope,
+    animatedVisibilityScope: AnimatedVisibilityScope,
     startDestination: Any = HomeDestinations.Feed,
     modifier: Modifier = Modifier,
     bottomPadding: Dp = 0.dp
@@ -78,7 +84,9 @@ fun HomeNavGraph(
                     context.startActivity(Intent(context, StoryCreatorActivity::class.java))
                 },
                 onCreatePostClick = onNavigateToCreatePost,
-                contentPadding = PaddingValues(bottom = bottomPadding)
+                contentPadding = PaddingValues(bottom = bottomPadding),
+                sharedTransitionScope = sharedTransitionScope,
+                animatedVisibilityScope = this@composable
             )
         }
 
@@ -112,7 +120,9 @@ fun HomeNavGraph(
                  },
                  onNavigateToCommentDetail = { postId, commentId ->
                      navController.navigate(HomeDestinations.PostDetail(postId, commentId))
-                 }
+                 },
+                 sharedTransitionScope = sharedTransitionScope,
+                 animatedVisibilityScope = this@composable
              )
         }
 

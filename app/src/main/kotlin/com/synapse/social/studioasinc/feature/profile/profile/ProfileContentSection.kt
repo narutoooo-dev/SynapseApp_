@@ -2,6 +2,9 @@ package com.synapse.social.studioasinc.feature.profile.profile
 
 import android.content.Intent
 import android.widget.Toast
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.clickable
@@ -35,6 +38,7 @@ import kotlinx.coroutines.delay
 import com.synapse.social.studioasinc.shared.domain.model.MediaType
 import com.synapse.social.studioasinc.shared.domain.model.MediaItem as DomainMediaItem
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 internal fun ProfileContent(
     state: ProfileScreenState,
@@ -52,7 +56,9 @@ internal fun ProfileContent(
     onNavigateToStoryCreator: () -> Unit,
     onCustomizeClick: () -> Unit = {},
     onOpenMediaViewer: (List<String>, Int) -> Unit,
-    onShowPostOptions: (Post) -> Unit
+    onShowPostOptions: (Post) -> Unit,
+    sharedTransitionScope: SharedTransitionScope? = null,
+    animatedVisibilityScope: AnimatedVisibilityScope? = null
 ) {
 
     var contentVisible by remember { mutableStateOf(false) }
@@ -123,6 +129,7 @@ internal fun ProfileContent(
             if (profile != null) {
                 ProfileHeader(
                     avatar = profile.avatar,
+                    uid = profile.id,
                     status = profile.status,
                     coverImageUrl = profile.coverImageUrl,
                     name = profile.name,
@@ -170,7 +177,9 @@ internal fun ProfileContent(
                             "followers" -> onNavigateToFollowers()
                             "following" -> onNavigateToFollowing()
                         }
-                    }
+                    },
+                    sharedTransitionScope = sharedTransitionScope,
+                    animatedVisibilityScope = animatedVisibilityScope
                 )
             } else if (isLoading) {
                 Column {
@@ -373,7 +382,9 @@ internal fun ProfileContent(
                 AnimatedPostCard(
                     post = post,
                     currentProfile = currentProfile,
-                    actions = postActions
+                    actions = postActions,
+                    sharedTransitionScope = sharedTransitionScope,
+                    animatedVisibilityScope = animatedVisibilityScope
                 )
             }
         }
@@ -423,16 +434,21 @@ internal fun ProfileContent(
     }
 }
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 internal fun AnimatedPostCard(
     post: com.synapse.social.studioasinc.domain.model.Post,
     currentProfile: com.synapse.social.studioasinc.data.model.UserProfile?,
-    actions: PostActions
+    actions: PostActions,
+    sharedTransitionScope: SharedTransitionScope? = null,
+    animatedVisibilityScope: AnimatedVisibilityScope? = null
 ) {
     SharedPostItem(
         post = post,
         currentProfile = currentProfile,
-        actions = actions
+        actions = actions,
+        sharedTransitionScope = sharedTransitionScope,
+        animatedVisibilityScope = animatedVisibilityScope
     )
 }
 
