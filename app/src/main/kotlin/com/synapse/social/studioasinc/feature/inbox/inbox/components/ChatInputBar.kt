@@ -91,7 +91,7 @@ fun ChatInputBar(
         targetValue = if (isFocused || inputText.isNotEmpty()) 1f else 0.8f,
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioLowBouncy,
-            stiffness = Spring.StiffnessLow
+            stiffness = Spring.StiffnessMediumLow
         ),
         label = "inputWidthFraction"
     )
@@ -99,7 +99,8 @@ fun ChatInputBar(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = Spacing.ExtraSmall, vertical = Spacing.ExtraSmall)
+            .padding(horizontal = Spacing.ExtraSmall)
+            .padding(top = Spacing.ExtraSmall, bottom = Spacing.Medium)
     ) {
         // Replying Header
         AnimatedVisibility(
