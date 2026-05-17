@@ -5,11 +5,13 @@ import com.synapse.social.studioasinc.shared.domain.model.StorageConfig
 import com.synapse.social.studioasinc.shared.domain.model.StorageProvider
 import com.synapse.social.studioasinc.shared.domain.repository.MediaUploadRepository
 import com.synapse.social.studioasinc.shared.domain.repository.StorageRepository
+import com.synapse.social.studioasinc.shared.domain.repository.SettingsRepository
 import com.synapse.social.studioasinc.shared.domain.service.MediaCompressor
 import kotlinx.coroutines.flow.first
 
 class UploadMediaUseCase(
     private val repository: StorageRepository,
+    private val settingsRepository: SettingsRepository,
     private val mediaUploadRepository: MediaUploadRepository,
     private val mediaCompressor: MediaCompressor
 ) {
@@ -26,7 +28,7 @@ class UploadMediaUseCase(
             var shouldDelete = false
 
             if ((mediaType == MediaType.PHOTO || mediaType == MediaType.IMAGE) && config.compressImages) {
-                mediaCompressor.compress(filePath).onSuccess { compressedPath ->
+                mediaCompressor.compress(filePath, settingsRepository.mediaUploadQuality.first()).onSuccess { compressedPath ->
                     if (compressedPath != filePath) {
                         uploadPath = compressedPath
                         shouldDelete = true

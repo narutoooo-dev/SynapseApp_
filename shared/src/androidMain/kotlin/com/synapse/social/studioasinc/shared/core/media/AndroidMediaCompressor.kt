@@ -10,6 +10,7 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.exifinterface.media.ExifInterface
 import com.synapse.social.studioasinc.shared.domain.service.MediaCompressor
+import com.synapse.social.studioasinc.shared.domain.model.settings.MediaUploadQuality
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
@@ -37,12 +38,25 @@ class AndroidMediaCompressor(private val context: Context) : MediaCompressor {
         } else {
             Uri.fromFile(File(filePath))
         }
-        return compress(uri, MAX_FILE_SIZE_BYTES).map { it.absolutePath }
+        return compress(uri, MAX_WIDTH, MAX_HEIGHT, MAX_FILE_SIZE_BYTES, 95).map { it.absolutePath }
     }
 
-    suspend fun compress(uri: Uri, maxSizeBytes: Long): Result<File> = withContext(Dispatchers.IO) {
+    override suspend fun compress(filePath: String, quality: MediaUploadQuality): Result<String> {
+        val uri = if (filePath.startsWith("content://")) {
+            Uri.parse(filePath)
+        } else {
+            Uri.fromFile(File(filePath))
+        }
+        val maxWidth = if (quality == MediaUploadQuality.HD) 1920 else 1280
+        val maxHeight = if (quality == MediaUploadQuality.HD) 1920 else 1280
+        val maxSizeBytes = if (quality == MediaUploadQuality.HD) 3 * 1024 * 1024L else 1 * 1024 * 1024L
+        val maxQuality = if (quality == MediaUploadQuality.HD) 95 else 80
+        return compress(uri, maxWidth, maxHeight, maxSizeBytes, maxQuality).map { it.absolutePath }
+    }
+
+    suspend fun compress(uri: Uri, maxWidth: Int, maxHeight: Int, maxSizeBytes: Long, maxQuality: Int): Result<File> = withContext(Dispatchers.IO) {
         try {
-            val decodedBitmap = decodeImage(uri, MAX_WIDTH, MAX_HEIGHT)
+            val decodedBitmap = decodeImage(uri, maxWidth, maxHeight)
                 ?: return@withContext Result.failure(IOException("Failed to decode bitmap from $uri"))
 
             val orientedBitmap = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
@@ -55,7 +69,7 @@ class AndroidMediaCompressor(private val context: Context) : MediaCompressor {
                 decodedBitmap
             }
 
-            val scaledBitmap = scaleToTargetSize(orientedBitmap, MAX_WIDTH, MAX_HEIGHT)
+            val scaledBitmap = scaleToTargetSize(orientedBitmap, maxWidth, maxHeight)
 
             if (scaledBitmap != orientedBitmap && scaledBitmap != decodedBitmap) {
                 orientedBitmap.recycle()
@@ -69,7 +83,7 @@ class AndroidMediaCompressor(private val context: Context) : MediaCompressor {
                 return@withContext Result.failure(IOException("Bitmap too large to process safely"))
             }
 
-            val compressedFile = compressIteratively(scaledBitmap, maxSizeBytes)
+            val compressedFile = compressIteratively(scaledBitmap, maxSizeBytes, maxQuality)
 
             scaledBitmap.recycle()
 
@@ -284,11 +298,11 @@ class AndroidMediaCompressor(private val context: Context) : MediaCompressor {
         }
     }
 
-    private suspend fun compressIteratively(bitmap: Bitmap, targetSizeBytes: Long): File = withContext(Dispatchers.IO) {
+    private suspend fun compressIteratively(bitmap: Bitmap, targetSizeBytes: Long, initialMaxQuality: Int): File = withContext(Dispatchers.IO) {
         val tempFile = File.createTempFile("compressed_image_", ".jpg", context.cacheDir)
 
         var minQuality = MIN_COMPRESSION_QUALITY
-        var maxQuality = 95
+        var maxQuality = initialMaxQuality
         var bestQuality = minQuality
         var bestData: ByteArray? = null
 

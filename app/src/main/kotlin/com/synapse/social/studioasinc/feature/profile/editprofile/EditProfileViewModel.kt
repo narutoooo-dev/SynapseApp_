@@ -22,10 +22,17 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import com.synapse.social.studioasinc.data.repository.EditProfileRepositoryImpl
 
+import com.synapse.social.studioasinc.shared.domain.repository.SettingsRepository
+import com.synapse.social.studioasinc.shared.domain.service.MediaCompressor
+import kotlinx.coroutines.flow.first
+
+
 @HiltViewModel
 class EditProfileViewModel @Inject constructor(
     application: Application,
-    private val repository: EditProfileRepositoryImpl
+    private val repository: EditProfileRepositoryImpl,
+    private val settingsRepository: SettingsRepository,
+    private val mediaCompressor: MediaCompressor
 ) : AndroidViewModel(application) {
 
 
@@ -260,22 +267,23 @@ class EditProfileViewModel @Inject constructor(
             return Result.failure(Exception("Source file is empty: $realFilePath"))
         }
 
-        val tempFile = File(context.cacheDir, "temp_avatar_${System.currentTimeMillis()}.jpg")
-        android.util.Log.d("EditProfile", "Compressing image to: ${tempFile.absolutePath}")
+        val quality = settingsRepository.mediaUploadQuality.first()
+        val compressResult = mediaCompressor.compress(realFilePath, quality)
 
-        ImageUtils.resizeBitmapFileRetainRatio(realFilePath, tempFile.absolutePath, 1024)
+        val compressedPath = compressResult.getOrNull() ?: realFilePath
+        val compressedFile = File(compressedPath)
 
-        if (!tempFile.exists() || tempFile.length() == 0L) {
+        if (!compressedFile.exists() || compressedFile.length() == 0L) {
             return Result.failure(Exception("Image compression failed"))
         }
 
-        android.util.Log.d("EditProfile", "Image compressed successfully, size: ${tempFile.length()} bytes")
+        android.util.Log.d("EditProfile", "Image compressed successfully, size: ${compressedFile.length()} bytes")
 
         val userId = repository.getCurrentUserId()
             ?: return Result.failure(Exception("User not logged in"))
 
-        android.util.Log.d("EditProfile", "Starting avatar upload for user: $userId, file: ${tempFile.absolutePath}")
-        return repository.uploadAvatar(userId, tempFile.absolutePath)
+        android.util.Log.d("EditProfile", "Starting avatar upload for user: $userId, file: ${compressedFile.absolutePath}")
+        return repository.uploadAvatar(userId, compressedFile.absolutePath)
     }
 
     @Deprecated("Logic moved to compressAndUploadAvatar and saveProfile")

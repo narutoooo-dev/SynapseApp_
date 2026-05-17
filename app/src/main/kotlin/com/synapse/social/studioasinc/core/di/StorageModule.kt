@@ -7,7 +7,6 @@ import com.synapse.social.studioasinc.data.local.AppSettingsManager
 import com.synapse.social.studioasinc.data.repository.*
 import com.synapse.social.studioasinc.data.repository.DomainProfileRepositoryAdapter
 import com.synapse.social.studioasinc.data.repository.DomainSettingsRepositoryAdapter
-import com.synapse.social.studioasinc.data.repository.SettingsRepository
 import com.synapse.social.studioasinc.data.repository.SettingsRepositoryImpl
 import com.synapse.social.studioasinc.shared.core.media.AndroidMediaCompressor
 import com.synapse.social.studioasinc.shared.core.network.SupabaseClient
@@ -53,6 +52,7 @@ import com.synapse.social.studioasinc.shared.domain.repository.PasskeyRepository
 import com.synapse.social.studioasinc.shared.domain.repository.PlatformInfoProvider
 import com.synapse.social.studioasinc.shared.domain.repository.PostActionsRepository
 import com.synapse.social.studioasinc.shared.domain.repository.StorageRepository
+import com.synapse.social.studioasinc.shared.domain.repository.SettingsRepository
 import com.synapse.social.studioasinc.shared.domain.repository.UserPreferencesRepository
 import com.synapse.social.studioasinc.shared.domain.service.MediaCompressor
 import com.synapse.social.studioasinc.shared.domain.usecase.CheckForUpdatesUseCase
@@ -172,11 +172,13 @@ object StorageModule {
     @Singleton
     fun provideUploadMediaUseCase(
         repository: StorageRepository,
+        settingsRepository: com.synapse.social.studioasinc.shared.domain.repository.SettingsRepository,
         mediaUploadRepository: MediaUploadRepository,
         mediaCompressor: MediaCompressor
     ): UploadMediaUseCase {
         return UploadMediaUseCase(
             repository,
+            settingsRepository,
             mediaUploadRepository,
             mediaCompressor
         )

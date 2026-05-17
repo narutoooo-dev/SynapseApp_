@@ -1,6 +1,8 @@
 package com.synapse.social.studioasinc.shared.core.media
 
 import com.synapse.social.studioasinc.shared.domain.service.MediaCompressor
+import com.synapse.social.studioasinc.shared.domain.model.settings.MediaUploadQuality
+
 import kotlinx.cinterop.ExperimentalForeignApi
 import platform.Foundation.NSFileManager
 import platform.Foundation.NSTemporaryDirectory
@@ -44,5 +46,9 @@ class IosMediaCompressor : MediaCompressor {
         } catch (e: Exception) {
             Result.failure(e)
         }
+    }
+
+    override suspend fun compress(filePath: String, quality: MediaUploadQuality): Result<String> {
+        return compress(filePath)
     }
 }
