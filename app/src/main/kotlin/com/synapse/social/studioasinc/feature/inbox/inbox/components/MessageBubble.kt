@@ -1,6 +1,7 @@
 package com.synapse.social.studioasinc.feature.inbox.inbox.components
 
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -215,6 +216,55 @@ fun UnreadDividerRow(count: Int) {
     }
 }
 
+
+class LiquidMessageShape(
+    private val progress: Float,
+    private val isFromMe: Boolean,
+    private val cornerRadiusPx: Float,
+    private val sharpRadiusPx: Float,
+    private val position: GroupPosition
+) : androidx.compose.ui.graphics.Shape {
+    override fun createOutline(size: androidx.compose.ui.geometry.Size, layoutDirection: androidx.compose.ui.unit.LayoutDirection, density: androidx.compose.ui.unit.Density): androidx.compose.ui.graphics.Outline {
+        val path = androidx.compose.ui.graphics.Path()
+
+        val startSize = 100f // roughly 36.dp
+
+        val tl = if (isFromMe || position == GroupPosition.MIDDLE || position == GroupPosition.LAST) cornerRadiusPx else sharpRadiusPx
+        val tr = if (!isFromMe || position == GroupPosition.MIDDLE || position == GroupPosition.LAST) cornerRadiusPx else sharpRadiusPx
+        val bl = if (isFromMe || position == GroupPosition.MIDDLE || position == GroupPosition.FIRST) cornerRadiusPx else sharpRadiusPx
+        val br = if (!isFromMe || position == GroupPosition.MIDDLE || position == GroupPosition.FIRST) cornerRadiusPx else sharpRadiusPx
+
+        val currentWidth = lerp(startSize, size.width, progress)
+        val currentHeight = lerp(startSize, size.height, progress)
+
+        val offsetX = if (isFromMe) size.width - currentWidth else 0f
+        val offsetY = size.height - currentHeight
+
+        val cTl = androidx.compose.ui.geometry.CornerRadius(lerp(startSize / 2f, tl, progress))
+        val cTr = androidx.compose.ui.geometry.CornerRadius(lerp(startSize / 2f, tr, progress))
+        val cBl = androidx.compose.ui.geometry.CornerRadius(lerp(startSize / 2f, bl, progress))
+        val cBr = androidx.compose.ui.geometry.CornerRadius(lerp(startSize / 2f, br, progress))
+
+        val roundRect = androidx.compose.ui.geometry.RoundRect(
+            left = offsetX,
+            top = offsetY,
+            right = offsetX + currentWidth,
+            bottom = offsetY + currentHeight,
+            topLeftCornerRadius = cTl,
+            topRightCornerRadius = cTr,
+            bottomRightCornerRadius = cBr,
+            bottomLeftCornerRadius = cBl
+        )
+
+        path.addRoundRect(roundRect)
+        return androidx.compose.ui.graphics.Outline.Generic(path)
+    }
+
+    private fun lerp(start: Float, stop: Float, fraction: Float): Float {
+        return start + (stop - start) * fraction
+    }
+}
+
 enum class GroupPosition {
     SINGLE, FIRST, MIDDLE, LAST
 }
@@ -288,21 +338,27 @@ fun MessageBubble(
 
     // UI logic applied carefully matching sender side for sharpness:
     val radius = cornerRadius.dp
-    val shape = if (isFromMe) {
-        when (position) {
-            GroupPosition.SINGLE -> RoundedCornerShape(radius, radius, radius, radius)
-            GroupPosition.FIRST -> RoundedCornerShape(radius, radius, Sizes.CornerSharp, radius)
-            GroupPosition.MIDDLE -> RoundedCornerShape(radius, Sizes.CornerSharp, Sizes.CornerSharp, radius)
-            GroupPosition.LAST -> RoundedCornerShape(radius, Sizes.CornerSharp, radius, radius)
-        }
-    } else {
-        when (position) {
-            GroupPosition.SINGLE -> RoundedCornerShape(radius, radius, radius, radius)
-            GroupPosition.FIRST -> RoundedCornerShape(radius, radius, radius, Sizes.CornerSharp)
-            GroupPosition.MIDDLE -> RoundedCornerShape(Sizes.CornerSharp, radius, radius, Sizes.CornerSharp)
-            GroupPosition.LAST -> RoundedCornerShape(Sizes.CornerSharp, radius, radius, radius)
-        }
+
+    var isVisible by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        isVisible = true
     }
+    val morphProgress by animateFloatAsState(
+        targetValue = if (isVisible) 1f else 0f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessLow
+        ),
+        label = "liquid_morph"
+    )
+
+    val shape = LiquidMessageShape(
+        progress = morphProgress,
+        isFromMe = isFromMe,
+        cornerRadiusPx = with(LocalDensity.current) { radius.toPx() },
+        sharpRadiusPx = with(LocalDensity.current) { Sizes.CornerSharp.toPx() },
+        position = position
+    )
 
     val offsetX = remember { Animatable(0f) }
     val coroutineScope = rememberCoroutineScope()

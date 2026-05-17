@@ -1,10 +1,44 @@
 import SwiftUI
 import shared
 
+
+struct LiquidMessageShape: Shape {
+    var progress: CGFloat
+    var isFromMe: Bool
+    var cornerRadius: CGFloat
+
+    var animatableData: CGFloat {
+        get { progress }
+        set { progress = newValue }
+    }
+
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+
+        let startSize: CGFloat = 36.0
+
+        let currentW = startSize + (rect.width - startSize) * progress
+        let currentH = startSize + (rect.height - startSize) * progress
+
+        let x = isFromMe ? rect.maxX - currentW : rect.minX
+        let y = rect.maxY - currentH // Anchor to bottom
+
+        let currentRadius = (startSize / 2.0) + (cornerRadius - startSize / 2.0) * progress
+
+        let rRect = CGRect(x: x, y: y, width: currentW, height: currentH)
+
+        path.addRoundedRect(in: rRect, cornerSize: CGSize(width: currentRadius, height: currentRadius))
+
+        return path
+    }
+}
+
 struct MessageBubbleView: View {
     let message: SwiftMessage
     let isFromMe: Bool
     var onReactionSelected: ((shared.ReactionType) -> Void)? = nil
+
+    @State private var appearProgress: CGFloat = 0.0
 
     var body: some View {
         HStack {
@@ -25,7 +59,7 @@ struct MessageBubbleView: View {
                             .overlay(ProgressView())
                     }
                     .frame(maxWidth: 250)
-                    .cornerRadius(12)
+                    .clipShape(LiquidMessageShape(progress: appearProgress, isFromMe: isFromMe, cornerRadius: 12))
                 }
 
                 if !message.content.isEmpty {
@@ -33,7 +67,7 @@ struct MessageBubbleView: View {
                         .padding(12)
                         .foregroundColor(isFromMe ? .white : .primary)
                         .background(isFromMe ? Color.blue : Color(UIColor.secondarySystemBackground))
-                        .cornerRadius(16)
+                        .clipShape(LiquidMessageShape(progress: appearProgress, isFromMe: isFromMe, cornerRadius: 16))
                 }
 
                 if !message.reactions.isEmpty {
@@ -80,7 +114,14 @@ struct MessageBubbleView: View {
                 Spacer()
             }
         }
+
         .padding(.horizontal, 4)
+        .onAppear {
+            withAnimation(.spring(response: 0.5, dampingFraction: 0.5, blendDuration: 0)) {
+                appearProgress = 1.0
+            }
+        }
+
     }
 
     private func formatTime(_ timeStr: String) -> String {
