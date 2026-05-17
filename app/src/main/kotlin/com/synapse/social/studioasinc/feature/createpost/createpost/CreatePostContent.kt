@@ -31,6 +31,10 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.Switch
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.foundation.clickable
 
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
@@ -45,6 +49,73 @@ import com.synapse.social.studioasinc.R
 import com.synapse.social.studioasinc.ui.createpost.CreatePostSearchUiState
 import com.synapse.social.studioasinc.feature.shared.theme.Spacing
 import com.synapse.social.studioasinc.feature.shared.theme.Sizes
+
+@Composable
+fun TimeCapsuleToggle(
+    isTimeCapsule: Boolean,
+    unlocksAt: Long?,
+    onToggle: (Boolean) -> Unit,
+    onSelectUnlockDate: () -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(Spacing.Medium)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = stringResource(R.string.time_capsule),
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    Text(
+                        text = stringResource(R.string.time_capsule_hint),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                Switch(
+                    checked = isTimeCapsule,
+                    onCheckedChange = onToggle
+                )
+            }
+
+            if (isTimeCapsule) {
+                Spacer(modifier = Modifier.height(Spacing.Small))
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onSelectUnlockDate() }
+                        .padding(vertical = Spacing.Small),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = stringResource(R.string.unlock_date),
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    Text(
+                        text = if (unlocksAt != null) {
+                            java.text.DateFormat.getDateTimeInstance().format(java.util.Date(unlocksAt))
+                        } else {
+                            "Select date"
+                        },
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+        }
+    }
+}
 
 @Composable
 fun CreatePostContent(
@@ -65,7 +136,9 @@ fun CreatePostContent(
     onUpdateThreadText: (Int, String) -> Unit,
     onRemoveThreadMedia: (Int, Int) -> Unit,
     onEditThreadMedia: (Int, Int) -> Unit,
-    onAddThreadMedia: (Int) -> Unit
+    onAddThreadMedia: (Int) -> Unit,
+    onTimeCapsuleToggle: (Boolean) -> Unit,
+    onSelectUnlockDate: () -> Unit
 ) {
     LazyColumn(
         modifier = Modifier
@@ -142,6 +215,15 @@ fun CreatePostContent(
                     }
                 }
             }
+        }
+
+        item {
+            TimeCapsuleToggle(
+                isTimeCapsule = uiState.isTimeCapsule,
+                unlocksAt = uiState.unlocksAt,
+                onToggle = onTimeCapsuleToggle,
+                onSelectUnlockDate = onSelectUnlockDate
+            )
         }
 
 

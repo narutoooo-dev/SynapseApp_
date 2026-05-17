@@ -124,7 +124,10 @@ class SqlDelightPostDao(
             metadata = dbPost.metadata,
             quotedPostId = dbPost.quotedPostId,
             isQuote = dbPost.isQuote,
-            rootPostId = dbPost.rootPostId
+            rootPostId = dbPost.rootPostId,
+            isTimeCapsule = dbPost.isTimeCapsule,
+            unlocksAt = dbPost.unlocksAt,
+            capsuleState = dbPost.capsuleState
         )
     }
 
@@ -180,7 +183,10 @@ class SqlDelightPostDao(
             metadata = entity.metadata,
             quotedPostId = entity.quotedPostId,
             isQuote = entity.isQuote,
-            rootPostId = entity.rootPostId
+            rootPostId = entity.rootPostId,
+            isTimeCapsule = entity.isTimeCapsule,
+            unlocksAt = entity.unlocksAt,
+            capsuleState = entity.capsuleState
         )
     }
 }

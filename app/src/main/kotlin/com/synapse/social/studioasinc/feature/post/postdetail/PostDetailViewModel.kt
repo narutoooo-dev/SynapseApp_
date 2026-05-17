@@ -30,6 +30,7 @@ import javax.inject.Inject
 import com.synapse.social.studioasinc.core.util.NotificationHelper
 import com.synapse.social.studioasinc.domain.usecase.ai.SummarizePostUseCase
 import com.synapse.social.studioasinc.domain.usecase.ai.SummarizeThreadUseCase
+import com.synapse.social.studioasinc.shared.domain.usecase.post.GetTimeCapsuleStatusUseCase
 
 @HiltViewModel
 class PostDetailViewModel @Inject constructor(
@@ -47,7 +48,8 @@ class PostDetailViewModel @Inject constructor(
     private val postActionsRepository: PostActionsRepository,
     private val blockUserUseCase: BlockUserUseCase,
     private val summarizePostUseCase: SummarizePostUseCase,
-    private val summarizeThreadUseCase: SummarizeThreadUseCase
+    private val summarizeThreadUseCase: SummarizeThreadUseCase,
+    private val getTimeCapsuleStatusUseCase: GetTimeCapsuleStatusUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(PostDetailUiState())
@@ -68,6 +70,7 @@ class PostDetailViewModel @Inject constructor(
 
     private var currentPostId: String? = null
     private var rootCommentId: String? = null
+    private var capsuleTimerJob: kotlinx.coroutines.Job? = null
 
     init {
         viewModelScope.launch {
@@ -92,6 +95,7 @@ class PostDetailViewModel @Inject constructor(
             postDetailRepository.getPostWithDetails(postId).fold(
                 onSuccess = { post ->
                     _uiState.update { it.copy(post = post) }
+                    startCapsuleTimer(post.post)
 
                     if (rootCommentId != null) {
                         commentRepository.getComment(rootCommentId).onSuccess { comment ->
@@ -482,5 +486,33 @@ class PostDetailViewModel @Inject constructor(
 
     fun clearPostSummary() {
         _uiState.update { it.copy(postSummary = null, summaryError = null) }
+    }
+
+    private fun startCapsuleTimer(post: Post) {
+        capsuleTimerJob?.cancel()
+        if (!post.isTimeCapsule || post.unlocksAt == null) {
+            _uiState.update { it.copy(isCapsuleLocked = false, capsuleRemainingTime = 0) }
+            return
+        }
+
+        capsuleTimerJob = viewModelScope.launch {
+            while (true) {
+                val remaining = getTimeCapsuleStatusUseCase(post.unlocksAt)
+                val isLocked = getTimeCapsuleStatusUseCase.isLocked(post.unlocksAt)
+
+                _uiState.update { it.copy(
+                    capsuleRemainingTime = remaining,
+                    isCapsuleLocked = isLocked
+                )}
+
+                if (!isLocked) break
+                kotlinx.coroutines.delay(1000)
+            }
+        }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        capsuleTimerJob?.cancel()
     }
 }

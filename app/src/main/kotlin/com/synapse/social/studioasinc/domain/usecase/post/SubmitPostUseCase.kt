@@ -127,7 +127,10 @@ class SubmitPostUseCase @Inject constructor(
                     postImage = mediaItems.firstOrNull { it.type == MediaType.IMAGE }?.url,
                     username = username,
                     avatarUrl = avatarUrl,
-                    isVerified = isVerified
+                    isVerified = isVerified,
+                    isTimeCapsule = request.isTimeCapsule,
+                    unlocksAt = request.unlocksAt,
+                    capsuleState = if (request.isTimeCapsule) "LOCKED" else "OPENED"
                 )
                 postsToCreate.add(post)
                 previousPostId = postId
@@ -211,7 +214,10 @@ class SubmitPostUseCase @Inject constructor(
                     taggedPeople = request.taggedPeople.ifEmpty { null }?.map { com.synapse.social.studioasinc.domain.model.User(uid = it) },
                     feeling = null,
                     backgroundColor = request.textBackgroundColor
-                )
+                ),
+                isTimeCapsule = request.isTimeCapsule,
+                unlocksAt = request.unlocksAt,
+                capsuleState = if (request.isTimeCapsule) "LOCKED" else "OPENED"
             )
 
             val newMedia = request.mediaItems.filter { !it.url.startsWith("http") }

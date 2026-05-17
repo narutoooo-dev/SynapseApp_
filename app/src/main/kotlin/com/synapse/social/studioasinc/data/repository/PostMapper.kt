@@ -68,7 +68,10 @@ object PostMapper {
             metadata = post.metadata?.let { toSharedPostMetadata(it) },
             quotedPostId = post.quotedPostId,
             isQuote = post.isQuote,
-            rootPostId = post.rootPostId
+            rootPostId = post.rootPostId,
+            isTimeCapsule = post.isTimeCapsule,
+            unlocksAt = post.unlocksAt,
+            capsuleState = post.capsuleState
         )
     }
 
@@ -125,7 +128,10 @@ object PostMapper {
             metadata = entity.metadata?.let { toAppPostMetadata(it) },
             quotedPostId = entity.quotedPostId,
             isQuote = entity.isQuote,
-            rootPostId = entity.rootPostId
+            rootPostId = entity.rootPostId,
+            isTimeCapsule = entity.isTimeCapsule,
+            unlocksAt = entity.unlocksAt,
+            capsuleState = entity.capsuleState
         )
     }
 

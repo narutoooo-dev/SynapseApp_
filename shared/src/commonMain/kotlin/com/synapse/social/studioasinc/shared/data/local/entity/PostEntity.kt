@@ -57,5 +57,8 @@ data class PostEntity(
     val metadata: PostMetadata?,
     val quotedPostId: String?,
     val isQuote: Boolean,
-    val rootPostId: String?
+    val rootPostId: String?,
+    val isTimeCapsule: Boolean,
+    val unlocksAt: Long?,
+    val capsuleState: String?
 )

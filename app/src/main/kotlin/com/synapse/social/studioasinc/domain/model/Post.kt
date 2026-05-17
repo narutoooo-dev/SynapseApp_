@@ -191,7 +191,14 @@ data class Post(
     val resharedByUsername: String? = null,
 
     @SerialName("metadata")
-    val metadata: PostMetadata? = null
+    val metadata: PostMetadata? = null,
+
+    @SerialName("is_time_capsule")
+    val isTimeCapsule: Boolean = false,
+    @SerialName("unlocks_at")
+    val unlocksAt: Long? = null,
+    @SerialName("capsule_state")
+    val capsuleState: String? = "OPENED"
 ) {
     fun determinePostType() {
         postType = when {

@@ -74,6 +74,9 @@ data class CreatePostUiState(
     val threadPosts: List<PostDraft> = emptyList(),
     val currentUserProfile: User? = null,
 
+    val isTimeCapsule: Boolean = false,
+    val unlocksAt: Long? = null,
+
     val taggedPeople: List<User> = emptyList(),
     val feeling: FeelingActivity? = null,
     val textBackgroundColor: Long? = null,
@@ -395,6 +398,14 @@ class CreatePostViewModel @Inject constructor(
         _uiState.update { it.copy(privacy = privacy) }
     }
 
+    fun toggleTimeCapsule(enabled: Boolean) {
+        _uiState.update { it.copy(isTimeCapsule = enabled) }
+    }
+
+    fun setUnlocksAt(timestamp: Long?) {
+        _uiState.update { it.copy(unlocksAt = timestamp) }
+    }
+
     fun updateSettings(settings: PostSettings) {
         _uiState.update { it.copy(settings = settings) }
     }
@@ -488,6 +499,8 @@ class CreatePostViewModel @Inject constructor(
                 hideCommentsCount = state.settings.hideCommentsCount,
                 disableComments = state.settings.disableComments,
                 isEditMode = state.isEditMode,
+                isTimeCapsule = state.isTimeCapsule,
+                unlocksAt = state.unlocksAt,
                 editPostId = editPostId,
                 replyToPostId = state.replyToPostId
             )
@@ -550,7 +563,9 @@ class CreatePostViewModel @Inject constructor(
                             hideViewsCount = state.settings.hideViewsCount,
                             hideLikeCount = state.settings.hideLikeCount,
                             hideCommentsCount = state.settings.hideCommentsCount,
-                            disableComments = state.settings.disableComments
+                            disableComments = state.settings.disableComments,
+                            isTimeCapsule = state.isTimeCapsule,
+                            unlocksAt = state.unlocksAt
                         ))
                     }
                 }
