@@ -3,8 +3,6 @@ package com.synapse.social.studioasinc.feature.stories.viewer
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.runtime.LaunchedEffect
-import androidx.hilt.navigation.compose.hiltViewModel
 import com.synapse.social.studioasinc.feature.shared.theme.SynapseTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -13,23 +11,22 @@ class StoryViewerActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val userId = intent.getStringExtra("user_id")
-        if (userId == null) {
+        val userIds = intent.getStringArrayListExtra("user_ids")
+        val initialUserId = intent.getStringExtra("user_id")
+
+        if (userIds == null || initialUserId == null) {
             finish()
             return
         }
 
+        val initialIndex = userIds.indexOf(initialUserId).coerceAtLeast(0)
+
         setContent {
             SynapseTheme {
-                val viewModel: StoryViewerViewModel = hiltViewModel()
-
-                LaunchedEffect(userId) {
-                    viewModel.loadStories(userId)
-                }
-
-                StoryViewerScreen(
-                    onClose = { finish() },
-                    viewModel = viewModel
+                StoryPagerScreen(
+                    userIds = userIds,
+                    initialIndex = initialIndex,
+                    onClose = { finish() }
                 )
             }
         }

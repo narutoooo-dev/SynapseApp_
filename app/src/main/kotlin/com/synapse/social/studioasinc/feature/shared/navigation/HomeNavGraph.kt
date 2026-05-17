@@ -49,7 +49,7 @@ fun HomeNavGraph(
     onNavigateToProfile: (String) -> Unit,
     onNavigateToEditPost: (String) -> Unit,
     onNavigateToQuotePost: (String) -> Unit,
-    onNavigateToStoryViewer: (String) -> Unit = {},
+    onNavigateToStoryViewer: (String, List<String>) -> Unit = { _, _ -> },
     onNavigateToCreateReel: () -> Unit = {},
     onNavigateToCreatePost: () -> Unit = {},
     startDestination: Any = HomeDestinations.Feed,
@@ -71,8 +71,8 @@ fun HomeNavGraph(
                 onQuoteClick = { postId -> onNavigateToQuotePost(postId) },
                 onMediaClick = { },
                 onEditPost = onNavigateToEditPost,
-                onStoryClick = { userId ->
-                    onNavigateToStoryViewer(userId)
+                onStoryClick = { userId, allUserIds ->
+                    onNavigateToStoryViewer(userId, allUserIds)
                 },
                 onAddStoryClick = {
                     context.startActivity(Intent(context, StoryCreatorActivity::class.java))

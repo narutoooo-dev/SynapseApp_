@@ -68,7 +68,7 @@ fun HomeScreen(
     onNavigateToInbox: () -> Unit,
     onNavigateToCreatePost: (String?) -> Unit,
     onNavigateToQuotePost: (String) -> Unit,
-    onNavigateToStoryViewer: (String) -> Unit,
+    onNavigateToStoryViewer: (String, List<String>) -> Unit,
     onNavigateToCreateReel: () -> Unit,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
@@ -176,7 +176,9 @@ fun HomeScreen(
                 onNavigateToProfile = onNavigateToProfile,
                 onNavigateToQuotePost = onNavigateToQuotePost,
                 onNavigateToEditPost = { postId -> onNavigateToCreatePost(postId) },
-                onNavigateToStoryViewer = onNavigateToStoryViewer,
+                onNavigateToStoryViewer = { userId, allUserIds ->
+                    onNavigateToStoryViewer(userId, allUserIds)
+                },
                 onNavigateToCreateReel = onNavigateToCreateReel,
                 onNavigateToCreatePost = { onNavigateToCreatePost(null) },
                 modifier = Modifier.padding(innerPadding),

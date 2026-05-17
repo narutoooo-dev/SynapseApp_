@@ -44,8 +44,10 @@ import com.synapse.social.studioasinc.feature.stories.management.ViewerListSheet
 @OptIn(UnstableApi::class)
 @Composable
 fun StoryViewerScreen(
+    onFinished: () -> Unit,
     onClose: () -> Unit,
-    viewModel: StoryViewerViewModel
+    viewModel: StoryViewerViewModel,
+    isActive: Boolean = true
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
@@ -53,7 +55,21 @@ fun StoryViewerScreen(
 
     LaunchedEffect(uiState.isFinished) {
         if (uiState.isFinished) {
-            onClose()
+            onFinished()
+        }
+    }
+
+    LaunchedEffect(isActive, uiState.stories, uiState.isLoading, uiState.currentStoryIndex) {
+        if (isActive && uiState.stories.isNotEmpty() && !uiState.isLoading) {
+            val currentStory = uiState.stories.getOrNull(uiState.currentStoryIndex)
+            if (currentStory != null) {
+                if (currentStory.mediaType != StoryMediaType.VIDEO) {
+                    viewModel.startProgress()
+                }
+                viewModel.markAsSeen(currentStory.id)
+            }
+        } else {
+            viewModel.stopProgress()
         }
     }
 
@@ -101,7 +117,7 @@ fun StoryViewerScreen(
 
                 StoryMediaContent(
                     story = currentStory,
-                    isPaused = uiState.isPaused,
+                    isPaused = uiState.isPaused || !isActive,
                     contentScale = uiState.contentScale,
                     onVideoReady = { duration -> viewModel.onVideoReady(duration) }
                 )
@@ -120,6 +136,7 @@ fun StoryViewerScreen(
                 }
 
                 if (uiState.isOwnStory) {
+                    val viewsCount = uiState.viewers.size
                     TextButton(
                         onClick = {
                             currentStory.id?.let { id ->
@@ -138,7 +155,7 @@ fun StoryViewerScreen(
                         )
                         Spacer(modifier = Modifier.width(Spacing.ExtraSmall))
                         Text(
-                            text = stringResource(R.string.seen_by_count, uiState.viewers.size),
+                            text = stringResource(R.string.seen_by_count, viewsCount),
                             color = MaterialTheme.colorScheme.onPrimary
                         )
                     }
@@ -154,7 +171,7 @@ fun StoryViewerScreen(
                         steps = uiState.stories.size,
                         currentStep = uiState.currentStoryIndex,
                         currentStepProgress = uiState.progress,
-                        isPaused = uiState.isPaused
+                        isPaused = uiState.isPaused || !isActive
                     )
 
                     Spacer(modifier = Modifier.height(Spacing.SmallMedium))

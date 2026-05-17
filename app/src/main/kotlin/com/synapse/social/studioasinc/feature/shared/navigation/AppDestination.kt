@@ -35,7 +35,7 @@ sealed interface AppDestination {
         val participantAvatar: String? = null
     ) : AppDestination
     @Serializable
-    data class StoryViewer(val userId: String) : AppDestination
+    data class StoryViewer(val userId: String, val userIds: List<String> = emptyList()) : AppDestination
     @Serializable
     data object StoryCreator : AppDestination
     @Serializable

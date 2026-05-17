@@ -7,6 +7,15 @@ struct StoriesTrayView: View {
     @State private var selectedStoryIndex = 0
     @State private var showingDeleteActionSheet = false
 
+    private func buildAllGroups() -> [StoryGroup] {
+        var groups: [StoryGroup] = []
+        if let myStory = viewModel.myStory {
+            groups.append(myStory)
+        }
+        groups.append(contentsOf: viewModel.stories)
+        return groups
+    }
+
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 12) {
@@ -76,10 +85,15 @@ struct StoriesTrayView: View {
             StoryCreatorScreen()
         }
         .fullScreenCover(isPresented: $showingViewer) {
-            if selectedStoryIndex == -1, let myGroup = viewModel.myStory {
-                StoryViewerScreen(storyGroup: myGroup, isOwnStory: true)
-            } else if selectedStoryIndex >= 0 && selectedStoryIndex < viewModel.stories.count {
-                StoryViewerScreen(storyGroup: viewModel.stories[selectedStoryIndex], isOwnStory: false)
+            let allGroups = buildAllGroups()
+            let initialIndex = selectedStoryIndex == -1 ? 0 : (viewModel.myStory != nil ? selectedStoryIndex + 1 : selectedStoryIndex)
+
+            if !allGroups.isEmpty {
+                StoryViewerScreen(
+                    storyGroups: allGroups,
+                    initialIndex: initialIndex,
+                    isOwnStory: viewModel.myStory != nil
+                )
             } else {
                 Text("Error loading story")
             }

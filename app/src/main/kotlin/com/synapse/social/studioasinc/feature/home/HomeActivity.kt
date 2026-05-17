@@ -105,9 +105,14 @@ class HomeActivity : AppCompatActivity() {
                                 }
                                 startActivity(intent)
                             },
-                            onNavigateToStoryViewer = { userId ->
+                            onNavigateToStoryViewer = { userId, allUserIds ->
                                 val intent = Intent(this@HomeActivity, StoryViewerActivity::class.java).apply {
                                     putExtra("user_id", userId)
+                                    if (allUserIds.isNotEmpty()) {
+                                        putStringArrayListExtra("user_ids", ArrayList(allUserIds))
+                                    } else {
+                                        putStringArrayListExtra("user_ids", arrayListOf(userId))
+                                    }
                                 }
                                 ActivityTransitions.startActivityWithTransition(this@HomeActivity, intent)
                             },

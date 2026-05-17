@@ -40,7 +40,7 @@ import com.synapse.social.studioasinc.feature.profile.editprofile.RegionSelectio
 import com.synapse.social.studioasinc.presentation.editprofile.photohistory.PhotoHistoryScreen
 import com.synapse.social.studioasinc.presentation.editprofile.photohistory.PhotoType
 import com.synapse.social.studioasinc.feature.shared.components.compose.FollowListScreen
-import com.synapse.social.studioasinc.feature.stories.viewer.StoryViewerScreen
+import com.synapse.social.studioasinc.feature.stories.viewer.StoryPagerScreen
 import com.synapse.social.studioasinc.feature.stories.viewer.StoryViewerViewModel
 import com.synapse.social.studioasinc.feature.stories.creator.StoryCreatorActivity
 import com.synapse.social.studioasinc.feature.shared.reels.ReelUploadManager
@@ -124,8 +124,8 @@ fun NavGraphBuilder.homeGraph(
             onNavigateToQuotePost = { postId ->
                 navController.navigate(AppDestination.QuotePost(postId))
             },
-            onNavigateToStoryViewer = { userId ->
-                navController.navigate(AppDestination.StoryViewer(userId))
+            onNavigateToStoryViewer = { userId, allUserIds ->
+                navController.navigate(AppDestination.StoryViewer(userId, allUserIds))
             },
             onNavigateToCreateReel = {
                 navController.navigate(AppDestination.CreatePost(type = "reel"))
@@ -411,15 +411,12 @@ fun NavGraphBuilder.storyGraph(
     composable<AppDestination.StoryViewer> { backStackEntry ->
                 val args = backStackEntry.toRoute<AppDestination.StoryViewer>()
                 val userId = args.userId
-                val viewModel: StoryViewerViewModel = hiltViewModel()
+                val userIds = args.userIds.ifEmpty { listOf(userId) }
 
-                LaunchedEffect(userId) {
-                    viewModel.loadStories(userId)
-                }
-
-                StoryViewerScreen(
-                    onClose = { navController.popBackStack() },
-                    viewModel = viewModel
+                StoryPagerScreen(
+                    userIds = userIds,
+                    initialIndex = userIds.indexOf(userId).coerceAtLeast(0),
+                    onClose = { navController.popBackStack() }
                 )
             }
 }

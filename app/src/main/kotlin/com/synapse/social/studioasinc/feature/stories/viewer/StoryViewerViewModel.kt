@@ -93,17 +93,13 @@ class StoryViewerViewModel @Inject constructor(
                             isOwnStory = isOwnStory
                         )
                     }
-                    val firstStory = stories[0]
-                    if (firstStory.mediaType != StoryMediaType.VIDEO) {
-                        startProgress()
-                    }
-                    markAsSeen(firstStory.id)
+                    // Removed automatic startProgress and markAsSeen - handled by pager visibility
                 }
             }
         }
     }
 
-    private fun startProgress(durationOverride: Long? = null) {
+    fun startProgress(durationOverride: Long? = null) {
         if (_uiState.value.isPaused || _uiState.value.isFinished) return
 
         stopProgress()
@@ -136,7 +132,7 @@ class StoryViewerViewModel @Inject constructor(
         }
     }
 
-    private fun stopProgress() {
+    fun stopProgress() {
         progressJob?.cancel()
         progressJob = null
     }
@@ -240,7 +236,7 @@ class StoryViewerViewModel @Inject constructor(
         }
     }
 
-    private fun markAsSeen(storyId: String?) {
+    fun markAsSeen(storyId: String?) {
         if (storyId == null) return
         val currentUserId = authRepository.getCurrentUserId() ?: return
         viewModelScope.launch {
