@@ -44,6 +44,7 @@ import com.synapse.social.studioasinc.feature.shared.components.post.PostActions
 import com.synapse.social.studioasinc.feature.shared.components.post.PostOptionsBottomSheet
 import com.synapse.social.studioasinc.feature.shared.components.post.PostSummarySheet
 import com.synapse.social.studioasinc.feature.shared.components.post.SharedPostItem
+import com.synapse.social.studioasinc.core.ui.animation.SkeletonMorphedContent
 import com.synapse.social.studioasinc.ui.components.ExpressiveLoadingIndicator
 import com.synapse.social.studioasinc.ui.components.ShimmerBox
 import com.synapse.social.studioasinc.ui.components.ShimmerCircle
@@ -216,156 +217,67 @@ fun SearchScreen(
             ) { page ->
                 val tab = SearchTab.entries[page]
 
-                Box(modifier = Modifier.fillMaxSize()) {
-                    if (uiState.isLoading) {
-                        SearchLoadingShimmer()
-                    } else {
-                        when (tab) {
-                            SearchTab.FOR_YOU -> {
-                                if (uiState.posts.isEmpty() && uiState.accounts.isEmpty() && uiState.hashtags.isEmpty()) {
-                                    EmptyState(stringResource(R.string.no_content_found))
-                                } else {
-                                    LazyColumn(
-                                        modifier = Modifier.fillMaxSize(),
-                                        contentPadding = PaddingValues(Spacing.Medium),
-                                        verticalArrangement = Arrangement.spacedBy(Spacing.Medium)
-                                    ) {
-                                        items(uiState.hashtags) { hashtag ->
-                                            Card(
-                                                modifier = Modifier.fillMaxWidth(),
-                                                shape = RoundedCornerShape(Spacing.Medium),
-                                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
-                                            ) {
-                                                HashtagCard(
-                                                    hashtag = hashtag,
-                                                    onClick = { viewModel.onSearch(hashtag.tag) }
-                                                )
-                                            }
-                                        }
-                                        items(uiState.accounts) { account ->
-                                            Card(
-                                                modifier = Modifier.fillMaxWidth(),
-                                                shape = RoundedCornerShape(Spacing.Medium),
-                                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
-                                            ) {
-                                                AccountCard(
-                                                    account = account,
-                                                    onClick = { onNavigateToProfile(account.id) },
-                                                    onFollowClick = { viewModel.toggleFollow(account.id) }
-                                                )
-                                            }
-                                        }
-                                        items(uiState.posts) { post ->
-                                            val actions = remember(viewModel) {
-                                                PostActions(
-                                                    onLike = viewModel::likePost,
-                                                    onComment = { p -> onNavigateToPost(p.id) },
-                                                    onShare = viewModel::sharePost,
-                                                    onRepost = { },
-                                                    onQuote = { },
-                                                    onBookmark = viewModel::bookmarkPost,
-                                                    onOptionClick = { p -> selectedPost = p },
-                                                    onPollVote = viewModel::votePoll,
-                                                    onUserClick = { userId -> onNavigateToProfile(userId) },
-                                                    onMediaClick = { _ -> onNavigateToPost(post.id) },
-                                                    onReactionSelected = { p, r -> viewModel.reactToPost(p, r) }
-                                                )
-                                            }
-                                            Card(
-                                                modifier = Modifier.fillMaxWidth(),
-                                                shape = RoundedCornerShape(Spacing.Medium),
-                                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
-                                            ) {
-                                                SharedPostItem(
-                                                    post = post,
-                                                    actions = actions
-                                                )
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                            else -> {
+                SkeletonMorphedContent(
+                    isLoading = uiState.isLoading,
+                    skeleton = { SearchLoadingShimmer() },
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    when (tab) {
+                        SearchTab.FOR_YOU -> {
+                            if (uiState.posts.isEmpty() && uiState.accounts.isEmpty() && uiState.hashtags.isEmpty()) {
+                                EmptyState(stringResource(R.string.no_content_found))
+                            } else {
                                 LazyColumn(
                                     modifier = Modifier.fillMaxSize(),
-                                    contentPadding = PaddingValues(bottom = Sizes.WidthLarge)
+                                    contentPadding = PaddingValues(Spacing.Medium),
+                                    verticalArrangement = Arrangement.spacedBy(Spacing.Medium)
                                 ) {
-                                    when (tab) {
-                                        SearchTab.FOR_YOU -> {} // Handled above
-                                SearchTab.PEOPLE -> {
-                                    if (uiState.accounts.isEmpty()) {
-                                        item { EmptyState(stringResource(R.string.no_accounts_found)) }
-                                    } else {
-                                        itemsIndexed(uiState.accounts, key = { index, it -> "${it.id}_${index}" }) { index, account ->
+                                    items(uiState.hashtags) { hashtag ->
+                                        Card(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            shape = RoundedCornerShape(Spacing.Medium),
+                                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+                                        ) {
+                                            HashtagCard(
+                                                hashtag = hashtag,
+                                                onClick = { viewModel.onSearch(hashtag.tag) }
+                                            )
+                                        }
+                                    }
+                                    items(uiState.accounts) { account ->
+                                        Card(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            shape = RoundedCornerShape(Spacing.Medium),
+                                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+                                        ) {
                                             AccountCard(
                                                 account = account,
                                                 onClick = { onNavigateToProfile(account.id) },
                                                 onFollowClick = { viewModel.toggleFollow(account.id) }
                                             )
-                                            HorizontalDivider(
-                                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
-                                                thickness = Sizes.BorderHairline
-                                            )
                                         }
                                     }
-                                }
-                                SearchTab.TRENDING, SearchTab.LISTS -> {
-                                    if (uiState.hashtags.isEmpty()) {
-                                        item { EmptyState(stringResource(R.string.no_hashtags_found)) }
-                                    } else {
-                                        itemsIndexed(uiState.hashtags, key = { index, it -> "${it.id}_${index}" }) { index, hashtag ->
-                                            HashtagCard(
-                                                hashtag = hashtag,
-                                                onClick = { viewModel.onSearch(hashtag.tag) }
-                                            )
-                                            HorizontalDivider(
-                                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
-                                                thickness = Sizes.BorderHairline
-                                            )
-                                        }
-                                    }
-                                }
-                                SearchTab.NEWS, SearchTab.SPORTS, SearchTab.ENTERTAINMENT -> {
-                                    if (uiState.news.isEmpty()) {
-                                        item { EmptyState(stringResource(R.string.no_news_found)) }
-                                    } else {
-                                        itemsIndexed(uiState.news, key = { index, it -> "${it.id}_${index}" }) { index, news ->
-                                            NewsCard(
-                                                news = news,
-                                                onClick = {
-                                                    news.url?.let { url ->
-                                                        IntentUtils.openUrl(context, url)
-                                                    }
-                                                }
-                                            )
-                                            HorizontalDivider(
-                                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
-                                                thickness = Sizes.BorderHairline
+                                    items(uiState.posts) { post ->
+                                        val actions = remember(viewModel) {
+                                            PostActions(
+                                                onLike = viewModel::likePost,
+                                                onComment = { p -> onNavigateToPost(p.id) },
+                                                onShare = viewModel::sharePost,
+                                                onRepost = { },
+                                                onQuote = { },
+                                                onBookmark = viewModel::bookmarkPost,
+                                                onOptionClick = { p -> selectedPost = p },
+                                                onPollVote = viewModel::votePoll,
+                                                onUserClick = { userId -> onNavigateToProfile(userId) },
+                                                onMediaClick = { _ -> onNavigateToPost(post.id) },
+                                                onReactionSelected = { p, r -> viewModel.reactToPost(p, r) }
                                             )
                                         }
-                                    }
-                                }
-                                SearchTab.TOP, SearchTab.LATEST, SearchTab.MEDIA -> {
-                                    if (uiState.posts.isEmpty()) {
-                                        item { EmptyState(stringResource(R.string.empty_posts_title)) }
-                                    } else {
-                                        itemsIndexed(uiState.posts, key = { index, it -> "${it.id}_${index}" }) { index, post ->
-                                            val actions = remember(viewModel) {
-                                                PostActions(
-                                                    onLike = viewModel::likePost,
-                                                    onComment = { p -> onNavigateToPost(p.id) },
-                                                    onShare = viewModel::sharePost,
-                                                    onRepost = { },
-                                                    onQuote = { },
-                                                    onBookmark = viewModel::bookmarkPost,
-                                                    onOptionClick = { p -> selectedPost = p },
-                                                    onPollVote = viewModel::votePoll,
-                                                    onUserClick = { userId -> onNavigateToProfile(userId) },
-                                                    onMediaClick = { _ -> onNavigateToPost(post.id) },
-                                                    onReactionSelected = { p, r -> viewModel.reactToPost(p, r) }
-                                                )
-                                            }
-
+                                        Card(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            shape = RoundedCornerShape(Spacing.Medium),
+                                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+                                        ) {
                                             SharedPostItem(
                                                 post = post,
                                                 actions = actions
@@ -373,11 +285,101 @@ fun SearchScreen(
                                         }
                                     }
                                 }
-                            } // End inner when
-                        } // End LazyColumn
-                    } // End else branch
-                } // End outer when
-            } // End Box else
+                            }
+                        }
+                        else -> {
+                            LazyColumn(
+                                modifier = Modifier.fillMaxSize(),
+                                contentPadding = PaddingValues(bottom = Sizes.WidthLarge)
+                            ) {
+                                when (tab) {
+                                    SearchTab.FOR_YOU -> {} // Handled above
+                                    SearchTab.PEOPLE -> {
+                                        if (uiState.accounts.isEmpty()) {
+                                            item { EmptyState(stringResource(R.string.no_accounts_found)) }
+                                        } else {
+                                            itemsIndexed(uiState.accounts, key = { index, it -> "${it.id}_${index}" }) { index, account ->
+                                                AccountCard(
+                                                    account = account,
+                                                    onClick = { onNavigateToProfile(account.id) },
+                                                    onFollowClick = { viewModel.toggleFollow(account.id) }
+                                                )
+                                                HorizontalDivider(
+                                                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+                                                    thickness = Sizes.BorderHairline
+                                                )
+                                            }
+                                        }
+                                    }
+                                    SearchTab.TRENDING, SearchTab.LISTS -> {
+                                        if (uiState.hashtags.isEmpty()) {
+                                            item { EmptyState(stringResource(R.string.no_hashtags_found)) }
+                                        } else {
+                                            itemsIndexed(uiState.hashtags, key = { index, it -> "${it.id}_${index}" }) { index, hashtag ->
+                                                HashtagCard(
+                                                    hashtag = hashtag,
+                                                    onClick = { viewModel.onSearch(hashtag.tag) }
+                                                )
+                                                HorizontalDivider(
+                                                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+                                                    thickness = Sizes.BorderHairline
+                                                )
+                                            }
+                                        }
+                                    }
+                                    SearchTab.NEWS, SearchTab.SPORTS, SearchTab.ENTERTAINMENT -> {
+                                        if (uiState.news.isEmpty()) {
+                                            item { EmptyState(stringResource(R.string.no_news_found)) }
+                                        } else {
+                                            itemsIndexed(uiState.news, key = { index, it -> "${it.id}_${index}" }) { index, news ->
+                                                NewsCard(
+                                                    news = news,
+                                                    onClick = {
+                                                        news.url?.let { url ->
+                                                            IntentUtils.openUrl(context, url)
+                                                        }
+                                                    }
+                                                )
+                                                HorizontalDivider(
+                                                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+                                                    thickness = Sizes.BorderHairline
+                                                )
+                                            }
+                                        }
+                                    }
+                                    SearchTab.TOP, SearchTab.LATEST, SearchTab.MEDIA -> {
+                                        if (uiState.posts.isEmpty()) {
+                                            item { EmptyState(stringResource(R.string.empty_posts_title)) }
+                                        } else {
+                                            itemsIndexed(uiState.posts, key = { index, it -> "${it.id}_${index}" }) { index, post ->
+                                                val actions = remember(viewModel) {
+                                                    PostActions(
+                                                        onLike = viewModel::likePost,
+                                                        onComment = { p -> onNavigateToPost(p.id) },
+                                                        onShare = viewModel::sharePost,
+                                                        onRepost = { },
+                                                        onQuote = { },
+                                                        onBookmark = viewModel::bookmarkPost,
+                                                        onOptionClick = { p -> selectedPost = p },
+                                                        onPollVote = viewModel::votePoll,
+                                                        onUserClick = { userId -> onNavigateToProfile(userId) },
+                                                        onMediaClick = { _ -> onNavigateToPost(post.id) },
+                                                        onReactionSelected = { p, r -> viewModel.reactToPost(p, r) }
+                                                    )
+                                                }
+
+                                                SharedPostItem(
+                                                    post = post,
+                                                    actions = actions
+                                                )
+                                            }
+                                        }
+                                    }
+                                } // End inner when
+                            } // End LazyColumn
+                        } // End else branch
+                    } // End outer when
+                } // End SkeletonMorphedContent
         } // End HorizontalPager Box
     } // End HorizontalPager content
 } // End Column scope

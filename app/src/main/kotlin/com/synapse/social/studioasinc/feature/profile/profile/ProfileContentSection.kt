@@ -29,6 +29,7 @@ import com.synapse.social.studioasinc.feature.shared.components.post.PostActions
 import com.synapse.social.studioasinc.feature.shared.components.post.PostActionsFactory
 import com.synapse.social.studioasinc.feature.shared.components.post.PostCard
 import com.synapse.social.studioasinc.feature.shared.components.post.SharedPostItem
+import com.synapse.social.studioasinc.core.ui.animation.SkeletonMorphedContent
 import com.synapse.social.studioasinc.feature.shared.theme.Spacing
 import com.synapse.social.studioasinc.ui.components.EmptyState
 import kotlinx.coroutines.delay
@@ -120,128 +121,144 @@ internal fun ProfileContent(
         }
 
         item {
-            if (profile != null) {
-                ProfileHeader(
-                    avatar = profile.avatar,
-                    status = profile.status,
-                    coverImageUrl = profile.coverImageUrl,
-                    name = profile.name,
-                    username = profile.username,
-                    nickname = profile.nickname,
-                    bio = profile.bio,
-                    isVerified = profile.isVerified,
-                    hasStory = state.hasStory,
-                    postsCount = profile.postCount,
-                    followersCount = profile.followerCount,
-                    followingCount = profile.followingCount,
-                    isOwnProfile = state.isOwnProfile && state.viewAsMode == null,
-                    isFollowing = state.isFollowing,
-                    isFollowLoading = state.isFollowLoading,
-                    scrollOffset = scrollProgress,
-                    bioExpanded = bioExpanded,
-                    onToggleBio = { bioExpanded = !bioExpanded },
-                    onProfileImageClick = {
-                         if (state.isOwnProfile) {
-                             onNavigateToEditProfile()
-                         } else if (!profile.avatar.isNullOrBlank()) {
-                             onOpenMediaViewer(listOf(profile.avatar), 0)
-                         }
-                    },
-                    onCoverPhotoClick = {
-                         if (state.isOwnProfile) {
-                             onNavigateToEditProfile()
-                         } else if (!profile.coverImageUrl.isNullOrBlank()) {
-                             onOpenMediaViewer(listOf(profile.coverImageUrl), 0)
-                         }
-                    },
-                    onEditProfileClick = onNavigateToEditProfile,
-                    onFollowClick = {
-                        if (state.isFollowing) {
-                            viewModel.unfollowUser(profile.id)
-                        } else {
-                            viewModel.followUser(profile.id)
-                        }
-                    },
-                    onMessageClick = { onNavigateToChat(profile.id, profile.name ?: profile.username, profile.avatar) },
-                    onAddStoryClick = onNavigateToStoryCreator,
-                    onMoreClick = { viewModel.toggleMoreMenu() },
-                    onStatsClick = { stat ->
-                        when (stat) {
-                            "followers" -> onNavigateToFollowers()
-                            "following" -> onNavigateToFollowing()
-                        }
+            SkeletonMorphedContent(
+                isLoading = isLoading && profile == null,
+                skeleton = {
+                    Column {
+                        ProfileHeaderShimmer()
+                        ProfileBioShimmer(displayName = state.viewAsUserName)
+                        Spacer(modifier = Modifier.height(Spacing.Medium))
+                        ProfileStatsShimmer()
+                        Spacer(modifier = Modifier.height(Spacing.Medium))
+                        ProfileActionsShimmer()
+                        Spacer(modifier = Modifier.height(Spacing.Medium))
                     }
-                )
-            } else if (isLoading) {
-                Column {
-                    ProfileHeaderShimmer()
-                    ProfileBioShimmer(displayName = state.viewAsUserName)
-                    Spacer(modifier = Modifier.height(Spacing.Medium))
-                    ProfileStatsShimmer()
-                    Spacer(modifier = Modifier.height(Spacing.Medium))
-                    ProfileActionsShimmer()
-                    Spacer(modifier = Modifier.height(Spacing.Medium))
+                }
+            ) {
+                if (profile != null) {
+                    ProfileHeader(
+                        avatar = profile.avatar,
+                        status = profile.status,
+                        coverImageUrl = profile.coverImageUrl,
+                        name = profile.name,
+                        username = profile.username,
+                        nickname = profile.nickname,
+                        bio = profile.bio,
+                        isVerified = profile.isVerified,
+                        hasStory = state.hasStory,
+                        postsCount = profile.postCount,
+                        followersCount = profile.followerCount,
+                        followingCount = profile.followingCount,
+                        isOwnProfile = state.isOwnProfile && state.viewAsMode == null,
+                        isFollowing = state.isFollowing,
+                        isFollowLoading = state.isFollowLoading,
+                        scrollOffset = scrollProgress,
+                        bioExpanded = bioExpanded,
+                        onToggleBio = { bioExpanded = !bioExpanded },
+                        onProfileImageClick = {
+                            if (state.isOwnProfile) {
+                                onNavigateToEditProfile()
+                            } else if (!profile.avatar.isNullOrBlank()) {
+                                onOpenMediaViewer(listOf(profile.avatar), 0)
+                            }
+                        },
+                        onCoverPhotoClick = {
+                            if (state.isOwnProfile) {
+                                onNavigateToEditProfile()
+                            } else if (!profile.coverImageUrl.isNullOrBlank()) {
+                                onOpenMediaViewer(listOf(profile.coverImageUrl), 0)
+                            }
+                        },
+                        onEditProfileClick = onNavigateToEditProfile,
+                        onFollowClick = {
+                            if (state.isFollowing) {
+                                viewModel.unfollowUser(profile.id)
+                            } else {
+                                viewModel.followUser(profile.id)
+                            }
+                        },
+                        onMessageClick = {
+                            onNavigateToChat(
+                                profile.id,
+                                profile.name ?: profile.username,
+                                profile.avatar
+                            )
+                        },
+                        onAddStoryClick = onNavigateToStoryCreator,
+                        onMoreClick = { viewModel.toggleMoreMenu() },
+                        onStatsClick = { stat ->
+                            when (stat) {
+                                "followers" -> onNavigateToFollowers()
+                                "following" -> onNavigateToFollowing()
+                            }
+                        }
+                    )
                 }
             }
         }
 
         item {
-            if (profile != null) {
-                Column {
-                    Spacer(modifier = Modifier.height(Spacing.Medium))
-                    UserDetailsSection(
-                        details = UserDetails(
-                            location = profile.location,
-                            joinedDate = formatJoinedDate(profile.joinedDate),
-                            relationshipStatus = profile.relationshipStatus,
-                            birthday = profile.birthday,
-                            work = profile.work,
-                            education = profile.education,
-                            website = profile.website,
-                            gender = profile.gender,
-                            pronouns = profile.pronouns,
-                            linkedAccounts = profile.linkedAccounts.map {
-                                LinkedAccount(
-                                    platform = it.platform,
-                                    username = it.username
-                                )
-                            },
-                            currentCity = profile.currentCity,
-                            hometown = profile.hometown,
-                            occupation = profile.occupation,
-                            workplace = profile.workplace,
-                            discordTag = profile.discordTag,
-                            githubProfile = profile.githubProfile,
-                            personalWebsite = profile.personalWebsite,
-                            publicEmail = profile.publicEmail
-                        ),
-                        isOwnProfile = state.isOwnProfile,
-                        onCustomizeClick = onCustomizeClick,
-                        onWebsiteClick = { url ->
-                             IntentUtils.openUrl(context, url)
-                         },
-                        modifier = Modifier.padding(horizontal = Spacing.Medium)
-                    )
-
-                    Spacer(modifier = Modifier.height(Spacing.Medium))
-
-                    FollowingSection(
-                        users = state.followingList,
-                        selectedFilter = FollowingFilter.ALL,
-                        onFilterSelected = { },
-                        onUserClick = { user -> onNavigateToUserProfile(user.id) },
-                        onSeeAllClick = onNavigateToFollowing,
-                        modifier = Modifier.padding(horizontal = Spacing.Medium)
-                    )
-
-                    Spacer(modifier = Modifier.height(Spacing.Medium))
+            SkeletonMorphedContent(
+                isLoading = isLoading && profile == null,
+                skeleton = {
+                    Column {
+                        ProfileDetailsShimmer()
+                        Spacer(modifier = Modifier.height(Spacing.Medium))
+                        FollowingSectionShimmer()
+                        Spacer(modifier = Modifier.height(Spacing.Medium))
+                    }
                 }
-            } else if (isLoading) {
-                Column {
-                    ProfileDetailsShimmer()
-                    Spacer(modifier = Modifier.height(Spacing.Medium))
-                    FollowingSectionShimmer()
-                    Spacer(modifier = Modifier.height(Spacing.Medium))
+            ) {
+                if (profile != null) {
+                    Column {
+                        Spacer(modifier = Modifier.height(Spacing.Medium))
+                        UserDetailsSection(
+                            details = UserDetails(
+                                location = profile.location,
+                                joinedDate = formatJoinedDate(profile.joinedDate),
+                                relationshipStatus = profile.relationshipStatus,
+                                birthday = profile.birthday,
+                                work = profile.work,
+                                education = profile.education,
+                                website = profile.website,
+                                gender = profile.gender,
+                                pronouns = profile.pronouns,
+                                linkedAccounts = profile.linkedAccounts.map {
+                                    LinkedAccount(
+                                        platform = it.platform,
+                                        username = it.username
+                                    )
+                                },
+                                currentCity = profile.currentCity,
+                                hometown = profile.hometown,
+                                occupation = profile.occupation,
+                                workplace = profile.workplace,
+                                discordTag = profile.discordTag,
+                                githubProfile = profile.githubProfile,
+                                personalWebsite = profile.personalWebsite,
+                                publicEmail = profile.publicEmail
+                            ),
+                            isOwnProfile = state.isOwnProfile,
+                            onCustomizeClick = onCustomizeClick,
+                            onWebsiteClick = { url ->
+                                IntentUtils.openUrl(context, url)
+                            },
+                            modifier = Modifier.padding(horizontal = Spacing.Medium)
+                        )
+
+                        Spacer(modifier = Modifier.height(Spacing.Medium))
+
+                        FollowingSection(
+                            users = state.followingList,
+                            selectedFilter = FollowingFilter.ALL,
+                            onFilterSelected = { },
+                            onUserClick = { user -> onNavigateToUserProfile(user.id) },
+                            onSeeAllClick = onNavigateToFollowing,
+                            modifier = Modifier.padding(horizontal = Spacing.Medium)
+                        )
+
+                        Spacer(modifier = Modifier.height(Spacing.Medium))
+                    }
                 }
             }
         }
