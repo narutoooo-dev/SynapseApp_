@@ -9,6 +9,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.pulltorefresh.PullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -38,6 +39,9 @@ fun SynapsePullToRefreshIndicator(
         label = "sparkOffset"
     )
 
+    val path = remember { Path() }
+    val pathMeasure = remember { androidx.compose.ui.graphics.PathMeasure() }
+
     Box(
         modifier = modifier
             .size(60.dp)
@@ -54,12 +58,10 @@ fun SynapsePullToRefreshIndicator(
             val h = size.height
             val progress = state.distanceFraction.coerceIn(0f, 1f)
 
-            // Draw neural lines
-            val path = Path().apply {
-                moveTo(w * 0.2f, h * 0.5f)
-                quadraticTo(w * 0.4f, h * 0.2f, w * 0.5f, h * 0.5f)
-                quadraticTo(w * 0.6f, h * 0.8f, w * 0.8f, h * 0.5f)
-            }
+            path.reset()
+            path.moveTo(w * 0.2f, h * 0.5f)
+            path.quadraticTo(w * 0.4f, h * 0.2f, w * 0.5f, h * 0.5f)
+            path.quadraticTo(w * 0.6f, h * 0.8f, w * 0.8f, h * 0.5f)
 
             drawPath(
                 path = path,
@@ -67,8 +69,6 @@ fun SynapsePullToRefreshIndicator(
                 style = Stroke(width = 3.dp.toPx(), cap = StrokeCap.Round)
             )
 
-            // Animate stroke dash
-            val pathMeasure = androidx.compose.ui.graphics.PathMeasure()
             pathMeasure.setPath(path, false)
             val pathLength = pathMeasure.length
 

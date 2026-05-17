@@ -31,13 +31,13 @@ fun Modifier.liquidSplashEffect(
         }
     }
 
-    if (progress.value > 0f && progress.value < 1f) {
-        this.drawBehind {
+    this.drawBehind {
+        val p = progress.value
+        if (p > 0f && p < 1f) {
             val center = size.center
             val maxRadius = size.minDimension
 
             particles.forEach { particle ->
-                val p = progress.value
                 val angle = particle.angle
                 val distance = particle.maxDistance * maxRadius * p
                 val x = center.x + kotlin.math.cos(angle) * distance
@@ -53,8 +53,6 @@ fun Modifier.liquidSplashEffect(
                 )
             }
         }
-    } else {
-        this
     }
 }
 

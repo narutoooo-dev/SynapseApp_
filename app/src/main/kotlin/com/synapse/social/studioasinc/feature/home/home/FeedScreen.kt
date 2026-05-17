@@ -19,6 +19,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.platform.LocalContext
 import com.synapse.social.studioasinc.R
@@ -225,17 +226,19 @@ fun FeedScreen(
 
                 items(
                     count = posts.itemCount,
-                    contentType = posts.itemContentType { it.itemType }
+                    contentType = posts.itemContentType { it.itemType },
+                    key = posts.itemKey { it.itemType.toString() + when(it) { is FeedItem.PostItem -> it.post.id; is FeedItem.CommentItem -> it.id } }
                 ) { index ->
                     val feedItem = posts[index]
                     if (feedItem != null) {
-                        val isInitiallyLoaded = remember { mutableStateOf(false) }
+                        var hasAnimated by rememberSaveable { mutableStateOf(false) }
+
                         LaunchedEffect(Unit) {
-                            isInitiallyLoaded.value = true
+                            hasAnimated = true
                         }
 
                         androidx.compose.animation.AnimatedVisibility(
-                            visible = isInitiallyLoaded.value,
+                            visible = hasAnimated,
                             enter = slideInVertically(
                                 initialOffsetY = { it / 2 },
                                 animationSpec = tween(durationMillis = 400, delayMillis = (index % 10) * 50)
