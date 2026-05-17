@@ -30,6 +30,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.res.stringResource
 import com.synapse.social.studioasinc.R
 import androidx.compose.ui.unit.dp
+import com.synapse.social.studioasinc.feature.shared.components.AnimatedCounter
 import com.synapse.social.studioasinc.feature.shared.components.ButtonVariant
 import com.synapse.social.studioasinc.feature.shared.components.ExpressiveButton
 import com.synapse.social.studioasinc.feature.shared.components.animatedShape
@@ -436,8 +437,6 @@ private fun InlineStatsText(
     onStatsClick: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val formattedFollowers = com.synapse.social.studioasinc.core.util.NumberFormatter.formatCount(followersCount)
-    val formattedFollowing = com.synapse.social.studioasinc.core.util.NumberFormatter.formatCount(followingCount)
     val formattedPosts = com.synapse.social.studioasinc.core.util.NumberFormatter.formatCount(postsCount)
 
     FlowRow(
@@ -449,12 +448,14 @@ private fun InlineStatsText(
             modifier = Modifier.clickable { onStatsClick("followers") },
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = formattedFollowers,
-                style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface
-            )
+            AnimatedCounter(count = followersCount) { count ->
+                Text(
+                    text = com.synapse.social.studioasinc.core.util.NumberFormatter.formatCount(count),
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
             Spacer(modifier = Modifier.width(Spacing.ExtraSmall))
             Text(
                 text = stringResource(R.string.followers).lowercase(),
@@ -474,12 +475,14 @@ private fun InlineStatsText(
             modifier = Modifier.clickable { onStatsClick("following") },
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = formattedFollowing,
-                style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface
-            )
+            AnimatedCounter(count = followingCount) { count ->
+                Text(
+                    text = com.synapse.social.studioasinc.core.util.NumberFormatter.formatCount(count),
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
             Spacer(modifier = Modifier.width(Spacing.ExtraSmall))
             Text(
                 text = stringResource(R.string.following).lowercase(),
