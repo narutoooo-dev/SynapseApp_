@@ -18,5 +18,7 @@ data class CreatePostRequest(
     val disableComments: Boolean = false,
     val isEditMode: Boolean = false,
     val editPostId: String? = null,
-    val replyToPostId: String? = null
+    val replyToPostId: String? = null,
+    val isTimeCapsule: Boolean = false,
+    val unlocksAt: Long? = null
 )

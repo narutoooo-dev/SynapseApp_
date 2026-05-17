@@ -60,7 +60,10 @@ CREATE TABLE Post (
     metadata TEXT AS PostMetadata,
     quotedPostId TEXT,
     isQuote INTEGER AS Boolean NOT NULL DEFAULT 0,
-    rootPostId TEXT
+    rootPostId TEXT,
+    isTimeCapsule INTEGER AS Boolean NOT NULL DEFAULT 0,
+    unlocksAt INTEGER,
+    capsuleState TEXT DEFAULT 'OPENED'
 );
 
 insertPost:
@@ -72,7 +75,7 @@ INSERT OR REPLACE INTO Post(
     hasPoll, pollQuestion, pollOptions, pollEndTime, pollAllowMultiple,
     hasLocation, locationName, locationAddress, locationLatitude, locationLongitude, locationPlaceId,
     youtubeUrl, reactions, userReaction, username, displayName, avatarUrl, isVerified, userPollVote, metadata,
-    quotedPostId, isQuote, rootPostId
+    quotedPostId, isQuote, rootPostId, isTimeCapsule, unlocksAt, capsuleState
 ) VALUES ?;
 
 selectAll:

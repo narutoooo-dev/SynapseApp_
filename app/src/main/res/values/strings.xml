@@ -1758,4 +1758,10 @@ Please explain the following message from %3$s in detail, considering the contex
     <string name="remove_credentials">Remove %1$s credentials</string>
     <string name="collapse_configuration">Collapse %1$s configuration</string>
     <string name="expand_configuration">Expand %1$s configuration</string>
+    <string name="time_capsule">Time Capsule</string>
+    <string name="time_capsule_hint">Locked until specified time</string>
+    <string name="unlock_date">Unlock Date</string>
+    <string name="error_unlock_future">Unlock date must be in the future</string>
+    <string name="capsule_locked_title">Time Capsule Locked</string>
+    <string name="capsule_locked_desc">Replies will be revealed in %s</string>
 </resources>

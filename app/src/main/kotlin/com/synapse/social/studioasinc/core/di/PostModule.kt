@@ -71,6 +71,8 @@ import com.synapse.social.studioasinc.shared.domain.usecase.notification.MarkNot
 import com.synapse.social.studioasinc.shared.domain.usecase.notification.SubscribeToNotificationsUseCase
 import com.synapse.social.studioasinc.shared.domain.usecase.post.DeletePostUseCase
 import com.synapse.social.studioasinc.shared.domain.usecase.post.TogglePostCommentsUseCase
+import com.synapse.social.studioasinc.shared.domain.usecase.post.CreateTimeCapsuleUseCase
+import com.synapse.social.studioasinc.shared.domain.usecase.post.GetTimeCapsuleStatusUseCase
 import com.synapse.social.studioasinc.shared.domain.usecase.user.GetCurrentUserAvatarUseCase
 import com.synapse.social.studioasinc.shared.domain.usecase.user.GetUserProfileUseCase
 import com.synapse.social.studioasinc.shared.domain.usecase.user.SearchUsersUseCase
@@ -221,6 +223,22 @@ object PostModule {
         repository: PostActionsRepository
     ): DeletePostUseCase {
         return DeletePostUseCase(repository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideCreateTimeCapsuleUseCase(
+        repository: PostActionsRepository
+    ): CreateTimeCapsuleUseCase {
+        return CreateTimeCapsuleUseCase(repository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideGetTimeCapsuleStatusUseCase(
+        repository: PostActionsRepository
+    ): GetTimeCapsuleStatusUseCase {
+        return GetTimeCapsuleStatusUseCase(repository)
     }
     @Provides
     @Singleton

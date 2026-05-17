@@ -75,6 +75,54 @@ fun CreatePostScreen(
     var locationSearchQuery by remember { mutableStateOf("") }
     var feelingSearchQuery by remember { mutableStateOf("") }
 
+    var showDatePicker by remember { mutableStateOf(false) }
+    var showTimePicker by remember { mutableStateOf(false) }
+    val datePickerState = rememberDatePickerState()
+    val timePickerState = rememberTimePickerState()
+
+    if (showDatePicker) {
+        DatePickerDialog(
+            onDismissRequest = { showDatePicker = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    showDatePicker = false
+                    showTimePicker = true
+                }) {
+                    Text("Next")
+                }
+            }
+        ) {
+            DatePicker(state = datePickerState)
+        }
+    }
+
+    if (showTimePicker) {
+        AlertDialog(
+            onDismissRequest = { showTimePicker = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    val calendar = java.util.Calendar.getInstance()
+                    datePickerState.selectedDateMillis?.let {
+                        calendar.timeInMillis = it
+                        calendar.set(java.util.Calendar.HOUR_OF_DAY, timePickerState.hour)
+                        calendar.set(java.util.Calendar.MINUTE, timePickerState.minute)
+
+                        val selectedTime = calendar.timeInMillis
+                        if (selectedTime > System.currentTimeMillis()) {
+                            viewModel.setUnlocksAt(selectedTime)
+                        } else {
+                            Toast.makeText(context, context.getString(R.string.error_unlock_future), Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                    showTimePicker = false
+                }) {
+                    Text("OK")
+                }
+            },
+            title = { Text("Select Time") },
+            text = { TimePicker(state = timePickerState) }
+        )
+    }
 
     LaunchedEffect(true) {
         viewModel.loadDraft()
@@ -234,7 +282,9 @@ fun CreatePostScreen(
                 onAddThreadMedia = { postIndex ->
                     threadMediaPickerIndex = postIndex
                     threadMediaLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageAndVideo))
-                }
+                },
+                onTimeCapsuleToggle = { viewModel.toggleTimeCapsule(it) },
+                onSelectUnlockDate = { showDatePicker = true }
             )
         }
     }

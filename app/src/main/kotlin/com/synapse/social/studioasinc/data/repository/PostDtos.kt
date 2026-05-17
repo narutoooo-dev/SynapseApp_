@@ -44,7 +44,10 @@ data class PostInsertDto(
     @SerialName("location_place_id") val locationPlaceId: String? = null,
     @SerialName("youtube_url") val youtubeUrl: String? = null,
     @SerialName("link_previews") val linkPreviews: List<LinkPreview>? = null,
-    @SerialName("metadata") val metadata: PostMetadata? = null
+    @SerialName("metadata") val metadata: PostMetadata? = null,
+    @SerialName("is_time_capsule") val isTimeCapsule: Boolean = false,
+    @SerialName("unlocks_at") val unlocksAt: Long? = null,
+    @SerialName("capsule_state") val capsuleState: String? = "OPENED"
 )
 
 @Serializable
@@ -104,6 +107,9 @@ data class PostSelectDto(
     @SerialName("youtube_url") val youtubeUrl: String? = null,
     @SerialName("link_previews") val linkPreviews: List<LinkPreview>? = null,
     @SerialName("metadata") val metadata: PostMetadata? = null,
+    @SerialName("is_time_capsule") val isTimeCapsule: Boolean = false,
+    @SerialName("unlocks_at") val unlocksAt: Long? = null,
+    @SerialName("capsule_state") val capsuleState: String? = "OPENED",
     @SerialName("quoted_post") val quotedPost: PostSelectDto? = null,
     @SerialName("quoted_post_id") val quotedPostId: String? = null,
     @SerialName("is_quote") val isQuote: Boolean = false,
@@ -152,7 +158,10 @@ fun Post.toInsertDto(): PostInsertDto {
         locationPlaceId = this.locationPlaceId,
         youtubeUrl = this.youtubeUrl,
         linkPreviews = this.linkPreviews,
-        metadata = this.metadata
+        metadata = this.metadata,
+        isTimeCapsule = this.isTimeCapsule,
+        unlocksAt = this.unlocksAt,
+        capsuleState = this.capsuleState
     )
 }
 
@@ -192,7 +201,10 @@ fun Post.toUpdateDto(): PostInsertDto {
         locationPlaceId = this.locationPlaceId,
         youtubeUrl = this.youtubeUrl,
         linkPreviews = this.linkPreviews,
-        metadata = this.metadata
+        metadata = this.metadata,
+        isTimeCapsule = this.isTimeCapsule,
+        unlocksAt = this.unlocksAt,
+        capsuleState = this.capsuleState
     )
 }
 
@@ -236,6 +248,9 @@ fun PostSelectDto.toDomain(constructMediaUrl: (String) -> String, constructAvata
         youtubeUrl = this.youtubeUrl,
         linkPreviews = this.linkPreviews,
         metadata = this.metadata,
+        isTimeCapsule = this.isTimeCapsule,
+        unlocksAt = this.unlocksAt,
+        capsuleState = this.capsuleState,
         quotedPostId = this.quotedPostId,
         isQuote = this.isQuote,
         quotedPost = this.quotedPost?.toDomain(constructMediaUrl, constructAvatarUrl)

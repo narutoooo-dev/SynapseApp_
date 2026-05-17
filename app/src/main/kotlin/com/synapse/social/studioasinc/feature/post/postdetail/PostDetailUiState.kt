@@ -24,5 +24,7 @@ data class PostDetailUiState(
     val ancestorComments: List<CommentWithUser> = emptyList(),
     val postSummary: String? = null,
     val isSummarizing: Boolean = false,
-    val summaryError: String? = null
+    val summaryError: String? = null,
+    val capsuleRemainingTime: Long = 0L,
+    val isCapsuleLocked: Boolean = false
 )
