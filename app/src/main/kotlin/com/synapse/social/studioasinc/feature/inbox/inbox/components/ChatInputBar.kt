@@ -24,6 +24,7 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.runtime.*
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.platform.LocalDensity
 import kotlin.random.Random
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -87,8 +88,9 @@ fun ChatInputBar(
     )
 
     var isFocused by remember { mutableStateOf(false) }
+    val isImeVisible = WindowInsets.ime.getBottom(LocalDensity.current) > 0
     val inputWidthFraction by animateFloatAsState(
-        targetValue = if (isFocused || inputText.isNotEmpty()) 1f else 0.8f,
+        targetValue = if ((isFocused && isImeVisible) || inputText.isNotEmpty()) 1f else 0.8f,
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioLowBouncy,
             stiffness = Spring.StiffnessMediumLow
