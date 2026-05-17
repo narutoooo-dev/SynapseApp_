@@ -42,6 +42,8 @@ import kotlinx.coroutines.CoroutineScope
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.Spring
 import androidx.compose.ui.platform.SoftwareKeyboardController
 import androidx.paging.compose.LazyPagingItems
 

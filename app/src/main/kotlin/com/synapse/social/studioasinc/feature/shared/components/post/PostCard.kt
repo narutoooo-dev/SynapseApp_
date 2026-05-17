@@ -44,6 +44,8 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.Spring
 import com.synapse.social.studioasinc.ui.settings.PostViewStyle
 
 
@@ -182,7 +184,13 @@ fun PostCard(
                     with(sharedTransitionScope) {
                         Modifier.sharedElement(
                             rememberSharedContentState(key = "avatar_${state.user.uid}"),
-                            animatedVisibilityScope = animatedVisibilityScope
+                            animatedVisibilityScope = animatedVisibilityScope,
+                            boundsTransform = { _, _ ->
+                                spring(
+                                    stiffness = Spring.StiffnessLow,
+                                    dampingRatio = Spring.DampingRatioLowBouncy
+                                )
+                            }
                         )
                     }
                 } else {
@@ -220,7 +228,13 @@ fun PostCard(
                     with(sharedTransitionScope) {
                         Modifier.sharedElement(
                             rememberSharedContentState(key = "media_${state.post.id}"),
-                            animatedVisibilityScope = animatedVisibilityScope
+                            animatedVisibilityScope = animatedVisibilityScope,
+                            boundsTransform = { _, _ ->
+                                spring(
+                                    stiffness = Spring.StiffnessLow,
+                                    dampingRatio = Spring.DampingRatioLowBouncy
+                                )
+                            }
                         )
                     }
                 } else {

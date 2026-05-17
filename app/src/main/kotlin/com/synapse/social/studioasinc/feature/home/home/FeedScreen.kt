@@ -13,8 +13,7 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
@@ -38,6 +37,7 @@ import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.flow.filter
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.paging.LoadState
@@ -237,14 +237,23 @@ fun FeedScreen(
                             hasAnimated = true
                         }
 
-                        androidx.compose.animation.AnimatedVisibility(
-                            visible = hasAnimated,
-                            enter = slideInVertically(
-                                initialOffsetY = { it / 2 },
-                                animationSpec = tween(durationMillis = 400, delayMillis = (index % 10) * 50)
-                            ) + fadeIn(
-                                animationSpec = tween(durationMillis = 400, delayMillis = (index % 10) * 50)
-                            )
+                        val alpha by animateFloatAsState(
+                            targetValue = if (hasAnimated) 1f else 0f,
+                            animationSpec = tween(durationMillis = 400, delayMillis = (index % 10) * 50),
+                            label = "feedItemAlpha"
+                        )
+                        val translationY by animateFloatAsState(
+                            targetValue = if (hasAnimated) 0f else 100f,
+                            animationSpec = tween(durationMillis = 400, delayMillis = (index % 10) * 50),
+                            label = "feedItemTranslationY"
+                        )
+
+                        Box(
+                            modifier = Modifier
+                                .graphicsLayer {
+                                    this.alpha = alpha
+                                    this.translationY = translationY
+                                }
                         ) {
                             when (feedItem) {
                                 is FeedItem.PostItem -> {

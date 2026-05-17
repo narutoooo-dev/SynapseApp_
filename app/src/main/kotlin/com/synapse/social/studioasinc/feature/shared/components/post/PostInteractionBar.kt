@@ -9,10 +9,12 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bookmark
@@ -247,12 +249,17 @@ fun PostInteractionBar(
                     )
                     .padding(vertical = Spacing.ExtraSmall)
             ) {
-                Box(contentAlignment = Alignment.Center) {
+                Box(
+                    modifier = Modifier.size(Sizes.IconMedium),
+                    contentAlignment = Alignment.Center
+                ) {
                     if (explosionReaction != null) {
                         ReactionExplosion(
                             reaction = explosionReaction!!,
                             onAnimationEnd = { explosionReaction = null },
-                            modifier = Modifier.align(Alignment.Center)
+                            modifier = Modifier
+                                .wrapContentSize(unbounded = true)
+                                .align(Alignment.Center)
                         )
                     }
                     Icon(
@@ -263,7 +270,7 @@ fun PostInteractionBar(
                         ),
                         tint = if (isLiked) likeActiveColor else iconColor,
                         modifier = Modifier
-                            .size(Sizes.IconMedium)
+                            .fillMaxSize()
                             .liquidSplashEffect(
                                 trigger = isLiked,
                                 color = likeActiveColor

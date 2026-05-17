@@ -40,6 +40,8 @@ import com.synapse.social.studioasinc.feature.shared.util.liquidSplashEffect
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.Spring
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
@@ -193,7 +195,13 @@ fun ProfileHeader(
                 with(sharedTransitionScope) {
                     Modifier.sharedElement(
                         rememberSharedContentState(key = "avatar_$uid"),
-                        animatedVisibilityScope = animatedVisibilityScope
+                        animatedVisibilityScope = animatedVisibilityScope,
+                        boundsTransform = { _, _ ->
+                            spring(
+                                stiffness = Spring.StiffnessLow,
+                                dampingRatio = Spring.DampingRatioLowBouncy
+                            )
+                        }
                     )
                 }
             } else {

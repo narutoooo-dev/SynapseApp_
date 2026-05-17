@@ -23,11 +23,10 @@ fun ReactionExplosion(
     onAnimationEnd: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val particles = remember { List(8) { ReactionParticle(reaction.emoji) } }
-    val scope = rememberCoroutineScope()
+    val particles = remember { List(10) { ReactionParticle(reaction.emoji) } }
 
     Box(
-        modifier = modifier.size(100.dp),
+        modifier = modifier.size(48.dp),
         contentAlignment = Alignment.Center
     ) {
         particles.forEach { particle ->
@@ -44,7 +43,7 @@ fun ReactionExplosion(
 private data class ReactionParticle(
     val emoji: String,
     val angle: Float = Random.nextFloat() * 360f,
-    val distance: Float = Random.nextFloat() * 80f + 40f,
+    val distance: Float = Random.nextFloat() * 40f + 20f,
     val rotation: Float = Random.nextFloat() * 360f
 )
 
