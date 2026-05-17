@@ -27,6 +27,45 @@ class ChatMediaDelegate(
     private val onError: (String?) -> Unit
 ) {
 
+    fun sendMediaMessage(
+        mediaUrl: String,
+        fileName: String,
+        contentType: String,
+        messageType: String,
+        caption: String? = null
+    ) {
+        val chatId = chatIdProvider() ?: return
+        viewModelScope.launch {
+            val tempId = UUID.randomUUID().toString()
+            val type = when (messageType) {
+                "image" -> MessageType.IMAGE
+                "video" -> MessageType.VIDEO
+                "audio" -> MessageType.AUDIO
+                else -> MessageType.FILE
+            }
+            val newMessage = Message(
+                id = tempId,
+                chatId = chatId,
+                senderId = currentUserIdProvider() ?: "",
+                content = "Sending...",
+                messageType = type,
+                deliveryStatus = DeliveryStatus.SENT,
+                createdAt = Instant.now().toString()
+            )
+            onOptimisticMessageAdded(newMessage, tempId)
+            sendMessageUseCase(
+                chatId = chatId,
+                content = if (!caption.isNullOrBlank()) caption else fileName,
+                mediaUrl = mediaUrl,
+                messageType = messageType
+            ).onSuccess { actualMessage ->
+                onOptimisticMessageSuccess(tempId, actualMessage)
+            }.onFailure { e ->
+                onOptimisticMessageFailed(tempId, "Failed to send: ${e.message}")
+            }
+        }
+    }
+
     fun uploadAndSendMedia(
         filePath: String,
         fileName: String,
