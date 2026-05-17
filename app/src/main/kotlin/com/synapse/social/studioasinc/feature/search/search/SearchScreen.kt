@@ -42,6 +42,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.synapse.social.studioasinc.core.ui.animation.NeuralParticleEmitter
+import com.synapse.social.studioasinc.feature.shared.components.EmptyState
 import com.synapse.social.studioasinc.feature.search.search.components.AccountCard
 import com.synapse.social.studioasinc.feature.search.search.components.HashtagCard
 import com.synapse.social.studioasinc.feature.search.search.components.NewsCard
