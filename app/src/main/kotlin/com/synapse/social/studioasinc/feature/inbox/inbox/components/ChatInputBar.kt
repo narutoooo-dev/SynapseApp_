@@ -23,6 +23,7 @@ import androidx.compose.material3.*
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.runtime.*
+import androidx.compose.ui.focus.onFocusChanged
 import kotlin.random.Random
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -83,6 +84,16 @@ fun ChatInputBar(
         targetValue = if (isRecording) 1.2f else 1f,
         animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
         label = "micScale"
+    )
+
+    var isFocused by remember { mutableStateOf(false) }
+    val inputWidthFraction by animateFloatAsState(
+        targetValue = if (isFocused || inputText.isNotEmpty()) 1f else 0.8f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioLowBouncy,
+            stiffness = Spring.StiffnessLow
+        ),
+        label = "inputWidthFraction"
     )
 
     Column(
@@ -327,7 +338,9 @@ fun ChatInputBar(
 
         // Floating input row
         Surface(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth(inputWidthFraction)
+                .align(Alignment.CenterHorizontally),
             shape = RoundedCornerShape(Sizes.CornerMassive),
             color = Color(0xFF1E1E1E),
             tonalElevation = Sizes.BorderDefault,
@@ -376,7 +389,8 @@ fun ChatInputBar(
                     onValueChange = onInputTextChange,
                     modifier = Modifier
                         .weight(1f)
-                        .padding(horizontal = Spacing.Small),
+                        .padding(horizontal = Spacing.Small)
+                        .onFocusChanged { isFocused = it.isFocused },
                     enabled = canSendMessage,
                     maxLines = 4,
                     textStyle = MaterialTheme.typography.bodyLarge.copy(
