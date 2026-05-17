@@ -11,6 +11,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Reply
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Add
@@ -22,6 +23,7 @@ import androidx.compose.material3.*
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.runtime.*
+import kotlin.random.Random
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.foundation.background
@@ -34,9 +36,11 @@ import androidx.compose.material.icons.filled.Stop
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.IntOffset
 import com.synapse.social.studioasinc.R
 import com.synapse.social.studioasinc.feature.shared.components.LinkPreviewCard
 import com.synapse.social.studioasinc.feature.shared.components.picker.SynapseFilePicker
@@ -73,6 +77,13 @@ fun ChatInputBar(
     var showAttachmentMenu by remember { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
     var isSwipeToCancel by remember { mutableStateOf(false) }
+    var slideOffset by remember { mutableFloatStateOf(0f) }
+
+    val micScale by animateFloatAsState(
+        targetValue = if (isRecording) 1.2f else 1f,
+        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
+        label = "micScale"
+    )
 
     Column(
         modifier = Modifier
@@ -194,12 +205,30 @@ fun ChatInputBar(
         // Recording Indicator Row
         AnimatedVisibility(
             visible = isRecording,
-            enter = expandVertically() + fadeIn(),
-            exit = shrinkVertically() + fadeOut()
+            enter = slideInVertically { it } + fadeIn(tween(300)),
+            exit = slideOutVertically { it } + fadeOut(tween(200))
         ) {
+            val animatedSlideOffset by animateFloatAsState(targetValue = slideOffset, label = "slideOffset")
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .offset { IntOffset(slideOffset.toInt(), 0) }
+                    .pointerInput(Unit) {
+                        detectHorizontalDragGestures(
+                            onDragEnd = {
+                                if (slideOffset < -150f) {
+                                    isSwipeToCancel = true
+                                    onRecordingCancelled()
+                                }
+                                slideOffset = 0f
+                            },
+                            onDragCancel = {
+                                slideOffset = 0f
+                            }
+                        ) { change, dragAmount ->
+                            slideOffset += dragAmount
+                        }
+                    }
                     .padding(horizontal = Spacing.Medium, vertical = Spacing.Small),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
@@ -232,30 +261,67 @@ fun ChatInputBar(
 
                     Spacer(modifier = Modifier.width(Spacing.Medium))
 
-                    // Mini amplitude visualizer
+                    // Waveform visualizer
                     val maxAmp = 32767f // Max amplitude for 16-bit audio
                     val normalizedAmp = (recordingAmplitude / maxAmp).coerceIn(0.1f, 1f)
-                    val animatedHeight by animateFloatAsState(targetValue = normalizedAmp, label = "amp")
 
-                    Box(
-                        modifier = Modifier
-                            .width(Sizes.IconSmall)
-                            .height(Sizes.IconSmall),
-                        contentAlignment = Alignment.Center
+                    Row(
+                        modifier = Modifier.height(24.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(2.dp)
                     ) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(Sizes.IconSmall * animatedHeight)
-                                .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(Sizes.CornerSmall))
-                        )
+                        for (i in 0 until 5) {
+                            val seed = remember { Random.nextFloat() * 0.5f + 0.5f }
+                            val targetHeight = (24.dp * normalizedAmp * seed).coerceIn(4.dp, 24.dp)
+                            val animatedHeight by animateDpAsState(
+                                targetValue = targetHeight,
+                                animationSpec = tween(100),
+                                label = "amp_$i"
+                            )
+                            Box(
+                                modifier = Modifier
+                                    .width(4.dp)
+                                    .height(animatedHeight)
+                                    .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(Sizes.CornerSmall))
+                            )
+                        }
                     }
                 }
-                Text(
-                    text = stringResource(R.string.voice_cancel_hint),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = Color.White.copy(alpha = 0.5f)
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(Spacing.ExtraSmall)
+                ) {
+                    val isCanceling = slideOffset < -100f
+                    val cancelColor = if (isCanceling) MaterialTheme.colorScheme.error else Color.White.copy(alpha = 0.5f)
+
+                    val shakeOffset = if (isCanceling) {
+                        val infiniteTransition = rememberInfiniteTransition(label = "shake")
+                        infiniteTransition.animateFloat(
+                            initialValue = -5f,
+                            targetValue = 5f,
+                            animationSpec = infiniteRepeatable(
+                                animation = tween(50, easing = LinearEasing),
+                                repeatMode = RepeatMode.Reverse
+                            ),
+                            label = "shakeOffset"
+                        ).value
+                    } else 0f
+
+                    Icon(
+                        Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(Sizes.IconSemiMedium)
+                            .offset(x = shakeOffset.dp),
+                        tint = cancelColor
+                    )
+                    Text(
+                        text = stringResource(R.string.voice_cancel_hint),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = cancelColor,
+                        modifier = Modifier.offset(x = shakeOffset.dp)
+                    )
+                }
             }
         }
 
@@ -332,9 +398,50 @@ fun ChatInputBar(
                 )
 
                 @OptIn(ExperimentalFoundationApi::class)
+                Box(
+                    modifier = Modifier
+                        .size(Sizes.InputButtonCompact),
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (isRecording) {
+                        val infiniteTransition = rememberInfiniteTransition(label = "pulse")
+                        val pulseScale by infiniteTransition.animateFloat(
+                            initialValue = 1f,
+                            targetValue = 1.6f,
+                            animationSpec = infiniteRepeatable(
+                                animation = tween(1000, easing = LinearEasing),
+                                repeatMode = RepeatMode.Restart
+                            ),
+                            label = "pulseScale"
+                        )
+                        val pulseAlpha by infiniteTransition.animateFloat(
+                            initialValue = 0.4f,
+                            targetValue = 0f,
+                            animationSpec = infiniteRepeatable(
+                                animation = tween(1000, easing = LinearEasing),
+                                repeatMode = RepeatMode.Restart
+                            ),
+                            label = "pulseAlpha"
+                        )
+                        Box(
+                            modifier = Modifier
+                                .matchParentSize()
+                                .graphicsLayer {
+                                    scaleX = pulseScale
+                                    scaleY = pulseScale
+                                    alpha = pulseAlpha
+                                }
+                                .background(MaterialTheme.colorScheme.primary, CircleShape)
+                        )
+                    }
+
                 Surface(
                     modifier = Modifier
-                        .size(Sizes.InputButtonCompact)
+                        .matchParentSize()
+                        .graphicsLayer {
+                            scaleX = micScale
+                            scaleY = micScale
+                        }
                         .pointerInput(inputText, canSendMessage) {
                             detectTapGestures(
                                 onPress = {
@@ -396,6 +503,7 @@ fun ChatInputBar(
                             )
                         }
                     }
+                }
                 }
 
             }
