@@ -380,10 +380,9 @@ fun SearchScreen(
                         } // End else branch
                     } // End outer when
                 } // End SkeletonMorphedContent
-        } // End HorizontalPager Box
-    } // End HorizontalPager content
-} // End Column scope
-} // End Scaffold innerPadding scope
+            } // End HorizontalPager
+        } // End Column
+    } // End Scaffold
 
     selectedPost?.let { post ->
         PostOptionsBottomSheet(
