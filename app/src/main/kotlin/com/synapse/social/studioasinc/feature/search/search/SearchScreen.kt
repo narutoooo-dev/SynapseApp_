@@ -102,6 +102,7 @@ fun SearchScreen(
         }
     }
     
+    // Handle block success/error messages
     LaunchedEffect(uiState.blockSuccess, uiState.blockError) {
         when {
             uiState.blockSuccess -> {
@@ -454,7 +455,7 @@ fun SearchScreen(
                     }
                 }
             }
-        )
+        }
 
         NeuralParticleEmitter(
             targetRect = searchBarBounds,
