@@ -20,6 +20,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -108,7 +109,7 @@ fun ChatInputBar(
                             overflow = TextOverflow.Ellipsis
                         )
                     }
-                    IconButton(onClick = onCancelReply, modifier = Modifier.size(Sizes.IconLarge)) {
+                    IconButton(onClick = onCancelReply, modifier = Modifier.size(Sizes.IconLarge),) {
                         Icon(Icons.Default.Close, contentDescription = "Cancel reply", modifier = Modifier.size(Sizes.IconSemiMedium))
                     }
                 }
@@ -141,7 +142,7 @@ fun ChatInputBar(
                             overflow = TextOverflow.Ellipsis
                         )
                     }
-                    IconButton(onClick = onCancelEditing, modifier = Modifier.size(Sizes.IconLarge)) {
+                    IconButton(onClick = onCancelEditing, modifier = Modifier.size(Sizes.IconLarge),) {
                         Icon(Icons.Default.Close, contentDescription = "Cancel edit", modifier = Modifier.size(Sizes.IconSemiMedium))
                     }
                 }
@@ -158,7 +159,7 @@ fun ChatInputBar(
                 modifier = Modifier
                     .fillMaxWidth()
                     .horizontalScroll(rememberScrollState())
-                    .padding(horizontal = Spacing.Small, vertical = Spacing.ExtraSmall),
+                    .padding(Spacing.ExtraSmall),
                 horizontalArrangement = Arrangement.spacedBy(Spacing.Small)
             ) {
                 smartReplies.forEach { reply ->
@@ -186,7 +187,7 @@ fun ChatInputBar(
                 url = firstUrl,
                 useCase = getLinkMetadataUseCase,
                 onRemove = { dismissedPreviewUrl = firstUrl },
-                modifier = Modifier.padding(horizontal = Spacing.Small, vertical = Spacing.ExtraSmall).fillMaxWidth()
+                modifier = Modifier.padding(horizontal = Spacing.ExtraSmall, vertical = Spacing.ExtraSmallMedium).fillMaxWidth()
             )
         }
 
@@ -253,7 +254,7 @@ fun ChatInputBar(
                 Text(
                     text = stringResource(R.string.voice_cancel_hint),
                     style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = Color.White.copy(alpha = 0.5f)
                 )
             }
         }
@@ -262,14 +263,14 @@ fun ChatInputBar(
         Surface(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(Sizes.CornerMassive),
-            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+            color = Color(0xFF1E1E1E),
             tonalElevation = Sizes.BorderDefault,
             shadowElevation = Spacing.ExtraSmall
         ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = Spacing.None, bottom = Spacing.None, end = Spacing.Tiny),
+                    .padding(Spacing.ExtraSmall),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 // Emoji / Attachment button
@@ -278,7 +279,7 @@ fun ChatInputBar(
                         Icon(
                             Icons.Default.Add,
                             contentDescription = "Attach file",
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            tint = Color.White
                         )
                     }
                     if (showAttachmentMenu) {
@@ -309,20 +310,20 @@ fun ChatInputBar(
                     onValueChange = onInputTextChange,
                     modifier = Modifier
                         .weight(1f)
-                        .padding(vertical = Spacing.ExtraSmall),
+                        .padding(horizontal = Spacing.Small),
                     enabled = canSendMessage,
                     maxLines = 4,
                     textStyle = MaterialTheme.typography.bodyLarge.copy(
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = Color.White
                     ),
-                    cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+                    cursorBrush = SolidColor(Color(0xFF4CAF50)),
                     decorationBox = { innerTextField ->
                         Box {
                             if (inputText.isEmpty()) {
                                 Text(
                                     text = stringResource(R.string.chat_type_message),
                                     style = MaterialTheme.typography.bodyLarge,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    color = Color.White.copy(alpha = 0.5f)
                                 )
                             }
                             innerTextField()
@@ -333,7 +334,7 @@ fun ChatInputBar(
                 @OptIn(ExperimentalFoundationApi::class)
                 Surface(
                     modifier = Modifier
-                        .size(Sizes.SendButtonCompact)
+                        .size(Sizes.InputButtonCompact)
                         .pointerInput(inputText, canSendMessage) {
                             detectTapGestures(
                                 onPress = {
@@ -370,32 +371,41 @@ fun ChatInputBar(
                             }
                         },
                     shape = CircleShape,
-                    color = MaterialTheme.colorScheme.primary,
+                    color = Color(0xFF4CAF50),
                     contentColor = MaterialTheme.colorScheme.onPrimary
                 ) {
                     Box(contentAlignment = Alignment.Center) {
                         val icon = when {
                             editingMessage != null -> Icons.Default.Check
                             inputText.isEmpty() && canSendMessage -> Icons.Default.Mic
-                            else -> Icons.AutoMirrored.Filled.Send
+                            else -> Icons.Default.ArrowUpward
                         }
-                        Icon(
-                            icon,
-                            contentDescription = stringResource(if (inputText.isEmpty()) R.string.voice_hold_to_record else R.string.chat_action_send),
-                            modifier = Modifier.size(Sizes.IconDefault)
-                        )
+                        AnimatedContent(
+                            targetState = icon,
+                            transitionSpec = {
+                                fadeIn(animationSpec = tween(300)) + scaleIn(initialScale = 0.8f, animationSpec = tween(300)) togetherWith
+                                fadeOut(animationSpec = tween(300)) + scaleOut(targetScale = 0.8f, animationSpec = tween(300))
+                            },
+                            label = "iconAnimation"
+                        ) { targetIcon ->
+                            Icon(
+                                targetIcon,
+                                contentDescription = stringResource(if (inputText.isEmpty()) R.string.voice_hold_to_record else R.string.chat_action_send),
+                                modifier = Modifier.size(Sizes.IconLarge),
+                                tint = Color.White
+                            )
+                        }
                     }
                 }
 
             }
         }
-
         // Hint if restricted
         if (!canSendMessage) {
             Text(
                 text = stringResource(R.string.only_admins_can_message_hint),
                 style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = Color.White.copy(alpha = 0.5f),
                 modifier = Modifier.align(Alignment.CenterHorizontally).padding(top = Spacing.ExtraSmall)
             )
         }
