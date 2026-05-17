@@ -10,6 +10,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Crop
+import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -34,8 +35,11 @@ import com.synapse.social.studioasinc.domain.model.Story
 import com.synapse.social.studioasinc.domain.model.StoryMediaType
 import com.synapse.social.studioasinc.domain.model.User
 import kotlinx.coroutines.delay
+import java.time.Duration
+import java.time.Instant
 import com.synapse.social.studioasinc.feature.shared.theme.Sizes
 import com.synapse.social.studioasinc.feature.shared.theme.Spacing
+import com.synapse.social.studioasinc.feature.stories.management.ViewerListSheet
 
 @OptIn(UnstableApi::class)
 @Composable
@@ -115,6 +119,31 @@ fun StoryViewerScreen(
                     )
                 }
 
+                if (uiState.isOwnStory) {
+                    TextButton(
+                        onClick = {
+                            currentStory.id?.let { id ->
+                                viewModel.loadViewers(id)
+                                viewModel.showViewersSheet()
+                            }
+                        },
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .padding(bottom = Spacing.Medium)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Visibility,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onPrimary
+                        )
+                        Spacer(modifier = Modifier.width(Spacing.ExtraSmall))
+                        Text(
+                            text = stringResource(R.string.seen_by_count, uiState.viewers.size),
+                            color = MaterialTheme.colorScheme.onPrimary
+                        )
+                    }
+                }
+
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
@@ -135,6 +164,15 @@ fun StoryViewerScreen(
                         user = uiState.user,
                         storyTime = currentStory.createdAt,
                         onClose = onClose
+                    )
+                }
+
+                if (uiState.showViewersSheet) {
+                    ViewerListSheet(
+                        viewers = uiState.viewers,
+                        isLoading = uiState.isLoadingViewers,
+                        onDismiss = { viewModel.hideViewersSheet() },
+                        onUserClick = { /* no-op for now */ }
                     )
                 }
             }
@@ -314,6 +352,13 @@ fun StoryUserHeader(
                 color = MaterialTheme.colorScheme.onPrimary
             )
 
+            if (storyTime != null) {
+                Text(
+                    text = formatTimeAgo(storyTime),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f)
+                )
+            }
         }
 
 
@@ -324,5 +369,24 @@ fun StoryUserHeader(
                 tint = MaterialTheme.colorScheme.onPrimary
             )
         }
+    }
+}
+
+private fun formatTimeAgo(timestamp: String?): String {
+    if (timestamp == null) return ""
+
+    return try {
+        val instant = Instant.parse(timestamp)
+        val now = Instant.now()
+        val duration = Duration.between(instant, now)
+
+        when {
+            duration.toMinutes() < 1 -> "Just now"
+            duration.toMinutes() < 60 -> "${duration.toMinutes()}m"
+            duration.toHours() < 24 -> "${duration.toHours()}h"
+            else -> "${duration.toDays()}d"
+        }
+    } catch (e: Exception) {
+        ""
     }
 }
