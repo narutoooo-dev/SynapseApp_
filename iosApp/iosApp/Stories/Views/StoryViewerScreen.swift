@@ -1,16 +1,90 @@
 import SwiftUI
+import shared
 
 struct StoryViewerScreen: View {
-    @StateObject private var viewModel = StoryViewerViewModel()
     @Environment(\.presentationMode) var presentationMode
 
-    let storyGroup: StoryGroup?
+    let storyGroups: [StoryGroup]
+    @State private var selectedGroupIndex: Int
     let isOwnStory: Bool
 
-    init(storyGroup: StoryGroup? = nil, isOwnStory: Bool = false) {
-        self.storyGroup = storyGroup
+    init(storyGroups: [StoryGroup], initialIndex: Int, isOwnStory: Bool = false) {
+        self.storyGroups = storyGroups
+        self._selectedGroupIndex = State(initialValue: initialIndex)
         self.isOwnStory = isOwnStory
     }
+
+    var body: some View {
+        GeometryReader { outerGeo in
+            TabView(selection: $selectedGroupIndex) {
+                ForEach(0..<storyGroups.count, id: \.self) { index in
+                    GroupView(
+                        group: storyGroups[index],
+                        isOwnStory: isOwnStory && index == 0,
+                        onClose: {
+                            presentationMode.wrappedValue.dismiss()
+                        },
+                        onFinished: {
+                            if selectedGroupIndex < storyGroups.count - 1 {
+                                withAnimation {
+                                    selectedGroupIndex += 1
+                                }
+                            } else {
+                                presentationMode.wrappedValue.dismiss()
+                            }
+                        }
+                    )
+                    .tag(index)
+                    .visualEffect { content, proxy in
+                        content
+                            .rotation3DEffect(
+                                .degrees(getRotation(proxy: proxy, screenWidth: outerGeo.size.width)),
+                                axis: (x: 0, y: 1, z: 0),
+                                anchor: getAnchor(proxy: proxy),
+                                perspective: 1.0
+                            )
+                            .overlay(
+                                Color.black.opacity(getOpacity(proxy: proxy, screenWidth: outerGeo.size.width))
+                            )
+                    }
+                }
+            }
+            .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
+            .background(Color.black)
+            .edgesIgnoringSafeArea(.all)
+        }
+    }
+
+    private func getRotation(proxy: GeometryProxy, screenWidth: CGFloat) -> Double {
+        let scrollOffset = proxy.frame(in: .global).minX
+        let progress = scrollOffset / screenWidth
+        return Double(-progress * 90)
+    }
+
+    private func getAnchor(proxy: GeometryProxy) -> UnitPoint {
+        let scrollOffset = proxy.frame(in: .global).minX
+        if scrollOffset > 0 {
+            return .leading
+        } else if scrollOffset < 0 {
+            return .trailing
+        } else {
+            return .center
+        }
+    }
+
+    private func getOpacity(proxy: GeometryProxy, screenWidth: CGFloat) -> Double {
+        let scrollOffset = proxy.frame(in: .global).minX
+        let progress = abs(scrollOffset / screenWidth)
+        return Double(min(progress * 0.7, 0.7))
+    }
+}
+
+private struct GroupView: View {
+    @StateObject private var viewModel = StoryViewerViewModel()
+    let group: StoryGroup
+    let isOwnStory: Bool
+    let onClose: () -> Void
+    let onFinished: () -> Void
 
     var body: some View {
         ZStack {
@@ -36,7 +110,6 @@ struct StoryViewerScreen: View {
                             Color.gray
                         }
                     } else {
-                        // Implement Video Player logic similar to Creator if needed
                          Color.gray.overlay(Text("Video Unsupported Mock"))
                     }
 
@@ -80,14 +153,6 @@ struct StoryViewerScreen: View {
                     }
                 }
                 .edgesIgnoringSafeArea(.all)
-                .gesture(
-                    DragGesture()
-                        .onEnded { value in
-                            if value.translation.height > 50 {
-                                presentationMode.wrappedValue.dismiss()
-                            }
-                        }
-                )
 
                 // Overlay Header
                 VStack {
@@ -110,12 +175,12 @@ struct StoryViewerScreen: View {
                         }
                     }
                     .padding(.horizontal)
-                    .padding(.top, 50) // Adjust for safe area
+                    .padding(.top, 50)
 
                     HStack {
                         Spacer()
                         Button(action: {
-                            presentationMode.wrappedValue.dismiss()
+                            onClose()
                         }) {
                             Image(systemName: "xmark")
                                 .font(.title2)
@@ -164,9 +229,8 @@ struct StoryViewerScreen: View {
             }
         }
         .onAppear {
-            if let group = storyGroup {
-                viewModel.configure(with: group, isOwnStory: isOwnStory)
-            }
+            viewModel.onFinished = onFinished
+            viewModel.configure(with: group, isOwnStory: isOwnStory)
         }
     }
 }

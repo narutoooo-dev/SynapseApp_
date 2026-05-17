@@ -69,11 +69,13 @@ class StoryViewerViewModel: ObservableObject {
         }
     }
 
+    var onFinished: (() -> Void)?
+
     func nextStory() {
         if currentIndex < stories.count - 1 {
             currentIndex += 1
         } else {
-            // Reached the end, close viewer
+            onFinished?()
         }
     }
 

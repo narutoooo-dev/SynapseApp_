@@ -64,7 +64,7 @@ fun FeedScreen(
     onQuoteClick: (String) -> Unit,
     onMediaClick: (Int) -> Unit,
     onEditPost: (String) -> Unit,
-    onStoryClick: (String) -> Unit = { _ -> },
+    onStoryClick: (String, List<String>) -> Unit = { _, _ -> },
     onAddStoryClick: () -> Unit = {},
     onCreatePostClick: () -> Unit = {},
     contentPadding: PaddingValues = PaddingValues(0.dp)
@@ -188,19 +188,21 @@ fun FeedScreen(
                 }
 
                 item(key = "story_tray") {
+                    val allActiveUserIds = remember(storyTrayState) {
+                        storyTrayState.allStories.map { it.user.uid }
+                    }
 
-
-                    val onMyStoryClickMemoized = remember(storyTrayState.myStory) {
+                    val onMyStoryClickMemoized = remember(storyTrayState.myStory, allActiveUserIds) {
                         {
                             storyTrayState.myStory?.let { myStory ->
-                                currentOnStoryClick(myStory.user.uid)
+                                currentOnStoryClick(myStory.user.uid, allActiveUserIds)
                             }
                             Unit
                         }
                     }
-                    val onStoryClickMemoized = remember {
+                    val onStoryClickMemoized = remember(allActiveUserIds) {
                         { storyWithUser: StoryWithUser ->
-                            currentOnStoryClick(storyWithUser.user.uid)
+                            currentOnStoryClick(storyWithUser.user.uid, allActiveUserIds)
                         }
                     }
 
