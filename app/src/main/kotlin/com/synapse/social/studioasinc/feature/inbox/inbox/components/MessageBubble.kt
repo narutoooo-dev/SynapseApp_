@@ -22,7 +22,6 @@ import androidx.compose.material.icons.filled.DoneAll
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.AddReaction
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
@@ -135,11 +134,13 @@ fun SenderHeaderRow(
             )
         }
         Spacer(modifier = Modifier.weight(1f))
-        Icon(
-            imageVector = Icons.Filled.Star,
-            contentDescription = "Starred",
-            tint = if (isStarred) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
-        )
+        if (isStarred) {
+            Icon(
+                imageVector = Icons.Filled.Star,
+                contentDescription = "Starred",
+                tint = MaterialTheme.colorScheme.primary
+            )
+        }
     }
 }
 
