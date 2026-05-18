@@ -84,7 +84,7 @@ internal class ChatRealtimeDataSource(private val client: SupabaseClientLib) {
             yield()
             try {
                 val status = channel.status.value
-                if (status == RealtimeChannel.Status.UNSUBSCRIBED || status == RealtimeChannel.Status.UNSUBSCRIBED) {
+                if (status == RealtimeChannel.Status.UNSUBSCRIBED) {
                     channel.subscribe()
                 } else {
                     Napier.w("Channel $channelId already in state $status, skip subscribe")
@@ -135,7 +135,7 @@ internal class ChatRealtimeDataSource(private val client: SupabaseClientLib) {
             yield()
             try {
                 val status = channel.status.value
-                if (status == RealtimeChannel.Status.UNSUBSCRIBED || status == RealtimeChannel.Status.UNSUBSCRIBED) {
+                if (status == RealtimeChannel.Status.UNSUBSCRIBED) {
                     channel.subscribe()
                 }
             } catch (e: Exception) {
@@ -198,7 +198,7 @@ internal class ChatRealtimeDataSource(private val client: SupabaseClientLib) {
             yield()
             try {
                 val status = channel.status.value
-                if (status == RealtimeChannel.Status.UNSUBSCRIBED || status == RealtimeChannel.Status.UNSUBSCRIBED) {
+                if (status == RealtimeChannel.Status.UNSUBSCRIBED) {
                     channel.subscribe()
                 }
             } catch (e: Exception) {
@@ -244,7 +244,7 @@ internal class ChatRealtimeDataSource(private val client: SupabaseClientLib) {
             yield()
             try {
                 val status = channel.status.value
-                if (status == RealtimeChannel.Status.UNSUBSCRIBED || status == RealtimeChannel.Status.UNSUBSCRIBED) {
+                if (status == RealtimeChannel.Status.UNSUBSCRIBED) {
                     channel.subscribe()
                 }
             } catch (e: Exception) {
@@ -295,7 +295,7 @@ internal class ChatRealtimeDataSource(private val client: SupabaseClientLib) {
             yield()
             try {
                 val status = channel.status.value
-                if (status == RealtimeChannel.Status.UNSUBSCRIBED || status == RealtimeChannel.Status.UNSUBSCRIBED) {
+                if (status == RealtimeChannel.Status.UNSUBSCRIBED) {
                     channel.subscribe()
                 }
             } catch (e: Exception) {

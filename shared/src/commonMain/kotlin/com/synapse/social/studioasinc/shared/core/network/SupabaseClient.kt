@@ -1,16 +1,21 @@
 package com.synapse.social.studioasinc.shared.core.network
 
 import com.synapse.social.studioasinc.shared.core.config.SynapseConfig
+import com.synapse.social.studioasinc.shared.core.util.AppDispatchers
 import io.github.jan.supabase.createSupabaseClient
 import io.github.jan.supabase.auth.Auth
 import io.github.jan.supabase.postgrest.Postgrest
 import io.github.jan.supabase.realtime.Realtime
+import io.github.jan.supabase.realtime.realtime
 import io.github.jan.supabase.storage.Storage
 import io.github.jan.supabase.functions.Functions
 import io.github.jan.supabase.annotations.SupabaseInternal
 import io.github.aakira.napier.Napier
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.http.Url
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 
 import io.github.jan.supabase.serializer.KotlinXSerializer
 import kotlinx.serialization.json.Json
@@ -24,6 +29,8 @@ object SupabaseClient {
     const val BUCKET_POST_MEDIA = "posts"
     const val BUCKET_USER_AVATARS = "avatars"
     const val BUCKET_USER_COVERS = "covers"
+
+    private val clientScope = CoroutineScope(AppDispatchers.IO + SupervisorJob())
 
     @OptIn(SupabaseInternal::class)
     val client by lazy {
@@ -57,6 +64,16 @@ object SupabaseClient {
                         requestTimeoutMillis = 300_000
                         connectTimeoutMillis = 60_000
                         socketTimeoutMillis = 300_000
+                    }
+                }
+            }.also {
+                // Automatically connect to Realtime when client is first initialized
+                clientScope.launch {
+                    try {
+                        it.realtime.connect()
+                        Napier.d("Realtime connected successfully", tag = TAG)
+                    } catch (e: Exception) {
+                        Napier.e("Failed to connect to Realtime automatically", e, tag = TAG)
                     }
                 }
             }

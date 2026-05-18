@@ -24,6 +24,8 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.runtime.*
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalDensity
 import kotlin.random.Random
 import androidx.compose.ui.Alignment
@@ -87,6 +89,7 @@ fun ChatInputBar(
         label = "micScale"
     )
 
+    val focusRequester = remember { FocusRequester() }
     var isFocused by remember { mutableStateOf(false) }
     val isImeVisible = WindowInsets.ime.getBottom(LocalDensity.current) > 0
     val inputWidthFraction by animateFloatAsState(
@@ -192,6 +195,7 @@ fun ChatInputBar(
                         onClick = {
                             onInputTextChange(reply)
                             onSendMessage()
+                                        focusRequester.requestFocus()
                         },
                         label = { Text(reply) },
                         leadingIcon = {
@@ -390,7 +394,7 @@ fun ChatInputBar(
                 BasicTextField(
                     value = inputText,
                     onValueChange = onInputTextChange,
-                    modifier = Modifier
+                    modifier = Modifier.focusRequester(focusRequester)
                         .weight(1f)
                         .padding(horizontal = Spacing.Small)
                         .onFocusChanged { isFocused = it.isFocused },
@@ -481,6 +485,7 @@ fun ChatInputBar(
                                 onTap = {
                                     if (inputText.isNotEmpty()) {
                                         onSendMessage()
+                                        focusRequester.requestFocus()
                                         dismissedPreviewUrl = null
                                     }
                                 }
