@@ -342,6 +342,12 @@ class ChatViewModel @Inject constructor(
         }
     }
 
+    /** Restarts real-time subscriptions (e.g. after app resumes from background). */
+    fun restartSubscriptions() {
+        val chatId = currentChatId ?: return
+        subscriptionDelegate.restartSubscriptions(chatId)
+    }
+
     fun loadMoreMessages() {
         val chatId = currentChatId ?: return
         if (_isLoadingMore.value || !_hasMoreMessages.value) return
