@@ -20,6 +20,9 @@ import com.synapse.social.studioasinc.R
 import com.synapse.social.studioasinc.domain.model.Post
 import com.synapse.social.studioasinc.feature.shared.theme.Sizes
 import com.synapse.social.studioasinc.feature.shared.theme.Spacing
+import com.synapse.social.studioasinc.core.ui.components.ElasticContainer
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.rememberScrollState
 
 data class PostOption(
     val label: String,
@@ -54,9 +57,12 @@ fun PostOptionsBottomSheet(
         onDismissRequest = onDismiss,
         containerColor = MaterialTheme.colorScheme.surface
     ) {
+        ElasticContainer(modifier = Modifier.fillMaxWidth()) { elasticModifier ->
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .then(elasticModifier)
+                .verticalScroll(rememberScrollState())
                 .padding(bottom = Spacing.Medium)
         ) {
 
@@ -122,6 +128,7 @@ fun PostOptionsBottomSheet(
                     OptionItem(option = option)
                 }
             }
+        }
         }
     }
 

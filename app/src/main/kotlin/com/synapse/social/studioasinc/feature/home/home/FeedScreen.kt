@@ -53,6 +53,7 @@ import com.synapse.social.studioasinc.feature.shared.components.post.PostSummary
 import com.synapse.social.studioasinc.ui.components.ExpressivePullToRefreshIndicator
 import com.synapse.social.studioasinc.feature.stories.tray.StoryTray
 import com.synapse.social.studioasinc.feature.stories.tray.StoryTrayViewModel
+import com.synapse.social.studioasinc.core.ui.components.ElasticContainer
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -182,10 +183,12 @@ fun FeedScreen(
                         !isRefreshing
 
         androidx.compose.runtime.CompositionLocalProvider(com.synapse.social.studioasinc.feature.shared.components.LocalLinkMetadataUseCase provides linkViewModel.getLinkMetadataUseCase) {
+            ElasticContainer(modifier = Modifier.fillMaxSize()) { elasticModifier ->
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.background),
+                    .background(MaterialTheme.colorScheme.background)
+                    .then(elasticModifier),
                 contentPadding = contentPadding
             ) {
 
@@ -290,6 +293,7 @@ fun FeedScreen(
                         )
                     }
                 }
+            }
             }
         }
     }
